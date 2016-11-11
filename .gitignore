@@ -1,0 +1,5 @@
+# Editors
+*.swp
+
+# Databases
+*.db
