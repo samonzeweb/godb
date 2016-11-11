@@ -3,3 +3,6 @@
 
 # Databases
 *.db
+
+# Others
+.DS_Store
