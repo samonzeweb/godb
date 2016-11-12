@@ -21,7 +21,6 @@ func initGlobalStructsMapping() {
 	globalStructsMapping.structsMapping = make(map[string]*dbreflect.StructMapping)
 }
 
-//
 // structMap return a StructMapping with a given type from the StructMapping
 // cache. The StructMapping will be created if needed.
 func getOrCreateStructMapping(structType reflect.Type) (*dbreflect.StructMapping, error) {

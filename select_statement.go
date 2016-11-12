@@ -1,8 +1,14 @@
 package godb
 
+import (
+	"fmt"
+	"reflect"
+)
+
 //
 type selectStatement struct {
-	db         *DB
+	db *DB
+
 	distinct   bool
 	columns    []string
 	fromTables []string
@@ -22,6 +28,11 @@ type joinPart struct {
 	tableName string
 	as        string
 	on        *Condition
+}
+
+// SelectFrom initialise a select statement builder
+func (db *DB) SelectFrom(tableName string) *selectStatement {
+	return newSelectStatement(db, tableName)
 }
 
 // Create a new select statement
@@ -179,4 +190,65 @@ func (ss *selectStatement) ToSQL() (string, []interface{}, error) {
 	}
 
 	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
+}
+
+// Do execute the select statement
+// The target argument has to be a pointer to a struct or a slice
+func (ss *selectStatement) Do(target interface{}) error {
+	targetInfo := reflect.TypeOf(target)
+	if targetInfo.Kind() != reflect.Ptr {
+		return fmt.Errorf("Invalid argument, need a pointer, got a %s", targetInfo.Kind())
+	}
+	targetInfo = targetInfo.Elem()
+
+	switch targetInfo.Kind() {
+	case reflect.Struct:
+		return ss.doForStruct(target, targetInfo)
+	case reflect.Slice:
+		// TODO
+		return nil
+	default:
+		return fmt.Errorf("Invalid argument, need a struct or slice, got a %s", targetInfo.Kind())
+	}
+}
+
+// doForStruct executes the statement and fill the struct
+func (ss *selectStatement) doForStruct(target interface{}, targetInfo reflect.Type) error {
+	// Only one row is requested
+	ss.Limit(1)
+	sql, args, err := ss.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	structMapping, err := getOrCreateStructMapping(targetInfo)
+	if err != nil {
+		return err
+	}
+
+	rows, err := ss.db.sqlDB.Query(sql, args...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	columns, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+
+	for rows.Next() {
+		pointers, err := structMapping.GetPointersForColumns(target, columns...)
+		if err != nil {
+			return err
+		}
+		err = rows.Scan(pointers...)
+		if err != nil {
+			return err
+		}
+
+		break // only one row... refactor later for slices
+	}
+
+	return rows.Err()
 }

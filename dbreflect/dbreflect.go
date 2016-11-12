@@ -19,7 +19,7 @@ type StructMapping struct {
 	fieldsMapping []fieldMapping
 }
 
-// fieldMapping contains the relation between a a field and a database column
+// fieldMapping contains the relation between a field and a database column
 type fieldMapping struct {
 	name     string
 	sqlName  string
@@ -168,4 +168,34 @@ func (sm *StructMapping) GetNonAutoColumnsNamesAndValues(s interface{}) map[stri
 		}
 	}
 	return m
+}
+
+//
+func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string) ([]interface{}, error) {
+	// TODO : check type
+	v := reflect.ValueOf(s)
+	v = reflect.Indirect(v)
+
+	pointers := make([]interface{}, 0, len(columns))
+	for _, column := range columns {
+		fieldMapping, err := sm.findFieldMapping(column)
+		if err != nil {
+			return nil, err
+		}
+		fieldValue := v.FieldByName(fieldMapping.name)
+		pointers = append(pointers, fieldValue.Addr().Interface())
+	}
+
+	return pointers, nil
+}
+
+// findFieldMapping find the fieldMapping instance for the given column name
+func (sm *StructMapping) findFieldMapping(columnName string) (*fieldMapping, error) {
+	for _, fm := range sm.fieldsMapping {
+		if fm.sqlName == columnName {
+			return &fm, nil
+		}
+	}
+
+	return nil, fmt.Errorf("No field mapping for column %s", columnName)
 }

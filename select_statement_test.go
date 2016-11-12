@@ -3,6 +3,8 @@ package godb
 import (
 	"testing"
 
+	"gitlab.com/samonzeweb/godb/adapters/sqlite"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -301,6 +303,61 @@ func TestSelectPreparedStatement(t *testing.T) {
 		Convey("SQL is well builded", func() {
 			_, _, err := q.ToSQL()
 			So(err, ShouldBeNil)
+		})
+	})
+}
+
+type Dummy struct {
+	ID          int    `db:"id,key,auto"`
+	AText       string `db:"a_text"`
+	AnotherText string `db:"another_text"`
+	AnInteger   int    `db:"an_integer"`
+}
+
+func TestDo(t *testing.T) {
+	Convey("Given a test database", t, func() {
+		db, err := Open(sqlite.Adapter, ":memory:")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		createTable :=
+			`create table dummies (
+			id 						integer not null primary key autoincrement,
+		  a_text     		text not null,
+			another_text	text not null,
+		  an_integer 		integer not null);
+		`
+		_, err = db.sqlDB.Exec(createTable)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		insertRows :=
+			`insert into dummies
+			(a_text, another_text, an_integer)
+			values
+			("First", "Premier", 11),
+			("Second", "Second", 12),
+			("Third", "Troisième", 13);
+		`
+		_, err = db.sqlDB.Exec(insertRows)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		Convey("Do execute the query and fills a given instance", func() {
+			singleDummy := Dummy{}
+			selectStmt := db.SelectFrom("dummies").
+				Columns("id", "a_text", "another_text", "an_integer").
+				Where("an_integer = ?", 13)
+
+			err = selectStmt.Do(&singleDummy)
+			So(err, ShouldBeNil)
+			So(singleDummy.ID, ShouldBeGreaterThan, 0)
+			So(singleDummy.AText, ShouldEqual, "Third")
+			So(singleDummy.AnotherText, ShouldEqual, "Troisième")
+			So(singleDummy.AnInteger, ShouldEqual, 13)
 		})
 	})
 }

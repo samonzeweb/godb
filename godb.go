@@ -29,8 +29,3 @@ func Open(adapter adapters.DriverName, dataSourceName string) (*DB, error) {
 	}
 	return &db, nil
 }
-
-// SelectFrom initialise a select statement builder
-func (db *DB) SelectFrom(tableName string) *selectStatement {
-	return newSelectStatement(db, tableName)
-}

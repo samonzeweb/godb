@@ -39,3 +39,39 @@ func TestNewStructMappingErrors(t *testing.T) {
 		})
 	})
 }
+
+func TestGetPointersForColumns(t *testing.T) {
+	Convey("Given a StructMapping and a struct instance", t, func() {
+		structInstance := simpleStruct{}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetPointersForColumns return pointers corresponding to a given column name", func() {
+			ptrs, err := structMap.GetPointersForColumns(&structInstance, "my_text")
+			So(err, ShouldBeNil)
+			So(len(ptrs), ShouldEqual, 1)
+			So(ptrs[0], ShouldEqual, &(structInstance.Text))
+		})
+
+		Convey("GetPointersForColumns return pointers corresponding to given columns names", func() {
+			ptrs, err := structMap.GetPointersForColumns(&structInstance, "id", "my_text")
+			So(err, ShouldBeNil)
+			So(len(ptrs), ShouldEqual, 2)
+			So(ptrs[0], ShouldEqual, &(structInstance.ID))
+			So(ptrs[1], ShouldEqual, &(structInstance.Text))
+		})
+	})
+}
+
+func TestFindFieldMapping(t *testing.T) {
+	Convey("Given a StructMapping and a struct instance", t, func() {
+		structInstance := simpleStruct{}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("findFieldMapping return a fieldMapping for a given column name", func() {
+			fm, err := structMap.findFieldMapping("my_text")
+			So(err, ShouldBeNil)
+			So(fm, ShouldNotBeNil)
+			So(fm.sqlName, ShouldEqual, "my_text")
+		})
+	})
+}
