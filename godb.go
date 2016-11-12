@@ -15,6 +15,10 @@ type DB struct {
 
 const Placeholder string = "?"
 
+func init() {
+	initGlobalStructsMapping()
+}
+
 // Open create a new DB struct and initialise a sql.DB connection.
 func Open(adapter adapters.DriverName, dataSourceName string) (*DB, error) {
 	db := DB{adapter: adapter}
@@ -26,6 +30,7 @@ func Open(adapter adapters.DriverName, dataSourceName string) (*DB, error) {
 	return &db, nil
 }
 
+// SelectFrom initialise a select statement builder
 func (db *DB) SelectFrom(tableName string) *selectStatement {
 	return newSelectStatement(db, tableName)
 }
