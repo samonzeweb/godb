@@ -1,10 +1,5 @@
 package godb
 
-import (
-	"fmt"
-	"reflect"
-)
-
 //
 type selectStatement struct {
 	db *DB
@@ -195,33 +190,22 @@ func (ss *selectStatement) ToSQL() (string, []interface{}, error) {
 // Do execute the select statement
 // The target argument has to be a pointer to a struct or a slice
 func (ss *selectStatement) Do(target interface{}) error {
-	targetInfo := reflect.TypeOf(target)
-	if targetInfo.Kind() != reflect.Ptr {
-		return fmt.Errorf("Invalid argument, need a pointer, got a %s", targetInfo.Kind())
-	}
-	targetInfo = targetInfo.Elem()
-
-	switch targetInfo.Kind() {
-	case reflect.Struct:
-		return ss.doForStruct(target, targetInfo)
-	case reflect.Slice:
-		// TODO
-		return nil
-	default:
-		return fmt.Errorf("Invalid argument, need a struct or slice, got a %s", targetInfo.Kind())
-	}
-}
-
-// doForStruct executes the statement and fill the struct
-func (ss *selectStatement) doForStruct(target interface{}, targetInfo reflect.Type) error {
-	// Only one row is requested
-	ss.Limit(1)
-	sql, args, err := ss.ToSQL()
+	targetInfo, err := extractType(target)
 	if err != nil {
 		return err
 	}
 
-	structMapping, err := getOrCreateStructMapping(targetInfo)
+	if targetInfo.IsSlice == false {
+		// Only one row is requested
+		ss.Limit(1)
+	}
+
+	return ss.do(targetInfo)
+}
+
+// do executes the statement and fill the struct or slice
+func (ss *selectStatement) do(targetInfo *targetDescription) error {
+	sql, args, err := ss.ToSQL()
 	if err != nil {
 		return err
 	}
@@ -238,16 +222,23 @@ func (ss *selectStatement) doForStruct(target interface{}, targetInfo reflect.Ty
 	}
 
 	for rows.Next() {
-		pointers, err := structMapping.GetPointersForColumns(target, columns...)
-		if err != nil {
-			return err
-		}
-		err = rows.Scan(pointers...)
-		if err != nil {
-			return err
-		}
+		err = targetInfo.fillTarget(
+			// Fill one instance with one row
+			func(target interface{}) error {
+				fieldsPointers, err := targetInfo.StructMapping.GetPointersForColumns(target, columns...)
+				if err != nil {
+					return err
+				}
+				err = rows.Scan(fieldsPointers...)
+				if err != nil {
+					return err
+				}
+				return nil
+			})
 
-		break // only one row... refactor later for slices
+		if err != nil {
+			return err
+		}
 	}
 
 	return rows.Err()
