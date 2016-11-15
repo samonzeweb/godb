@@ -314,37 +314,43 @@ type Dummy struct {
 	AnInteger   int    `db:"an_integer"`
 }
 
+func fixturesSetup() *DB {
+	db, err := Open(sqlite.Adapter, ":memory:")
+	if err != nil {
+		panic(err)
+	}
+
+	createTable :=
+		`create table dummies (
+		id 						integer not null primary key autoincrement,
+		a_text     		text not null,
+		another_text	text not null,
+		an_integer 		integer not null);
+	`
+	_, err = db.sqlDB.Exec(createTable)
+	if err != nil {
+		panic(err)
+	}
+
+	insertRows :=
+		`insert into dummies
+		(a_text, another_text, an_integer)
+		values
+		("First", "Premier", 11),
+		("Second", "Second", 12),
+		("Third", "Troisième", 13);
+	`
+	_, err = db.sqlDB.Exec(insertRows)
+	if err != nil {
+		panic(err)
+	}
+
+	return db
+}
+
 func TestDo(t *testing.T) {
 	Convey("Given a test database", t, func() {
-		db, err := Open(sqlite.Adapter, ":memory:")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		createTable :=
-			`create table dummies (
-			id 						integer not null primary key autoincrement,
-		  a_text     		text not null,
-			another_text	text not null,
-		  an_integer 		integer not null);
-		`
-		_, err = db.sqlDB.Exec(createTable)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		insertRows :=
-			`insert into dummies
-			(a_text, another_text, an_integer)
-			values
-			("First", "Premier", 11),
-			("Second", "Second", 12),
-			("Third", "Troisième", 13);
-		`
-		_, err = db.sqlDB.Exec(insertRows)
-		if err != nil {
-			t.Fatal(err)
-		}
+		db := fixturesSetup()
 
 		Convey("Do execute the query and fills a given instance", func() {
 			singleDummy := Dummy{}
@@ -352,7 +358,7 @@ func TestDo(t *testing.T) {
 				Columns("id", "a_text", "another_text", "an_integer").
 				Where("an_integer = ?", 13)
 
-			err = selectStmt.Do(&singleDummy)
+			err := selectStmt.Do(&singleDummy)
 			So(err, ShouldBeNil)
 			So(singleDummy.ID, ShouldBeGreaterThan, 0)
 			So(singleDummy.AText, ShouldEqual, "Third")
@@ -366,7 +372,7 @@ func TestDo(t *testing.T) {
 				Columns("id", "a_text", "another_text", "an_integer").
 				OrderBy("an_integer")
 
-			err = selectStmt.Do(&dummiesSlice)
+			err := selectStmt.Do(&dummiesSlice)
 			So(err, ShouldBeNil)
 			So(len(dummiesSlice), ShouldEqual, 3)
 			So(dummiesSlice[0].ID, ShouldBeGreaterThan, 0)
@@ -383,7 +389,7 @@ func TestDo(t *testing.T) {
 				Columns("id", "a_text", "another_text", "an_integer").
 				OrderBy("an_integer")
 
-			err = selectStmt.Do(&dummiesSlice)
+			err := selectStmt.Do(&dummiesSlice)
 			So(err, ShouldBeNil)
 			So(len(dummiesSlice), ShouldEqual, 3)
 			So(dummiesSlice[0].ID, ShouldBeGreaterThan, 0)
@@ -392,6 +398,24 @@ func TestDo(t *testing.T) {
 			So(dummiesSlice[0].AnInteger, ShouldEqual, 11)
 			So(dummiesSlice[1].AnInteger, ShouldEqual, 12)
 			So(dummiesSlice[2].AnInteger, ShouldEqual, 13)
+		})
+	})
+}
+
+func TestCount(t *testing.T) {
+	Convey("Given a test database", t, func() {
+		db := fixturesSetup()
+
+		Convey("Count returns the count of row mathing the request", func() {
+			selectStmt := db.SelectFrom("dummies")
+			count, err := selectStmt.Count()
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 3)
+
+			selectStmt = db.SelectFrom("dummies").Where("an_integer = ?", 12)
+			count, err = selectStmt.Count()
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 1)
 		})
 	})
 }

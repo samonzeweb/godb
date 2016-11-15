@@ -243,3 +243,23 @@ func (ss *selectStatement) do(targetInfo *targetDescription) error {
 
 	return rows.Err()
 }
+
+// Count run the request with COUNT(*) (remove others columns)
+// and returns the count
+func (ss *selectStatement) Count() (int, error) {
+	ss.columns = ss.columns[:0]
+	ss.Columns("COUNT(*)")
+
+	sql, args, err := ss.ToSQL()
+	if err != nil {
+		return 0, err
+	}
+
+	var count int
+	err = ss.db.sqlDB.QueryRow(sql, args...).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
