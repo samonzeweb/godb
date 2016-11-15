@@ -225,13 +225,13 @@ func (ss *selectStatement) do(targetInfo *targetDescription) error {
 		err = targetInfo.fillTarget(
 			// Fill one instance with one row
 			func(target interface{}) error {
-				fieldsPointers, err := targetInfo.StructMapping.GetPointersForColumns(target, columns...)
-				if err != nil {
-					return err
+				fieldsPointers, innererr := targetInfo.StructMapping.GetPointersForColumns(target, columns...)
+				if innererr != nil {
+					return innererr
 				}
-				err = rows.Scan(fieldsPointers...)
+				innererr = rows.Scan(fieldsPointers...)
 				if err != nil {
-					return err
+					return innererr
 				}
 				return nil
 			})

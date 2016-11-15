@@ -9,10 +9,11 @@ import (
 
 type targetDescription struct {
 	// Target is always a pointer
-	Target        interface{}
-	InstanceType  reflect.Type
-	StructMapping *dbreflect.StructMapping
-	IsSlice       bool
+	Target            interface{}
+	InstanceType      reflect.Type
+	StructMapping     *dbreflect.StructMapping
+	IsSlice           bool
+	IsSliceOfPointers bool
 }
 
 func extractType(target interface{}) (*targetDescription, error) {
@@ -27,8 +28,19 @@ func extractType(target interface{}) (*targetDescription, error) {
 
 	// A target could be a slice, or a single instance
 	if targetType.Kind() == reflect.Slice {
+		// Slice
 		targetDesc.IsSlice = true
+		targetDesc.IsSliceOfPointers = false
 		targetType = targetType.Elem()
+		if targetType.Kind() == reflect.Ptr {
+			// Slice of pointers
+			targetType = targetType.Elem()
+			targetDesc.IsSliceOfPointers = true
+		}
+	} else {
+		// Single instance
+		targetDesc.IsSlice = false
+		targetDesc.IsSliceOfPointers = false
 	}
 
 	if targetType.Kind() != reflect.Struct {
@@ -66,8 +78,12 @@ func (t *targetDescription) fillTarget(f func(target interface{}) error) error {
 	// Add the new instance to the struct
 	// Get the current slice (t.Target is a slice pointer)
 	sliceValue := reflect.ValueOf(t.Target).Elem()
-	// Add the new instance to the slice
-	newSliceValue := reflect.Append(sliceValue, newInstancePointerValue.Elem())
+	// Add the new instance (or pointer to) into the slice
+	instanceOrPointerValue := newInstancePointerValue
+	if !t.IsSliceOfPointers {
+		instanceOrPointerValue = newInstancePointerValue.Elem()
+	}
+	newSliceValue := reflect.Append(sliceValue, instanceOrPointerValue)
 	// Update the content of t.Target with the new slice
 	reflect.ValueOf(t.Target).Elem().Set(newSliceValue)
 

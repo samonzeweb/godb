@@ -20,6 +20,7 @@ func TestExtratType(t *testing.T) {
 			So(typeDesc, ShouldNotBeNil)
 			So(typeDesc.InstanceType.Name(), ShouldEqual, "typeToExtract")
 			So(typeDesc.IsSlice, ShouldBeFalse)
+			So(typeDesc.IsSliceOfPointers, ShouldBeFalse)
 			So(typeDesc.StructMapping.Name, ShouldEndWith, "typeToExtract")
 		})
 	})
@@ -33,6 +34,21 @@ func TestExtratType(t *testing.T) {
 			So(typeDesc, ShouldNotBeNil)
 			So(typeDesc.InstanceType.Name(), ShouldEqual, "typeToExtract")
 			So(typeDesc.IsSlice, ShouldBeTrue)
+			So(typeDesc.IsSliceOfPointers, ShouldBeFalse)
+			So(typeDesc.StructMapping.Name, ShouldEndWith, "typeToExtract")
+		})
+	})
+
+	Convey("Given a slice pointer of pointers", t, func() {
+		slice := make([]*typeToExtract, 0, 0)
+
+		Convey("extratType will extract the type information", func() {
+			typeDesc, err := extractType(&slice)
+			So(err, ShouldBeNil)
+			So(typeDesc, ShouldNotBeNil)
+			So(typeDesc.InstanceType.Name(), ShouldEqual, "typeToExtract")
+			So(typeDesc.IsSlice, ShouldBeTrue)
+			So(typeDesc.IsSliceOfPointers, ShouldBeTrue)
 			So(typeDesc.StructMapping.Name, ShouldEndWith, "typeToExtract")
 		})
 	})
@@ -66,6 +82,22 @@ func TestFillTarget(t *testing.T) {
 			So(len(slice), ShouldEqual, 1)
 			So(slice[0], ShouldHaveSameTypeAs, typeToExtract{})
 			So(slice[0].Id, ShouldEqual, 123)
+		})
+	})
+
+	Convey("Given a slice of pointers descriptor ", t, func() {
+		slice := make([]*typeToExtract, 0, 0)
+		typeDesc, _ := extractType(&slice)
+
+		Convey("fillTarget call the given func with a new instance pointer", func() {
+			typeDesc.fillTarget(func(target interface{}) error {
+				So(target, ShouldHaveSameTypeAs, &typeToExtract{})
+				target.(*typeToExtract).Id = 123
+				return nil
+			})
+			So(len(slice), ShouldEqual, 1)
+			So(slice[0], ShouldHaveSameTypeAs, &typeToExtract{})
+			So((*slice[0]).Id, ShouldEqual, 123)
 		})
 	})
 }
