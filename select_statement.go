@@ -210,7 +210,7 @@ func (ss *selectStatement) do(targetInfo *targetDescription) error {
 		return err
 	}
 
-	rows, err := ss.db.sqlDB.Query(sql, args...)
+	rows, err := ss.db.getTxElseDb().Query(sql, args...)
 	if err != nil {
 		return err
 	}
@@ -256,7 +256,7 @@ func (ss *selectStatement) Count() (int, error) {
 	}
 
 	var count int
-	err = ss.db.sqlDB.QueryRow(sql, args...).Scan(&count)
+	err = ss.db.getTxElseDb().QueryRow(sql, args...).Scan(&count)
 	if err != nil {
 		return 0, err
 	}

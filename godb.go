@@ -11,6 +11,7 @@ import (
 type DB struct {
 	adapter adapters.DriverName
 	sqlDB   *sql.DB
+	sqlTx   *sql.Tx
 }
 
 const Placeholder string = "?"
