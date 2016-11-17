@@ -15,6 +15,8 @@ type Queryable interface {
 
 // Begin starts a new transaction, fails if there is already one.
 func (db *DB) Begin() error {
+	db.LogPrintln("SQL : Begin")
+
 	if db.sqlTx != nil {
 		return fmt.Errorf("Begin was called multiple times, sql transaction already exists")
 	}
@@ -30,6 +32,8 @@ func (db *DB) Begin() error {
 
 // Commit commits an existing transaction, fails if none exists.
 func (db *DB) Commit() error {
+	db.LogPrintln("SQL : Commit")
+
 	if db.sqlTx == nil {
 		return fmt.Errorf("Commit was called without existing sql transaction")
 	}
@@ -41,6 +45,8 @@ func (db *DB) Commit() error {
 
 // Rollback rollbacks an existing transaction, fails if none exists.
 func (db *DB) Rollback() error {
+	db.LogPrintln("SQL : Rollback")
+
 	if db.sqlTx == nil {
 		return fmt.Errorf("Rollback was called without existing sql transaction")
 	}
@@ -61,5 +67,6 @@ func (db *DB) getTxElseDb() Queryable {
 	if db.sqlTx != nil {
 		return db.sqlTx
 	}
+
 	return db.sqlDB
 }

@@ -3,6 +3,7 @@ package godb
 
 import (
 	"database/sql"
+	"log"
 
 	"gitlab.com/samonzeweb/godb/adapters"
 )
@@ -12,6 +13,7 @@ type DB struct {
 	adapter adapters.DriverName
 	sqlDB   *sql.DB
 	sqlTx   *sql.Tx
+	logger  *log.Logger
 }
 
 const Placeholder string = "?"

@@ -1,5 +1,7 @@
 package godb
 
+import "time"
+
 //
 type selectStatement struct {
 	db *DB
@@ -209,8 +211,11 @@ func (ss *selectStatement) do(targetInfo *targetDescription) error {
 	if err != nil {
 		return err
 	}
+	ss.db.LogPrintln("SELECT : ", sql, args)
 
+	startTime := time.Now()
 	rows, err := ss.db.getTxElseDb().Query(sql, args...)
+	ss.db.LogDuration(startTime)
 	if err != nil {
 		return err
 	}
@@ -254,9 +259,12 @@ func (ss *selectStatement) Count() (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	ss.db.LogPrintln("SELECT : ", sql, args)
 
 	var count int
+	startTime := time.Now()
 	err = ss.db.getTxElseDb().QueryRow(sql, args...).Scan(&count)
+	ss.db.LogDuration(startTime)
 	if err != nil {
 		return 0, err
 	}
