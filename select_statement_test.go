@@ -3,8 +3,6 @@ package godb
 import (
 	"testing"
 
-	"gitlab.com/samonzeweb/godb/adapters/sqlite"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -315,10 +313,7 @@ type Dummy struct {
 }
 
 func fixturesSetup() *DB {
-	db, err := Open(sqlite.Adapter, ":memory:")
-	if err != nil {
-		panic(err)
-	}
+	db := createInMemoryConnection()
 
 	createTable :=
 		`create table dummies (
@@ -327,7 +322,7 @@ func fixturesSetup() *DB {
 		another_text	text not null,
 		an_integer 		integer not null);
 	`
-	_, err = db.sqlDB.Exec(createTable)
+	_, err := db.sqlDB.Exec(createTable)
 	if err != nil {
 		panic(err)
 	}

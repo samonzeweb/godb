@@ -30,3 +30,25 @@ func Open(adapter adapters.DriverName, dataSourceName string) (*DB, error) {
 	}
 	return &db, nil
 }
+
+// Clone create a copy of an existing DB, without the current transaction.
+// Use it to create new DB object before starting a goroutine.
+func (db *DB) Clone() *DB {
+	return &DB{
+		adapter: db.adapter,
+		sqlDB:   db.sqlDB,
+		sqlTx:   nil,
+		logger:  db.logger,
+	}
+}
+
+// Close close an existing DB created by Open.
+// Dont't close a cloned DB used by others goroutines !
+// Don't use a DB anymore after a call to Close.
+func (db *DB) Close() error {
+	db.LogPrintln("CLOSE DB")
+	if db.sqlTx != nil {
+		db.LogPrintln("Warning, there is a current transaction")
+	}
+	return db.sqlDB.Close()
+}
