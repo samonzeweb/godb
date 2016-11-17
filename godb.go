@@ -16,10 +16,6 @@ type DB struct {
 
 const Placeholder string = "?"
 
-func init() {
-	initGlobalStructsMapping()
-}
-
 // Open create a new DB struct and initialise a sql.DB connection.
 func Open(adapter adapters.DriverName, dataSourceName string) (*DB, error) {
 	db := DB{adapter: adapter}

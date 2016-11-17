@@ -49,7 +49,7 @@ func extractType(target interface{}) (*targetDescription, error) {
 
 	var err error
 	targetDesc.InstanceType = targetType
-	targetDesc.StructMapping, err = getOrCreateStructMapping(targetType)
+	targetDesc.StructMapping, err = dbreflect.Cache.GetOrCreateStructMapping(targetType)
 	if err != nil {
 		return nil, err
 	}
