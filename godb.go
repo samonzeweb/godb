@@ -8,7 +8,9 @@ import (
 	"gitlab.com/samonzeweb/godb/adapters"
 )
 
-// TODO
+// DB store a connection to the database, and others data like transaction,
+// logger, ... Everything starts with a DB.
+// DB is not thread safe.
 type DB struct {
 	adapter adapters.DriverName
 	sqlDB   *sql.DB

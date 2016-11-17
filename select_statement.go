@@ -217,12 +217,14 @@ func (ss *selectStatement) do(targetInfo *targetDescription) error {
 	rows, err := ss.db.getTxElseDb().Query(sql, args...)
 	ss.db.LogDuration(startTime)
 	if err != nil {
+		ss.db.LogPrintln("ERROR : ", err)
 		return err
 	}
 	defer rows.Close()
 
 	columns, err := rows.Columns()
 	if err != nil {
+		ss.db.LogPrintln("ERROR : ", err)
 		return err
 	}
 
@@ -242,11 +244,16 @@ func (ss *selectStatement) do(targetInfo *targetDescription) error {
 			})
 
 		if err != nil {
+			ss.db.LogPrintln("ERROR : ", err)
 			return err
 		}
 	}
 
-	return rows.Err()
+	err = rows.Err()
+	if err != nil {
+		ss.db.LogPrintln("ERROR : ", err)
+	}
+	return err
 }
 
 // Count run the request with COUNT(*) (remove others columns)
@@ -266,6 +273,7 @@ func (ss *selectStatement) Count() (int, error) {
 	err = ss.db.getTxElseDb().QueryRow(sql, args...).Scan(&count)
 	ss.db.LogDuration(startTime)
 	if err != nil {
+		ss.db.LogPrintln("ERROR : ", err)
 		return 0, err
 	}
 
