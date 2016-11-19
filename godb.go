@@ -12,7 +12,7 @@ import (
 // logger, ... Everything starts with a DB.
 // DB is not thread safe.
 type DB struct {
-	adapter adapters.DriverName
+	adapter adapters.DriverNamer
 	sqlDB   *sql.DB
 	sqlTx   *sql.Tx
 	logger  *log.Logger
@@ -21,7 +21,7 @@ type DB struct {
 const Placeholder string = "?"
 
 // Open create a new DB struct and initialise a sql.DB connection.
-func Open(adapter adapters.DriverName, dataSourceName string) (*DB, error) {
+func Open(adapter adapters.DriverNamer, dataSourceName string) (*DB, error) {
 	db := DB{adapter: adapter}
 	var err error
 	db.sqlDB, err = sql.Open(adapter.DriverName(), dataSourceName)
@@ -51,4 +51,17 @@ func (db *DB) Close() error {
 		db.LogPrintln("Warning, there is a current transaction")
 	}
 	return db.sqlDB.Close()
+}
+
+// quote returns all strings given quoted by the adapter if it implements
+// the Quoter interface, or the given strings slice.
+func (db *DB) quoteAll(identifiers []string) []string {
+	if quoter, ok := db.adapter.(adapters.Quoter); ok {
+		quotedIdentifiers := make([]string, 0, len(identifiers))
+		for _, identifier := range identifiers {
+			quotedIdentifiers = append(quotedIdentifiers, quoter.Quote(identifier))
+		}
+	}
+
+	return identifiers
 }

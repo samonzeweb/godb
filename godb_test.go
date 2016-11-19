@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"gitlab.com/samonzeweb/godb/adapters/sqlite"
 )
 
 func TestClone(t *testing.T) {
@@ -27,25 +26,4 @@ func TestClone(t *testing.T) {
 			So(clone.sqlTx, ShouldBeNil)
 		})
 	})
-}
-
-func checkToSQL(t *testing.T, sqlExpected string, sqlProduced string, err error) {
-	if err != nil {
-		t.Fatal("ToSQL produces error :", err)
-	}
-
-	t.Log("SQL expected :", sqlExpected)
-	t.Log("SQL produced :", sqlProduced)
-	if sqlProduced != sqlExpected {
-		t.Fatal("ToSQL produces incorrect SQL")
-	}
-}
-
-func createInMemoryConnection() *DB {
-	db, err := Open(sqlite.Adapter, ":memory:")
-	if err != nil {
-		panic(err)
-	}
-
-	return db
 }

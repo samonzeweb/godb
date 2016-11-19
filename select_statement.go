@@ -27,6 +27,10 @@ type joinPart struct {
 	on        *Condition
 }
 
+// pointersGetter is a func type, returning a list of pointers (and error) for
+// a given instance pointer and a column list
+type pointersGetter func(target interface{}, columns []string) ([]interface{}, error)
+
 // SelectFrom initialise a select statement builder
 func (db *DB) SelectFrom(tableName string) *selectStatement {
 	return newSelectStatement(db, tableName)
@@ -202,11 +206,16 @@ func (ss *selectStatement) Do(target interface{}) error {
 		ss.Limit(1)
 	}
 
-	return ss.do(targetInfo)
+	f := func(target interface{}, columns []string) ([]interface{}, error) {
+		pointers, err := targetInfo.StructMapping.GetPointersForColumns(target, columns...)
+		return pointers, err
+	}
+
+	return ss.do(targetInfo, f)
 }
 
 // do executes the statement and fill the struct or slice
-func (ss *selectStatement) do(targetInfo *targetDescription) error {
+func (ss *selectStatement) do(targetInfo *targetDescription, pointersGetter pointersGetter) error {
 	sql, args, err := ss.ToSQL()
 	if err != nil {
 		return err
@@ -232,7 +241,7 @@ func (ss *selectStatement) do(targetInfo *targetDescription) error {
 		err = targetInfo.fillTarget(
 			// Fill one instance with one row
 			func(target interface{}) error {
-				fieldsPointers, innererr := targetInfo.StructMapping.GetPointersForColumns(target, columns...)
+				fieldsPointers, innererr := pointersGetter(target, columns)
 				if innererr != nil {
 					return innererr
 				}

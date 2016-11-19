@@ -3,6 +3,7 @@ package godb
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"gitlab.com/samonzeweb/godb/dbreflect"
 )
@@ -14,6 +15,10 @@ type targetDescription struct {
 	StructMapping     *dbreflect.StructMapping
 	IsSlice           bool
 	IsSliceOfPointers bool
+}
+
+type tableNamer interface {
+	TableName() string
 }
 
 func extractType(target interface{}) (*targetDescription, error) {
@@ -88,4 +93,27 @@ func (t *targetDescription) fillTarget(f func(target interface{}) error) error {
 	reflect.ValueOf(t.Target).Elem().Set(newSliceValue)
 
 	return nil
+}
+
+// getOneInstancePointer returns an instance pointers of the target
+// to be used for interface check and method call.
+// Don't use the instance pointer for other use, don't change values,
+// don't store it for later use, ...
+func (t *targetDescription) getOneInstancePointer() interface{} {
+	if t.IsSlice == false {
+		return t.Target
+	}
+
+	return reflect.New(t.InstanceType).Interface()
+}
+
+// tableName returns the table name to use for the current target
+func (t *targetDescription) getTableName() string {
+	p := t.getOneInstancePointer()
+	if namer, ok := p.(tableNamer); ok {
+		return namer.TableName()
+	}
+
+	typeNameParts := strings.Split(t.StructMapping.Name, ".")
+	return typeNameParts[len(typeNameParts)-1]
 }

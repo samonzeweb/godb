@@ -10,6 +10,14 @@ type typeToExtract struct {
 	Id int `db:"id"`
 }
 
+type otherTypeToExtract struct {
+	Id int `db:"id"`
+}
+
+func (*otherTypeToExtract) TableName() string {
+	return "others"
+}
+
 func TestExtratType(t *testing.T) {
 	Convey("Given a single instance pointer", t, func() {
 		instance := &typeToExtract{}
@@ -98,6 +106,46 @@ func TestFillTarget(t *testing.T) {
 			So(len(slice), ShouldEqual, 1)
 			So(slice[0], ShouldHaveSameTypeAs, &typeToExtract{})
 			So((*slice[0]).Id, ShouldEqual, 123)
+		})
+	})
+}
+
+func TestGetOneInstancePointer(t *testing.T) {
+	Convey("Given a single instance descriptor ", t, func() {
+		instancePtr := &typeToExtract{}
+		typeDesc, _ := extractType(instancePtr)
+		Convey("getOneInstancePointer returns a pointer to the instance", func() {
+			p := typeDesc.getOneInstancePointer()
+			So(p, ShouldEqual, instancePtr)
+		})
+	})
+
+	Convey("Given a slice descriptor ", t, func() {
+		slice := make([]typeToExtract, 0, 0)
+		typeDesc, _ := extractType(&slice)
+		Convey("getOneInstancePointer returns a pointer to the instance", func() {
+			p := typeDesc.getOneInstancePointer()
+			So(p, ShouldHaveSameTypeAs, &typeToExtract{})
+		})
+	})
+}
+
+func TestTableName(t *testing.T) {
+	Convey("Given a target descriptor", t, func() {
+		instancePtr := &typeToExtract{}
+		typeDesc, _ := extractType(instancePtr)
+		Convey("getTableName returns by default the struct name a table name", func() {
+			tableName := typeDesc.getTableName()
+			So(tableName, ShouldEqual, "typeToExtract")
+		})
+	})
+
+	Convey("Given a target descriptor of type implmenting tableNamer interface", t, func() {
+		instancePtr := &otherTypeToExtract{}
+		typeDesc, _ := extractType(instancePtr)
+		Convey("getTableName returns the string given by TableName()", func() {
+			tableName := typeDesc.getTableName()
+			So(tableName, ShouldEqual, "others")
 		})
 	})
 }

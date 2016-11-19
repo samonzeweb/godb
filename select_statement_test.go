@@ -305,44 +305,6 @@ func TestSelectPreparedStatement(t *testing.T) {
 	})
 }
 
-type Dummy struct {
-	ID          int    `db:"id,key,auto"`
-	AText       string `db:"a_text"`
-	AnotherText string `db:"another_text"`
-	AnInteger   int    `db:"an_integer"`
-}
-
-func fixturesSetup() *DB {
-	db := createInMemoryConnection()
-
-	createTable :=
-		`create table dummies (
-		id 						integer not null primary key autoincrement,
-		a_text     		text not null,
-		another_text	text not null,
-		an_integer 		integer not null);
-	`
-	_, err := db.sqlDB.Exec(createTable)
-	if err != nil {
-		panic(err)
-	}
-
-	insertRows :=
-		`insert into dummies
-		(a_text, another_text, an_integer)
-		values
-		("First", "Premier", 11),
-		("Second", "Second", 12),
-		("Third", "Troisième", 13);
-	`
-	_, err = db.sqlDB.Exec(insertRows)
-	if err != nil {
-		panic(err)
-	}
-
-	return db
-}
-
 func TestDo(t *testing.T) {
 	Convey("Given a test database", t, func() {
 		db := fixturesSetup()
