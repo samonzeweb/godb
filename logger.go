@@ -15,9 +15,8 @@ func (db *DB) LogPrintln(v ...interface{}) {
 	}
 }
 
-func (db *DB) LogDuration(startTime time.Time) {
+func (db *DB) LogDuration(duration time.Duration) {
 	if db.logger != nil {
-		duration := time.Now().Sub(startTime)
 		db.LogPrintln("Duration : ", duration)
 	}
 }

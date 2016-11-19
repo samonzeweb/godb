@@ -355,6 +355,10 @@ func TestDo(t *testing.T) {
 			So(dummiesSlice[0].AnInteger, ShouldEqual, 11)
 			So(dummiesSlice[1].AnInteger, ShouldEqual, 12)
 			So(dummiesSlice[2].AnInteger, ShouldEqual, 13)
+
+			Convey("Do compute time consumed by SQL query", func() {
+				So(db.ConsumedTime(), ShouldBeGreaterThan, 0)
+			})
 		})
 	})
 }
@@ -373,6 +377,10 @@ func TestCount(t *testing.T) {
 			count, err = selectStmt.Count()
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 1)
+
+			Convey("Do compute time consumed by SQL query", func() {
+				So(db.ConsumedTime(), ShouldBeGreaterThan, 0)
+			})
 		})
 	})
 }

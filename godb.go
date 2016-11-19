@@ -4,6 +4,7 @@ package godb
 import (
 	"database/sql"
 	"log"
+	"time"
 
 	"gitlab.com/samonzeweb/godb/adapters"
 )
@@ -12,10 +13,11 @@ import (
 // logger, ... Everything starts with a DB.
 // DB is not thread safe.
 type DB struct {
-	adapter adapters.DriverNamer
-	sqlDB   *sql.DB
-	sqlTx   *sql.Tx
-	logger  *log.Logger
+	adapter      adapters.DriverNamer
+	sqlDB        *sql.DB
+	sqlTx        *sql.Tx
+	logger       *log.Logger
+	consumedTime time.Duration
 }
 
 const Placeholder string = "?"
@@ -35,10 +37,11 @@ func Open(adapter adapters.DriverNamer, dataSourceName string) (*DB, error) {
 // Use it to create new DB object before starting a goroutine.
 func (db *DB) Clone() *DB {
 	return &DB{
-		adapter: db.adapter,
-		sqlDB:   db.sqlDB,
-		sqlTx:   nil,
-		logger:  db.logger,
+		adapter:      db.adapter,
+		sqlDB:        db.sqlDB,
+		sqlTx:        nil,
+		logger:       db.logger,
+		consumedTime: 0,
 	}
 }
 
@@ -51,6 +54,28 @@ func (db *DB) Close() error {
 		db.LogPrintln("Warning, there is a current transaction")
 	}
 	return db.sqlDB.Close()
+}
+
+// ConsumedTime returns the time consumed by SQL queries executions
+// The duration is reseted when the DB is cloned.
+func (db *DB) ConsumedTime() time.Duration {
+	return db.consumedTime
+}
+
+// Reset the time consumed by SQL queries executions
+func (db *DB) ResetConsumedTime() {
+	db.consumedTime = 0
+}
+
+// Reset the time consumed by SQL queries executions
+func (db *DB) addConsumedTime(duration time.Duration) {
+	db.consumedTime += duration
+}
+
+// timeElapsedSince returns the time elapsed (duration) since a given
+// start time.
+func timeElapsedSince(startTime time.Time) time.Duration {
+	return time.Now().Sub(startTime)
 }
 
 // quote returns all strings given quoted by the adapter if it implements

@@ -224,7 +224,9 @@ func (ss *selectStatement) do(targetInfo *targetDescription, pointersGetter poin
 
 	startTime := time.Now()
 	rows, err := ss.db.getTxElseDb().Query(sql, args...)
-	ss.db.LogDuration(startTime)
+	condumedTime := timeElapsedSince(startTime)
+	ss.db.addConsumedTime(condumedTime)
+	ss.db.LogDuration(condumedTime)
 	if err != nil {
 		ss.db.LogPrintln("ERROR : ", err)
 		return err
@@ -280,7 +282,9 @@ func (ss *selectStatement) Count() (int, error) {
 	var count int
 	startTime := time.Now()
 	err = ss.db.getTxElseDb().QueryRow(sql, args...).Scan(&count)
-	ss.db.LogDuration(startTime)
+	condumedTime := timeElapsedSince(startTime)
+	ss.db.addConsumedTime(condumedTime)
+	ss.db.LogDuration(condumedTime)
 	if err != nil {
 		ss.db.LogPrintln("ERROR : ", err)
 		return 0, err
