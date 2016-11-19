@@ -61,6 +61,7 @@ func (db *DB) quoteAll(identifiers []string) []string {
 		for _, identifier := range identifiers {
 			quotedIdentifiers = append(quotedIdentifiers, quoter.Quote(identifier))
 		}
+		return quotedIdentifiers
 	}
 
 	return identifiers

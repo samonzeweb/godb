@@ -24,6 +24,9 @@ func createInMemoryConnection() *DB {
 		panic(err)
 	}
 
+	// Enable logger if needed
+	//db.SetLogger(log.New(os.Stderr, "", 0))
+
 	return db
 }
 

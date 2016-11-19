@@ -20,6 +20,7 @@ func (db *DB) Select(target interface{}) *structSelect {
 	ss.selectStatement = db.SelectFrom(ss.targetDescription.getTableName())
 	// Columns names
 	allColumns := ss.targetDescription.StructMapping.GetAllColumnsNames()
+	db.LogPrintln("ICI")
 	ss.selectStatement = ss.selectStatement.Columns(db.quoteAll(allColumns)...)
 	return ss
 }
