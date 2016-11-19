@@ -10,18 +10,14 @@ type structSelect struct {
 // targer. The pointer could point to a single instance or a slice.
 func (db *DB) Select(target interface{}) *structSelect {
 	var err error
+
 	ss := &structSelect{}
 	ss.targetDescription, err = extractType(target)
 	if err != nil {
 		ss.Error = err
 		return ss
 	}
-	// Table name
 	ss.selectStatement = db.SelectFrom(ss.targetDescription.getTableName())
-	// Columns names
-	allColumns := ss.targetDescription.StructMapping.GetAllColumnsNames()
-	db.LogPrintln("ICI")
-	ss.selectStatement = ss.selectStatement.Columns(db.quoteAll(allColumns)...)
 	return ss
 }
 
@@ -77,6 +73,10 @@ func (ss *structSelect) Do() error {
 		return ss.Error
 	}
 
+	// Columns names
+	allColumns := ss.targetDescription.StructMapping.GetAllColumnsNames()
+	ss.selectStatement = ss.selectStatement.Columns(ss.selectStatement.db.quoteAll(allColumns)...)
+
 	if ss.targetDescription.IsSlice == false {
 		// Only one row is requested
 		ss.selectStatement.Limit(1)
@@ -88,4 +88,13 @@ func (ss *structSelect) Do() error {
 	}
 
 	return ss.selectStatement.do(ss.targetDescription, f)
+}
+
+// Count run the request with COUNT(*) and returns the count
+func (ss *structSelect) Count() (int, error) {
+	if ss.Error != nil {
+		return 0, ss.Error
+	}
+
+	return ss.selectStatement.Count()
 }

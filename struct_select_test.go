@@ -57,3 +57,25 @@ func TestDoWithStruct(t *testing.T) {
 		})
 	})
 }
+
+func TestCountWithStruct(t *testing.T) {
+	Convey("Given a test database", t, func() {
+		db := fixturesSetup()
+
+		Convey("Count returns the count of row mathing the request", func() {
+			selectStmt := db.Select(&Dummy{})
+			count, err := selectStmt.Count()
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 3)
+
+			selectStmt = db.Select(&Dummy{}).Where("an_integer = ?", 12)
+			count, err = selectStmt.Count()
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 1)
+
+			Convey("Do compute time consumed by SQL query", func() {
+				So(db.ConsumedTime(), ShouldBeGreaterThan, 0)
+			})
+		})
+	})
+}
