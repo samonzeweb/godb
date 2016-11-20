@@ -1,5 +1,6 @@
 package godb
 
+// structSelect build a SELECT statement for the given object
 type structSelect struct {
 	Error             error
 	selectStatement   *selectStatement

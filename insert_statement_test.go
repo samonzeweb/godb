@@ -108,3 +108,23 @@ func TestInsertToSQLErrors(t *testing.T) {
 		So(err, ShouldNotBeNil)
 	})
 }
+
+func TestDoInsert(t *testing.T) {
+	Convey("Given a test database", t, func() {
+		db := fixturesSetup()
+
+		Convey("Do execute the query and return the Id", func() {
+			lastId, err := db.InsertInto("dummies").
+				Columns("a_text", "another_text", "an_integer").
+				Values("Foo", "Bar", 123).Do()
+			So(err, ShouldBeNil)
+			So(lastId, ShouldBeGreaterThan, 0)
+
+			Convey("The data are in the database", func() {
+				dummy := Dummy{}
+				db.Select(&dummy).Where("id = ?", lastId).Do()
+				So(dummy.ID, ShouldEqual, lastId)
+			})
+		})
+	})
+}

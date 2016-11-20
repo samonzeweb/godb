@@ -93,7 +93,8 @@ func isOptionPresent(tagValues []string, optionName string) bool {
 	return false
 }
 
-//
+// GetAllColumnsNames returns the names of all columns
+// It is intended to be used for SELECT statements.
 func (sm *StructMapping) GetAllColumnsNames() []string {
 	columns := make([]string, 0, len(sm.fieldsMapping))
 	for _, fieldMapping := range sm.fieldsMapping {
@@ -102,7 +103,9 @@ func (sm *StructMapping) GetAllColumnsNames() []string {
 	return columns
 }
 
-//
+// GetNonAutoColumnsNames returns the names of non auto columns
+// It is intended to be used for INSERT statements.
+// TODO : manage oplock later
 func (sm *StructMapping) GetNonAutoColumnsNames() []string {
 	columns := make([]string, 0, len(sm.fieldsMapping))
 	for _, fieldMapping := range sm.fieldsMapping {
@@ -113,7 +116,9 @@ func (sm *StructMapping) GetNonAutoColumnsNames() []string {
 	return columns
 }
 
-//
+// GetAllFieldsPointers returns pointers for all fields, in the same order
+// as GetAllColumnsNames.
+// It is intended to be used for SELECT statements.
 func (sm *StructMapping) GetAllFieldsPointers(s interface{}) []interface{} {
 	// TODO : check type
 	v := reflect.ValueOf(s)
@@ -127,20 +132,9 @@ func (sm *StructMapping) GetAllFieldsPointers(s interface{}) []interface{} {
 	return pointers
 }
 
-//
-func (sm *StructMapping) GetAllFieldsValues(s interface{}) []interface{} {
-	// TODO : check type
-	v := reflect.ValueOf(s)
-	v = reflect.Indirect(v)
-
-	values := make([]interface{}, 0, len(sm.fieldsMapping))
-	for _, fieldMapping := range sm.fieldsMapping {
-		fieldValue := v.FieldByName(fieldMapping.name)
-		values = append(values, fieldValue.Interface())
-	}
-	return values
-}
-
+// GetNonAutoFieldsValues returns values of non auto fiels, in the same order
+// as GetNonAutoColumnsNames.
+// It is intended to be used for INSERT statements.
 func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 	// TODO : check type
 	v := reflect.ValueOf(s)
@@ -156,26 +150,13 @@ func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 	return values
 }
 
-func (sm *StructMapping) GetNonAutoColumnsNamesAndValues(s interface{}) map[string]interface{} {
-	// TODO : check type
-	v := reflect.ValueOf(s)
-	v = reflect.Indirect(v)
-
-	m := make(map[string]interface{})
-	for _, fieldMapping := range sm.fieldsMapping {
-		if fieldMapping.isAuto == false {
-			m[fieldMapping.sqlName] = v.FieldByName(fieldMapping.name).Interface()
-		}
-	}
-	return m
-}
-
-//
+// GetPointersForColumns returns pointers for the given instance and columns
+// names.
+// It is intended to be used for SELECT statements.
 func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string) ([]interface{}, error) {
 	// TODO : check type
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
-
 	pointers := make([]interface{}, 0, len(columns))
 	for _, column := range columns {
 		fieldMapping, err := sm.findFieldMapping(column)
@@ -185,8 +166,30 @@ func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string)
 		fieldValue := v.FieldByName(fieldMapping.name)
 		pointers = append(pointers, fieldValue.Addr().Interface())
 	}
-
 	return pointers, nil
+}
+
+// GetAutoKeyPointer returns a pointer for a key and auto columns.
+// It will return nil if there is no such column, but no error.
+// It will return an error if there is more than one auto and key column.
+// It is intended to be used for INSERT statements.
+func (sm *StructMapping) GetAutoKeyPointer(s interface{}) (interface{}, error) {
+	// TODO : check type
+	v := reflect.ValueOf(s)
+	v = reflect.Indirect(v)
+
+	var pointer interface{}
+	for _, fieldMapping := range sm.fieldsMapping {
+		if fieldMapping.isAuto && fieldMapping.isKey {
+			if pointer != nil {
+				return nil, fmt.Errorf("Multiple auto+key fields for %s", sm.Name)
+			}
+			fieldValue := v.FieldByName(fieldMapping.name)
+			pointer = fieldValue.Addr().Interface()
+		}
+	}
+
+	return pointer, nil
 }
 
 // findFieldMapping find the fieldMapping instance for the given column name
