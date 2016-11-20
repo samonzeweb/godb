@@ -304,7 +304,7 @@ func TestSelectToSQLErrors(t *testing.T) {
 	})
 }
 
-func TestDo(t *testing.T) {
+func TestSelectDo(t *testing.T) {
 	Convey("Given a test database", t, func() {
 		db := fixturesSetup()
 

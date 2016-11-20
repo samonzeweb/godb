@@ -6,7 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestDoWithStruct(t *testing.T) {
+func TestSelectDoWithStruct(t *testing.T) {
 	Convey("Given a test database", t, func() {
 		db := fixturesSetup()
 
