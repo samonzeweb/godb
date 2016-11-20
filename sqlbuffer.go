@@ -160,43 +160,43 @@ func (b *sqlBuffer) writeLimit(limit *int) error {
 	return nil
 }
 
-// // writeInto writes INTO clause into the buffer.
-// func (b *sqlBuffer) writeInto(intoTable string) error {
-// 	if intoTable == "" {
-// 		return fmt.Errorf("No INTO clause in INSERT statement")
-// 	}
-//
-// 	b.sql.WriteString("INTO ")
-// 	b.sql.WriteString(intoTable)
-// 	return nil
-// }
-//
-// // writeInsertValues writes all the values to insert to the database into
-// // the buffer.
-// func (b *sqlBuffer) writeInsertValues(args [][]interface{}, columnsCount int) error {
-// 	if len(args) == 0 {
-// 		return fmt.Errorf("Missing values in INSERT statement")
-// 	}
-//
-// 	// build (?, ?, ?, ?)
-// 	valuesPart := buildGroupOfPlaceholders(columnsCount)
-//
-// 	// insert group of placeholders for each group of values
-// 	groupCount := len(args)
-// 	for i, currentGroup := range args {
-// 		if len(currentGroup) != columnsCount {
-// 			return fmt.Errorf("Values count does not match the columns count")
-// 		}
-// 		b.sql.Write(valuesPart.Bytes())
-// 		if i != (groupCount - 1) {
-// 			b.sql.WriteString(", ")
-// 		}
-// 		b.arguments = append(b.arguments, currentGroup...)
-// 	}
-//
-// 	return nil
-// }
-//
+// writeInto writes INTO clause into the buffer.
+func (b *sqlBuffer) writeInto(intoTable string) error {
+	if intoTable == "" {
+		return fmt.Errorf("No INTO clause in INSERT statement")
+	}
+
+	b.sql.WriteString("INTO ")
+	b.sql.WriteString(intoTable)
+	return nil
+}
+
+// writeInsertValues writes all the values to insert to the database into
+// the buffer.
+func (b *sqlBuffer) writeInsertValues(args [][]interface{}, columnsCount int) error {
+	if len(args) == 0 {
+		return fmt.Errorf("Missing values in INSERT statement")
+	}
+
+	// build (?, ?, ?, ?)
+	valuesPart := buildGroupOfPlaceholders(columnsCount)
+
+	// insert group of placeholders for each group of values
+	groupCount := len(args)
+	for i, currentGroup := range args {
+		if len(currentGroup) != columnsCount {
+			return fmt.Errorf("Values count does not match the columns count")
+		}
+		b.sql.Write(valuesPart.Bytes())
+		if i != (groupCount - 1) {
+			b.sql.WriteString(", ")
+		}
+		b.arguments = append(b.arguments, currentGroup...)
+	}
+
+	return nil
+}
+
 // // WriteSets writes the SET clause of an UPDATE statement.
 // func (b *sqlBuffer) writeSets(sets []*setPart) error {
 // 	if len(sets) == 0 {
@@ -255,19 +255,19 @@ func (b *sqlBuffer) writeConditions(conditions []*Condition) error {
 	return b.writeCondition(c)
 }
 
-// // buildGroupOfPlaceholders build a group of placeholders for values : (?, ?, ?, ?)
-// func buildGroupOfPlaceholders(placeholderCount int) *bytes.Buffer {
-// 	placeholderGroup := bytes.NewBuffer(make([]byte, 0, placeholderCount*3))
-// 	placeholderGroup.WriteString("(")
-// 	placdeholderCommaSpace := Placeholder + ", "
-// 	for i := 1; i <= placeholderCount; i++ {
-// 		if i != placeholderCount {
-// 			placeholderGroup.WriteString(placdeholderCommaSpace)
-// 		} else {
-// 			placeholderGroup.WriteString(Placeholder)
-// 		}
-// 	}
-// 	placeholderGroup.WriteString(")")
-//
-// 	return placeholderGroup
-// }
+// buildGroupOfPlaceholders build a group of placeholders for values : (?, ?, ?, ?)
+func buildGroupOfPlaceholders(placeholderCount int) *bytes.Buffer {
+	placeholderGroup := bytes.NewBuffer(make([]byte, 0, placeholderCount*3))
+	placeholderGroup.WriteString("(")
+	placdeholderCommaSpace := Placeholder + ", "
+	for i := 1; i <= placeholderCount; i++ {
+		if i != placeholderCount {
+			placeholderGroup.WriteString(placdeholderCommaSpace)
+		} else {
+			placeholderGroup.WriteString(Placeholder)
+		}
+	}
+	placeholderGroup.WriteString(")")
+
+	return placeholderGroup
+}

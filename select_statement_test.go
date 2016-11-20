@@ -10,7 +10,8 @@ func TestNewSelectStatement(t *testing.T) {
 	Convey("Create a select statement", t, func() {
 
 		Convey("Without columns", func() {
-			q := newSelectStatement(&DB{}, "dummies")
+			db := &DB{}
+			q := db.SelectFrom("dummies")
 			Convey("The table name is not empty", func() {
 				So(len(q.fromTables), ShouldEqual, 1)
 				So(q.fromTables[0], ShouldEqual, "dummies")
@@ -21,7 +22,8 @@ func TestNewSelectStatement(t *testing.T) {
 
 func TestSelectColumns(t *testing.T) {
 	Convey("Given a select statement", t, func() {
-		q := newSelectStatement(&DB{}, "dummies")
+		db := &DB{}
+		q := db.SelectFrom("dummies")
 
 		Convey("Columns add columns after the existing list", func() {
 			q.Columns("foo", "bar", "baz")
@@ -35,7 +37,8 @@ func TestSelectColumns(t *testing.T) {
 
 func TestSelectFrom(t *testing.T) {
 	Convey("Given a select statement", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "bar", "baz")
 
 		Convey("Calling From append a table name to the list", func() {
@@ -49,7 +52,8 @@ func TestSelectFrom(t *testing.T) {
 
 func TestSelectLeftJoin(t *testing.T) {
 	Convey("Given a select query", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "bar", "baz")
 
 		Convey("Calling LeftJoin will add the given string to the joins list", func() {
@@ -61,7 +65,8 @@ func TestSelectLeftJoin(t *testing.T) {
 
 func TestSelectWhere(t *testing.T) {
 	Convey("Given a select query", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "bar", "baz")
 
 		Convey("Call Where will add a new condition", func() {
@@ -75,7 +80,8 @@ func TestSelectWhere(t *testing.T) {
 
 func TestSelectWhereQ(t *testing.T) {
 	Convey("Given a select query", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "bar", "baz")
 
 		Convey("Call WhereQ will add the given condition", func() {
@@ -89,7 +95,8 @@ func TestSelectWhereQ(t *testing.T) {
 
 func TestSelectGroupBy(t *testing.T) {
 	Convey("Given a select query", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "count(*)")
 
 		Convey("Calling GroupBy will add the given string to the groupBy list", func() {
@@ -103,7 +110,8 @@ func TestSelectGroupBy(t *testing.T) {
 
 func TestSelectHaving(t *testing.T) {
 	Convey("Given a select query", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "count(*)")
 
 		Convey("Call Having will add a new condition", func() {
@@ -117,7 +125,8 @@ func TestSelectHaving(t *testing.T) {
 
 func TestSelectHavingQ(t *testing.T) {
 	Convey("Given a select query", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "count(*)")
 
 		Convey("Call WhereQ will add the given condition", func() {
@@ -131,7 +140,8 @@ func TestSelectHavingQ(t *testing.T) {
 
 func TestSelectOrderBy(t *testing.T) {
 	Convey("Given a select query", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "bar", "baz")
 
 		Convey("Calling OrderBy will add the given string to the orderBy list", func() {
@@ -145,7 +155,8 @@ func TestSelectOrderBy(t *testing.T) {
 
 func TestSelectOffet(t *testing.T) {
 	Convey("Given a select query", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "bar", "baz")
 
 		Convey("Calling Offset will set the offset value", func() {
@@ -158,7 +169,8 @@ func TestSelectOffet(t *testing.T) {
 
 func TestSelectLimit(t *testing.T) {
 	Convey("Given a select query", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "bar", "baz")
 
 		Convey("Calling Limit will set the offset value", func() {
@@ -171,7 +183,8 @@ func TestSelectLimit(t *testing.T) {
 
 func TestSelectSuffix(t *testing.T) {
 	Convey("Given a select query", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "bar", "baz")
 
 		Convey("Calling Suffix will add the given string to the suffixes list", func() {
@@ -185,7 +198,8 @@ func TestSelectSuffix(t *testing.T) {
 
 func TestSelectToSQL(t *testing.T) {
 	Convey("Given a select query with columns and table", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "bar", "baz")
 
 		Convey("ToSQL create a SQL request", func() {
@@ -274,34 +288,19 @@ func TestSelectToSQL(t *testing.T) {
 
 func TestSelectToSQLErrors(t *testing.T) {
 	Convey("Columns are mandatory", t, func() {
-		q := newSelectStatement(&DB{}, "dummies")
+		db := &DB{}
+		q := db.SelectFrom("dummies")
 		_, _, err := q.ToSQL()
 		So(err, ShouldNotBeNil)
 	})
 
 	Convey("Calling Having without GroupBy will returns an error", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
+		db := &DB{}
+		q := db.SelectFrom("dummies").
 			Columns("foo", "count(*)")
 		q.Having("count(*) > 1")
 		_, _, err := q.ToSQL()
 		So(err, ShouldNotBeNil)
-	})
-}
-
-func TestSelectPreparedStatement(t *testing.T) {
-	Convey("Given a valid select statement with nil as arguments", t, func() {
-		q := newSelectStatement(&DB{}, "dummies").
-			Columns("foo", "bar", "baz").
-			Where("id_deleted = ?", nil).
-			GroupBy("other_sutff").
-			Having("count(*) > ?", nil).
-			OrderBy("foo")
-			// Offset and Limit must have a real value for the moment
-
-		Convey("SQL is well builded", func() {
-			_, _, err := q.ToSQL()
-			So(err, ShouldBeNil)
-		})
 	})
 }
 
