@@ -13,6 +13,21 @@ type simpleStruct struct {
 	Other string
 }
 
+type complexStruct struct {
+	// without prefix, empty string is mandatory as it is a key,value
+	// (see https://golang.org/pkg/reflect/#StructTag)
+	simpleStruct `db:""`
+	// without prefix
+	foobar subStruct `db:"nested"`
+	// ignored
+	ignored subStruct
+}
+
+type subStruct struct {
+	foo string `db:"foo"`
+	bar string `db:"bar"`
+}
+
 func TestStructMapping(t *testing.T) {
 	Convey("NewStructMapping with a struct type", t, func() {
 		structMap, _ := NewStructMapping(reflect.TypeOf(simpleStruct{}))
@@ -27,6 +42,22 @@ func TestStructMapping(t *testing.T) {
 			So(structMap.GetAllColumnsNames(), ShouldContain, "my_text")
 		})
 	})
+
+	Convey("NewStructMapping with a complex struct type with sub-structs", t, func() {
+		structMap, _ := NewStructMapping(reflect.TypeOf(complexStruct{}))
+		So(len(structMap.subStructMapping), ShouldEqual, 2)
+
+		Convey("It store data about sub struct without prefix ", func() {
+			So(structMap.subStructMapping[0].prefix, ShouldEqual, "")
+			So(structMap.subStructMapping[0].structMapping.Name, ShouldEndWith, "simpleStruct")
+		})
+
+		Convey("It store data about sub struct with prefix ", func() {
+			So(structMap.subStructMapping[1].prefix, ShouldEqual, "nested")
+			So(structMap.subStructMapping[1].structMapping.Name, ShouldEndWith, "subStruct")
+		})
+	})
+
 }
 
 func TestNewStructMappingErrors(t *testing.T) {

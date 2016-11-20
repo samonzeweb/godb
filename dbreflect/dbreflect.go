@@ -9,14 +9,16 @@ import (
 const tagName = "db"
 const contentSeparator = ","
 
+const optionPrefix = "prefix"
 const optionKey = "key"
 const optionAuto = "auto"
 const optionOptimisticLocking = "oplock"
 
 // StructMapping contains the relation between a struct and database columns
 type StructMapping struct {
-	Name          string
-	fieldsMapping []fieldMapping
+	Name             string
+	fieldsMapping    []fieldMapping
+	subStructMapping []subStructMapping
 }
 
 // fieldMapping contains the relation between a field and a database column
@@ -26,6 +28,12 @@ type fieldMapping struct {
 	isKey    bool
 	isAuto   bool
 	isOpLock bool
+}
+
+// subStructMapping contrains nested structs
+type subStructMapping struct {
+	prefix        string
+	structMapping StructMapping
 }
 
 // NewStructMapping build a StructMapping with a given reflect.Type
@@ -44,15 +52,30 @@ func NewStructMapping(structInfo reflect.Type) (*StructMapping, error) {
 
 	for i := 0; i < structInfo.NumField(); i++ {
 		fieldInfo := structInfo.Field(i)
-		tag := fieldInfo.Tag.Get(tagName)
-		if tag == "" {
+		// Only non pointers are mapped
+		if fieldInfo.Type.Kind() == reflect.Ptr {
 			continue
 		}
-		fieldMapping, err := structMapping.newFieldMapping(fieldInfo)
-		if err != nil {
-			return nil, err
+		// No tag, no mapping
+		if _, ok := fieldInfo.Tag.Lookup(tagName); !ok {
+			continue
 		}
-		structMapping.fieldsMapping = append(structMapping.fieldsMapping, *fieldMapping)
+
+		if fieldInfo.Type.Kind() == reflect.Struct {
+			// Map a sub struct
+			subStructMapping, err := structMapping.newSubStructMapping(fieldInfo)
+			if err != nil {
+				return nil, err
+			}
+			structMapping.subStructMapping = append(structMapping.subStructMapping, *subStructMapping)
+		} else {
+			// Map a field
+			fieldMapping, err := structMapping.newFieldMapping(fieldInfo)
+			if err != nil {
+				return nil, err
+			}
+			structMapping.fieldsMapping = append(structMapping.fieldsMapping, *fieldMapping)
+		}
 	}
 
 	return structMapping, nil
@@ -69,28 +92,34 @@ func (sm *StructMapping) newFieldMapping(structField reflect.StructField) (*fiel
 	}
 
 	// First value is always the sql column name
-	fieldMapping.sqlName = tagContent[0]
+	var options map[string]bool
+	fieldMapping.sqlName, options = sm.tagData(structField.Tag)
 	if len(fieldMapping.sqlName) < 1 {
 		return nil, fmt.Errorf("Empty tag name for %s.%s", sm.Name, fieldMapping.name)
 	}
 
-	// Parse options
-	tagContent = tagContent[1:]
-	fieldMapping.isAuto = isOptionPresent(tagContent, "auto")
-	fieldMapping.isKey = isOptionPresent(tagContent, "key")
-	fieldMapping.isOpLock = isOptionPresent(tagContent, "oplock")
+	_, fieldMapping.isAuto = options["auto"]
+	_, fieldMapping.isKey = options["key"]
+	_, fieldMapping.isOpLock = options["oplock"]
 
 	return fieldMapping, nil
 }
 
-// isOptionPresent check the presente of an option (string) in a list of options (string)
-func isOptionPresent(tagValues []string, optionName string) bool {
-	for _, option := range tagValues {
-		if option == optionName {
-			return true
-		}
+func (sm *StructMapping) newSubStructMapping(structField reflect.StructField) (*subStructMapping, error) {
+	structInfo := structField.Type
+
+	// Mapping
+	structMapping, err := NewStructMapping(structInfo)
+	if err != nil {
+		return nil, err
 	}
-	return false
+
+	subStructMapping := &subStructMapping{structMapping: *structMapping}
+
+	// Optionnal prefix
+	subStructMapping.prefix, _ = sm.tagData(structField.Tag)
+
+	return subStructMapping, nil
 }
 
 //
@@ -100,6 +129,28 @@ func (sm *StructMapping) GetAllColumnsNames() []string {
 		columns = append(columns, fieldMapping.sqlName)
 	}
 	return columns
+}
+
+// tagData extract tag data :
+// * the first value is returned as is (column name or prefix)
+// * others values are used to build a key,value map (options)
+func (*StructMapping) tagData(tag reflect.StructTag) (string, map[string]bool) {
+	tagMaps := make(map[string]bool)
+	tagContent := strings.Split(tag.Get(tagName), contentSeparator)
+	isFirstData := true
+	var firstValue string
+	for _, tagOption := range tagContent {
+		value := strings.TrimSpace(tagOption)
+		if isFirstData {
+			isFirstData = false
+			firstValue = value
+			continue
+		}
+		// Options
+		tagMaps[value] = true
+	}
+
+	return firstValue, tagMaps
 }
 
 //
