@@ -74,16 +74,16 @@ func (ss *structSelect) Do() error {
 	}
 
 	// Columns names
-	allColumns := ss.targetDescription.StructMapping.GetAllColumnsNames()
+	allColumns := ss.targetDescription.structMapping.GetAllColumnsNames()
 	ss.selectStatement = ss.selectStatement.Columns(ss.selectStatement.db.quoteAll(allColumns)...)
 
-	if ss.targetDescription.IsSlice == false {
+	if ss.targetDescription.isSlice == false {
 		// Only one row is requested
 		ss.selectStatement.Limit(1)
 	}
 
 	f := func(target interface{}, columns []string) ([]interface{}, error) {
-		pointers := ss.targetDescription.StructMapping.GetAllFieldsPointers(target)
+		pointers := ss.targetDescription.structMapping.GetAllFieldsPointers(target)
 		return pointers, nil
 	}
 

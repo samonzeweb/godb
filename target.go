@@ -10,11 +10,11 @@ import (
 
 type targetDescription struct {
 	// Target is always a pointer
-	Target            interface{}
-	InstanceType      reflect.Type
-	StructMapping     *dbreflect.StructMapping
-	IsSlice           bool
-	IsSliceOfPointers bool
+	target            interface{}
+	instanceType      reflect.Type
+	structMapping     *dbreflect.StructMapping
+	isSlice           bool
+	isSliceOfPointers bool
 }
 
 type tableNamer interface {
@@ -23,7 +23,7 @@ type tableNamer interface {
 
 func extractType(target interface{}) (*targetDescription, error) {
 	targetDesc := targetDescription{}
-	targetDesc.Target = target
+	targetDesc.target = target
 
 	targetType := reflect.TypeOf(target)
 	if targetType.Kind() != reflect.Ptr {
@@ -34,18 +34,18 @@ func extractType(target interface{}) (*targetDescription, error) {
 	// A target could be a slice, or a single instance
 	if targetType.Kind() == reflect.Slice {
 		// Slice
-		targetDesc.IsSlice = true
-		targetDesc.IsSliceOfPointers = false
+		targetDesc.isSlice = true
+		targetDesc.isSliceOfPointers = false
 		targetType = targetType.Elem()
 		if targetType.Kind() == reflect.Ptr {
 			// Slice of pointers
 			targetType = targetType.Elem()
-			targetDesc.IsSliceOfPointers = true
+			targetDesc.isSliceOfPointers = true
 		}
 	} else {
 		// Single instance
-		targetDesc.IsSlice = false
-		targetDesc.IsSliceOfPointers = false
+		targetDesc.isSlice = false
+		targetDesc.isSliceOfPointers = false
 	}
 
 	if targetType.Kind() != reflect.Struct {
@@ -53,8 +53,8 @@ func extractType(target interface{}) (*targetDescription, error) {
 	}
 
 	var err error
-	targetDesc.InstanceType = targetType
-	targetDesc.StructMapping, err = dbreflect.Cache.GetOrCreateStructMapping(targetType)
+	targetDesc.instanceType = targetType
+	targetDesc.structMapping, err = dbreflect.Cache.GetOrCreateStructMapping(targetType)
 	if err != nil {
 		return nil, err
 	}
@@ -67,13 +67,13 @@ func extractType(target interface{}) (*targetDescription, error) {
 // If the target is a singel instante it just use its pointer.
 // If the target is a slice, it creates new instances and expand the slice.
 func (t *targetDescription) fillTarget(f func(target interface{}) error) error {
-	if t.IsSlice == false {
-		return f(t.Target)
+	if t.isSlice == false {
+		return f(t.target)
 	}
 
 	// It's a slice
 	// Create a new instance (reflect.Value of a pointer of the type needed)
-	newInstancePointerValue := reflect.New(t.InstanceType)
+	newInstancePointerValue := reflect.New(t.instanceType)
 	newInstancePointer := newInstancePointerValue.Interface()
 	// Call func with the struct pointer
 	err := f(newInstancePointer)
@@ -82,15 +82,15 @@ func (t *targetDescription) fillTarget(f func(target interface{}) error) error {
 	}
 	// Add the new instance to the struct
 	// Get the current slice (t.Target is a slice pointer)
-	sliceValue := reflect.ValueOf(t.Target).Elem()
+	sliceValue := reflect.ValueOf(t.target).Elem()
 	// Add the new instance (or pointer to) into the slice
 	instanceOrPointerValue := newInstancePointerValue
-	if !t.IsSliceOfPointers {
+	if !t.isSliceOfPointers {
 		instanceOrPointerValue = newInstancePointerValue.Elem()
 	}
 	newSliceValue := reflect.Append(sliceValue, instanceOrPointerValue)
 	// Update the content of t.Target with the new slice
-	reflect.ValueOf(t.Target).Elem().Set(newSliceValue)
+	reflect.ValueOf(t.target).Elem().Set(newSliceValue)
 
 	return nil
 }
@@ -100,11 +100,11 @@ func (t *targetDescription) fillTarget(f func(target interface{}) error) error {
 // Don't use the instance pointer for other use, don't change values,
 // don't store it for later use, ...
 func (t *targetDescription) getOneInstancePointer() interface{} {
-	if t.IsSlice == false {
-		return t.Target
+	if t.isSlice == false {
+		return t.target
 	}
 
-	return reflect.New(t.InstanceType).Interface()
+	return reflect.New(t.instanceType).Interface()
 }
 
 // tableName returns the table name to use for the current target
@@ -114,6 +114,6 @@ func (t *targetDescription) getTableName() string {
 		return namer.TableName()
 	}
 
-	typeNameParts := strings.Split(t.StructMapping.Name, ".")
+	typeNameParts := strings.Split(t.structMapping.Name, ".")
 	return typeNameParts[len(typeNameParts)-1]
 }

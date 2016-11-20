@@ -201,13 +201,13 @@ func (ss *selectStatement) Do(target interface{}) error {
 		return err
 	}
 
-	if targetInfo.IsSlice == false {
+	if targetInfo.isSlice == false {
 		// Only one row is requested
 		ss.Limit(1)
 	}
 
 	f := func(target interface{}, columns []string) ([]interface{}, error) {
-		pointers, err := targetInfo.StructMapping.GetPointersForColumns(target, columns...)
+		pointers, err := targetInfo.structMapping.GetPointersForColumns(target, columns...)
 		return pointers, err
 	}
 
