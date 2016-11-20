@@ -29,7 +29,7 @@ type joinPart struct {
 
 // pointersGetter is a func type, returning a list of pointers (and error) for
 // a given instance pointer and a column list
-type pointersGetter func(target interface{}, columns []string) ([]interface{}, error)
+type pointersGetter func(record interface{}, columns []string) ([]interface{}, error)
 
 // SelectFrom initialise a select statement builder
 func (db *DB) SelectFrom(tableName string) *selectStatement {
@@ -194,28 +194,28 @@ func (ss *selectStatement) ToSQL() (string, []interface{}, error) {
 }
 
 // Do execute the select statement
-// The target argument has to be a pointer to a struct or a slice
-func (ss *selectStatement) Do(target interface{}) error {
-	targetInfo, err := extractType(target)
+// The record argument has to be a pointer to a struct or a slice
+func (ss *selectStatement) Do(record interface{}) error {
+	recordInfo, err := buildRecordDescription(record)
 	if err != nil {
 		return err
 	}
 
-	if targetInfo.isSlice == false {
+	if recordInfo.isSlice == false {
 		// Only one row is requested
 		ss.Limit(1)
 	}
 
-	f := func(target interface{}, columns []string) ([]interface{}, error) {
-		pointers, err := targetInfo.structMapping.GetPointersForColumns(target, columns...)
+	f := func(record interface{}, columns []string) ([]interface{}, error) {
+		pointers, err := recordInfo.structMapping.GetPointersForColumns(record, columns...)
 		return pointers, err
 	}
 
-	return ss.do(targetInfo, f)
+	return ss.do(recordInfo, f)
 }
 
 // do executes the statement and fill the struct or slice
-func (ss *selectStatement) do(targetInfo *targetDescription, pointersGetter pointersGetter) error {
+func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter pointersGetter) error {
 	sql, args, err := ss.ToSQL()
 	if err != nil {
 		return err
@@ -240,10 +240,10 @@ func (ss *selectStatement) do(targetInfo *targetDescription, pointersGetter poin
 	}
 
 	for rows.Next() {
-		err = targetInfo.fillTarget(
+		err = recordInfo.fillRecord(
 			// Fill one instance with one row
-			func(target interface{}) error {
-				fieldsPointers, innererr := pointersGetter(target, columns)
+			func(record interface{}) error {
+				fieldsPointers, innererr := pointersGetter(record, columns)
 				if innererr != nil {
 					return innererr
 				}

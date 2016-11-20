@@ -3,21 +3,21 @@ package godb
 type structSelect struct {
 	Error             error
 	selectStatement   *selectStatement
-	targetDescription *targetDescription
+	recordDescription *recordDescription
 }
 
 // Select initialise a SQL Select Statement with the given pointer as
 // targer. The pointer could point to a single instance or a slice.
-func (db *DB) Select(target interface{}) *structSelect {
+func (db *DB) Select(record interface{}) *structSelect {
 	var err error
 
 	ss := &structSelect{}
-	ss.targetDescription, err = extractType(target)
+	ss.recordDescription, err = buildRecordDescription(record)
 	if err != nil {
 		ss.Error = err
 		return ss
 	}
-	ss.selectStatement = db.SelectFrom(ss.targetDescription.getTableName())
+	ss.selectStatement = db.SelectFrom(ss.recordDescription.getTableName())
 	return ss
 }
 
@@ -74,20 +74,20 @@ func (ss *structSelect) Do() error {
 	}
 
 	// Columns names
-	allColumns := ss.targetDescription.structMapping.GetAllColumnsNames()
+	allColumns := ss.recordDescription.structMapping.GetAllColumnsNames()
 	ss.selectStatement = ss.selectStatement.Columns(ss.selectStatement.db.quoteAll(allColumns)...)
 
-	if ss.targetDescription.isSlice == false {
+	if ss.recordDescription.isSlice == false {
 		// Only one row is requested
 		ss.selectStatement.Limit(1)
 	}
 
-	f := func(target interface{}, columns []string) ([]interface{}, error) {
-		pointers := ss.targetDescription.structMapping.GetAllFieldsPointers(target)
+	f := func(record interface{}, columns []string) ([]interface{}, error) {
+		pointers := ss.recordDescription.structMapping.GetAllFieldsPointers(record)
 		return pointers, nil
 	}
 
-	return ss.selectStatement.do(ss.targetDescription, f)
+	return ss.selectStatement.do(ss.recordDescription, f)
 }
 
 // Count run the request with COUNT(*) and returns the count
