@@ -5,18 +5,23 @@ import (
 	"time"
 )
 
+// Set the logger for the given DB.
+// By default there is no logger.
 func (db *DB) SetLogger(logger *log.Logger) {
 	db.logger = logger
 }
 
-func (db *DB) LogPrintln(v ...interface{}) {
+// logPrintln is just a wrapper for log.Logger.Println with the DB.logger
+// as Logger
+func (db *DB) logPrintln(v ...interface{}) {
 	if db.logger != nil {
 		db.logger.Println(v...)
 	}
 }
 
-func (db *DB) LogDuration(duration time.Duration) {
+// logDuration simply add a log with a duration
+func (db *DB) logDuration(duration time.Duration) {
 	if db.logger != nil {
-		db.LogPrintln("Duration : ", duration)
+		db.logPrintln("Duration : ", duration)
 	}
 }

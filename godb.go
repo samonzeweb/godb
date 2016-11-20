@@ -9,9 +9,9 @@ import (
 	"gitlab.com/samonzeweb/godb/adapters"
 )
 
-// DB store a connection to the database, and others data like transaction,
-// logger, ... Everything starts with a DB.
-// DB is not thread safe.
+// DB store a connection to the database, the current transaction, logger, ...
+// Everything starts with a DB.
+// DB is not thread safe (see Clone)
 type DB struct {
 	adapter      adapters.DriverNamer
 	sqlDB        *sql.DB
@@ -20,6 +20,8 @@ type DB struct {
 	consumedTime time.Duration
 }
 
+// Default placeholder, use it to build queries.
+// Adapters could change it before the queries are executed.
 const Placeholder string = "?"
 
 // Open create a new DB struct and initialise a sql.DB connection.
@@ -46,12 +48,13 @@ func (db *DB) Clone() *DB {
 }
 
 // Close close an existing DB created by Open.
-// Dont't close a cloned DB used by others goroutines !
+// Dont't close a cloned DB ustill sed by others goroutines as the sql.DB
+// is shared !
 // Don't use a DB anymore after a call to Close.
 func (db *DB) Close() error {
-	db.LogPrintln("CLOSE DB")
+	db.logPrintln("CLOSE DB")
 	if db.sqlTx != nil {
-		db.LogPrintln("Warning, there is a current transaction")
+		db.logPrintln("Warning, there is a current transaction")
 	}
 	return db.sqlDB.Close()
 }
@@ -67,7 +70,7 @@ func (db *DB) ResetConsumedTime() {
 	db.consumedTime = 0
 }
 
-// Reset the time consumed by SQL queries executions
+// add duration to the consumed time
 func (db *DB) addConsumedTime(duration time.Duration) {
 	db.consumedTime += duration
 }
@@ -78,7 +81,7 @@ func timeElapsedSince(startTime time.Time) time.Duration {
 	return time.Now().Sub(startTime)
 }
 
-// quote returns all strings given quoted by the adapter if it implements
+// quoteAll returns all strings given quoted by the adapter if it implements
 // the Quoter interface, or the given strings slice.
 func (db *DB) quoteAll(identifiers []string) []string {
 	if quoter, ok := db.adapter.(adapters.Quoter); ok {

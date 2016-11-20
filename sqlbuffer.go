@@ -14,7 +14,7 @@ type sqlBuffer struct {
 	arguments []interface{}
 }
 
-// NewsqlBuffer create a new buffer to build SQL query with corresponding arguments.
+// newsqlBuffer create a new buffer to build SQL query with corresponding arguments.
 func newSQLBuffer(sqlLength int, argsLength int) *sqlBuffer {
 	return &sqlBuffer{
 		sql:       bytes.NewBuffer(make([]byte, 0, sqlLength)),
@@ -27,12 +27,12 @@ func (b *sqlBuffer) sqlString() string {
 	return b.sql.String()
 }
 
-// Arguments returns the arguments slice.
+// sqlArguments returns the arguments slice.
 func (b *sqlBuffer) sqlArguments() []interface{} {
 	return b.arguments
 }
 
-// Write adds a custom string and arguments into the buffer.
+// write adds a custom string and arguments into the buffer.
 func (b *sqlBuffer) write(sql string, args ...interface{}) error {
 	b.sql.WriteString(sql)
 	b.arguments = append(b.arguments, args...)
@@ -40,7 +40,7 @@ func (b *sqlBuffer) write(sql string, args ...interface{}) error {
 	return nil
 }
 
-// WriteIfNotEmpty writes the given string if the sql buffer isn't empty.
+// writeIfNotEmpty writes the given string if the sql buffer isn't empty.
 func (b *sqlBuffer) writeIfNotEmpty(custom string) error {
 	if b.sql.Len() > 0 {
 		b.sql.WriteString(custom)
@@ -49,7 +49,7 @@ func (b *sqlBuffer) writeIfNotEmpty(custom string) error {
 	return nil
 }
 
-// WriteStrings writes strings separated by spaces.
+// writeStrings writes strings separated by spaces.
 func (b *sqlBuffer) writeStrings(customs []string) error {
 	for _, custom := range customs {
 		b.writeIfNotEmpty(" ")
@@ -58,7 +58,7 @@ func (b *sqlBuffer) writeStrings(customs []string) error {
 	return nil
 }
 
-// WriteColumns writes a list of columns into the buffer.
+// writeColumns writes a list of columns into the buffer.
 func (b *sqlBuffer) writeColumns(columns []string) error {
 	if len(columns) == 0 {
 		return fmt.Errorf("Missing columns in statement")
@@ -68,7 +68,7 @@ func (b *sqlBuffer) writeColumns(columns []string) error {
 	return nil
 }
 
-// WriteFrom writes FROM clause into the buffer.
+// writeFrom writes FROM clause into the buffer.
 func (b *sqlBuffer) writeFrom(fromTables ...string) error {
 	if len(fromTables) == 0 {
 		return fmt.Errorf("No from clause in statement")
@@ -79,7 +79,7 @@ func (b *sqlBuffer) writeFrom(fromTables ...string) error {
 	return err
 }
 
-// WriteJoins writes JOIN clause into the buffer.
+// writeJoins writes JOIN clause into the buffer.
 func (b *sqlBuffer) writeJoins(joins []*joinPart) error {
 	for _, join := range joins {
 		b.writeIfNotEmpty(" ")
@@ -99,7 +99,7 @@ func (b *sqlBuffer) writeJoins(joins []*joinPart) error {
 	return nil
 }
 
-// WriteWhere writes WHERE clause into the buffer.
+// writeWhere writes WHERE clause into the buffer.
 func (b *sqlBuffer) writeWhere(conditions []*Condition) error {
 	if len(conditions) != 0 {
 		b.sql.WriteString(" WHERE ")
@@ -109,7 +109,7 @@ func (b *sqlBuffer) writeWhere(conditions []*Condition) error {
 	return nil
 }
 
-// WriteGroupByAndHaving writes ORDER BY and HAVING clauses into the buffer.
+// writeGroupByAndHaving writes ORDER BY and HAVING clauses into the buffer.
 func (b *sqlBuffer) writeGroupByAndHaving(columns []string, conditions []*Condition) error {
 	if len(columns) != 0 {
 		b.writeIfNotEmpty(" ")
@@ -128,7 +128,7 @@ func (b *sqlBuffer) writeGroupByAndHaving(columns []string, conditions []*Condit
 	return nil
 }
 
-// WriteOrderBy writes ORDER BY clause into the buffer.
+// writeOrderBy writes ORDER BY clause into the buffer.
 func (b *sqlBuffer) writeOrderBy(columns []string) error {
 	if len(columns) != 0 {
 		b.sql.WriteString(" ORDER BY ")
@@ -138,7 +138,7 @@ func (b *sqlBuffer) writeOrderBy(columns []string) error {
 	return nil
 }
 
-// WriteOffset write OFFSET clause into the buffer.
+// writeOffset write OFFSET clause into the buffer.
 func (b *sqlBuffer) writeOffset(offset *int) error {
 	if offset != nil {
 		b.sql.WriteString(" OFFSET ")
@@ -149,7 +149,7 @@ func (b *sqlBuffer) writeOffset(offset *int) error {
 	return nil
 }
 
-// WriteLimit writes LIMIT clauses into the buffer.
+// writeLimit writes LIMIT clauses into the buffer.
 func (b *sqlBuffer) writeLimit(limit *int) error {
 	if limit != nil {
 		b.sql.WriteString(" LIMIT ")
@@ -160,42 +160,43 @@ func (b *sqlBuffer) writeLimit(limit *int) error {
 	return nil
 }
 
-// WriteInto writes INTO clause into the buffer.
-func (b *sqlBuffer) writeInto(intoTable string) error {
-	if intoTable == "" {
-		return fmt.Errorf("No INTO clause in INSERT statement")
-	}
-
-	b.sql.WriteString("INTO ")
-	b.sql.WriteString(intoTable)
-	return nil
-}
-
-// WriteInsertValues writes all the values to insert into the buffer.
-func (b *sqlBuffer) writeInsertValues(args [][]interface{}, columnsCount int) error {
-	if len(args) == 0 {
-		return fmt.Errorf("Missing values in INSERT statement")
-	}
-
-	// build (?, ?, ?, ?)
-	valuesPart := buildGroupOfPlaceholders(columnsCount)
-
-	// insert group of placeholders for each group of values
-	groupCount := len(args)
-	for i, currentGroup := range args {
-		if len(currentGroup) != columnsCount {
-			return fmt.Errorf("Values count does not match the columns count")
-		}
-		b.sql.Write(valuesPart.Bytes())
-		if i != (groupCount - 1) {
-			b.sql.WriteString(", ")
-		}
-		b.arguments = append(b.arguments, currentGroup...)
-	}
-
-	return nil
-}
-
+// // writeInto writes INTO clause into the buffer.
+// func (b *sqlBuffer) writeInto(intoTable string) error {
+// 	if intoTable == "" {
+// 		return fmt.Errorf("No INTO clause in INSERT statement")
+// 	}
+//
+// 	b.sql.WriteString("INTO ")
+// 	b.sql.WriteString(intoTable)
+// 	return nil
+// }
+//
+// // writeInsertValues writes all the values to insert to the database into
+// // the buffer.
+// func (b *sqlBuffer) writeInsertValues(args [][]interface{}, columnsCount int) error {
+// 	if len(args) == 0 {
+// 		return fmt.Errorf("Missing values in INSERT statement")
+// 	}
+//
+// 	// build (?, ?, ?, ?)
+// 	valuesPart := buildGroupOfPlaceholders(columnsCount)
+//
+// 	// insert group of placeholders for each group of values
+// 	groupCount := len(args)
+// 	for i, currentGroup := range args {
+// 		if len(currentGroup) != columnsCount {
+// 			return fmt.Errorf("Values count does not match the columns count")
+// 		}
+// 		b.sql.Write(valuesPart.Bytes())
+// 		if i != (groupCount - 1) {
+// 			b.sql.WriteString(", ")
+// 		}
+// 		b.arguments = append(b.arguments, currentGroup...)
+// 	}
+//
+// 	return nil
+// }
+//
 // // WriteSets writes the SET clause of an UPDATE statement.
 // func (b *sqlBuffer) writeSets(sets []*setPart) error {
 // 	if len(sets) == 0 {
@@ -254,19 +255,19 @@ func (b *sqlBuffer) writeConditions(conditions []*Condition) error {
 	return b.writeCondition(c)
 }
 
-// buildGroupOfPlaceholders build a group of placeholders for values : (?, ?, ?, ?)
-func buildGroupOfPlaceholders(placeholderCount int) *bytes.Buffer {
-	placeholderGroup := bytes.NewBuffer(make([]byte, 0, placeholderCount*3))
-	placeholderGroup.WriteString("(")
-	placdeholderCommaSpace := Placeholder + ", "
-	for i := 1; i <= placeholderCount; i++ {
-		if i != placeholderCount {
-			placeholderGroup.WriteString(placdeholderCommaSpace)
-		} else {
-			placeholderGroup.WriteString(Placeholder)
-		}
-	}
-	placeholderGroup.WriteString(")")
-
-	return placeholderGroup
-}
+// // buildGroupOfPlaceholders build a group of placeholders for values : (?, ?, ?, ?)
+// func buildGroupOfPlaceholders(placeholderCount int) *bytes.Buffer {
+// 	placeholderGroup := bytes.NewBuffer(make([]byte, 0, placeholderCount*3))
+// 	placeholderGroup.WriteString("(")
+// 	placdeholderCommaSpace := Placeholder + ", "
+// 	for i := 1; i <= placeholderCount; i++ {
+// 		if i != placeholderCount {
+// 			placeholderGroup.WriteString(placdeholderCommaSpace)
+// 		} else {
+// 			placeholderGroup.WriteString(Placeholder)
+// 		}
+// 	}
+// 	placeholderGroup.WriteString(")")
+//
+// 	return placeholderGroup
+// }

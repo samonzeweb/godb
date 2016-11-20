@@ -7,7 +7,7 @@ type structSelect struct {
 }
 
 // Select initialise a SQL Select Statement with the given pointer as
-// targer. The pointer could point to a single instance or a slice.
+// target. The pointer could point to a single instance or a slice.
 func (db *DB) Select(record interface{}) *structSelect {
 	var err error
 
@@ -40,7 +40,7 @@ func (ss *structSelect) WhereQ(condition *Condition) *structSelect {
 	return ss
 }
 
-// OrderBy add an expression for the Order clause.
+// OrderBy add an expression for the ORDER BY clause.
 func (ss *structSelect) OrderBy(orderBy string) *structSelect {
 	if ss.Error != nil {
 		return ss
@@ -49,7 +49,7 @@ func (ss *structSelect) OrderBy(orderBy string) *structSelect {
 	return ss
 }
 
-// Offset specify the value for the Offset clause.
+// Offset specify the value for the OFFSET clause.
 func (ss *structSelect) Offset(offset int) *structSelect {
 	if ss.Error != nil {
 		return ss
@@ -58,7 +58,7 @@ func (ss *structSelect) Offset(offset int) *structSelect {
 	return ss
 }
 
-// Limit specify the value for the Offset clause.
+// Limit specify the value for the LIMIT clause.
 func (ss *structSelect) Limit(limit int) *structSelect {
 	if ss.Error != nil {
 		return ss
@@ -67,7 +67,8 @@ func (ss *structSelect) Limit(limit int) *structSelect {
 	return ss
 }
 
-// Do execute the select statement
+// Do execute the select statement, the record given to Select will contain
+// the data.
 func (ss *structSelect) Do() error {
 	if ss.Error != nil {
 		return ss.Error

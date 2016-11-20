@@ -66,7 +66,7 @@ func And(conditions ...*Condition) *Condition {
 		return &Condition{Error: err}
 	}
 
-	// len(" AND ") == 5
+	// because len(" AND ") == 5
 	sqlLength += 5 * (len(conditions) - 1)
 	buffer := bytes.NewBuffer(make([]byte, 0, sqlLength))
 	joinedArgs := make([]interface{}, 0, argsLength)
@@ -89,7 +89,7 @@ func Or(conditions ...*Condition) *Condition {
 		return &Condition{Error: err}
 	}
 
-	// len(" OR ") == 4 , and parentheses
+	// len(" OR ") == 4 , plus parentheses
 	sqlLength += 2 + 4*(len(conditions)-1)
 	buffer := bytes.NewBuffer(make([]byte, 0, sqlLength))
 	buffer.WriteString("(")

@@ -2,7 +2,7 @@ package godb
 
 import "time"
 
-//
+// selectStatement is a SELECT sql statement builder
 type selectStatement struct {
 	db *DB
 
@@ -19,7 +19,7 @@ type selectStatement struct {
 	suffixes   []string
 }
 
-//
+// joinPart describe a sql JOIN clause
 type joinPart struct {
 	joinType  string
 	tableName string
@@ -28,7 +28,7 @@ type joinPart struct {
 }
 
 // pointersGetter is a func type, returning a list of pointers (and error) for
-// a given instance pointer and a column list
+// a given instance pointer and a columns names list.
 type pointersGetter func(record interface{}, columns []string) ([]interface{}, error)
 
 // SelectFrom initialise a select statement builder
@@ -42,7 +42,7 @@ func newSelectStatement(db *DB, tableName string) *selectStatement {
 	return ss.From(tableName)
 }
 
-// From add table to the SELECT statement. It can be called multiple times.
+// From add table to the select statement. It can be called multiple times.
 func (ss *selectStatement) From(tableName string) *selectStatement {
 	ss.fromTables = append(ss.fromTables, tableName)
 	return ss
@@ -60,7 +60,7 @@ func (ss *selectStatement) Distinct() *selectStatement {
 	return ss
 }
 
-// Join add a generic join clause, wich will be inserted between FROM and Where
+// LeftJoin add a LEFT JOIN clause, wich will be inserted between FROM and WHERE
 // clauses.
 func (ss *selectStatement) LeftJoin(tableName string, as string, on *Condition) *selectStatement {
 	join := &joinPart{
@@ -79,45 +79,45 @@ func (ss *selectStatement) Where(sql string, args ...interface{}) *selectStateme
 }
 
 // WhereQ add a simple or complex predicate generated with Q and
-// confunctions.
+// conjunctions.
 func (ss *selectStatement) WhereQ(condition *Condition) *selectStatement {
 	ss.where = append(ss.where, condition)
 	return ss
 }
 
-// GroupBy add a generic join clause, wich will be inserted between FROM and Where
-// clauses.
+// GroupBy add a GROUP BY clause.
 func (ss *selectStatement) GroupBy(groupBy string) *selectStatement {
 	ss.groupBy = append(ss.groupBy, groupBy)
 	return ss
 }
 
-// Having add a condition using string and arguments.
+// Having add a HAVING clause with a condition build with a sql string and
+// its arguments (like Where).
 func (ss *selectStatement) Having(sql string, args ...interface{}) *selectStatement {
 	return ss.HavingQ(Q(sql, args...))
 }
 
 // HavingQ add a simple or complex predicate generated with Q and
-// conjunctions.
+// conjunctions (like WhereQ)
 func (ss *selectStatement) HavingQ(condition *Condition) *selectStatement {
 	ss.having = append(ss.having, condition)
 	return ss
 }
 
-// OrderBy add an expression for the Order clause.
+// OrderBy add an expression for the ORDER BY clause.
 func (ss *selectStatement) OrderBy(orderBy string) *selectStatement {
 	ss.orderBy = append(ss.orderBy, orderBy)
 	return ss
 }
 
-// Offset specify the value for the Offset clause.
+// Offset specify the value for the OFFSET clause.
 func (ss *selectStatement) Offset(offset int) *selectStatement {
 	ss.offset = new(int)
 	*ss.offset = offset
 	return ss
 }
 
-// Limit specify the value for the Offset clause.
+// Limit specify the value for the LIMIT clause.
 func (ss *selectStatement) Limit(limit int) *selectStatement {
 	ss.limit = new(int)
 	*ss.limit = limit
@@ -206,6 +206,7 @@ func (ss *selectStatement) Do(record interface{}) error {
 		ss.Limit(1)
 	}
 
+	// the function wich will return the pointers according to the given columns
 	f := func(record interface{}, columns []string) ([]interface{}, error) {
 		pointers, err := recordInfo.structMapping.GetPointersForColumns(record, columns...)
 		return pointers, err
@@ -220,22 +221,22 @@ func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter poin
 	if err != nil {
 		return err
 	}
-	ss.db.LogPrintln("SELECT : ", sql, args)
+	ss.db.logPrintln("SELECT : ", sql, args)
 
 	startTime := time.Now()
 	rows, err := ss.db.getTxElseDb().Query(sql, args...)
 	condumedTime := timeElapsedSince(startTime)
 	ss.db.addConsumedTime(condumedTime)
-	ss.db.LogDuration(condumedTime)
+	ss.db.logDuration(condumedTime)
 	if err != nil {
-		ss.db.LogPrintln("ERROR : ", err)
+		ss.db.logPrintln("ERROR : ", err)
 		return err
 	}
 	defer rows.Close()
 
 	columns, err := rows.Columns()
 	if err != nil {
-		ss.db.LogPrintln("ERROR : ", err)
+		ss.db.logPrintln("ERROR : ", err)
 		return err
 	}
 
@@ -255,14 +256,14 @@ func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter poin
 			})
 
 		if err != nil {
-			ss.db.LogPrintln("ERROR : ", err)
+			ss.db.logPrintln("ERROR : ", err)
 			return err
 		}
 	}
 
 	err = rows.Err()
 	if err != nil {
-		ss.db.LogPrintln("ERROR : ", err)
+		ss.db.logPrintln("ERROR : ", err)
 	}
 	return err
 }
@@ -277,16 +278,16 @@ func (ss *selectStatement) Count() (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	ss.db.LogPrintln("SELECT : ", sql, args)
+	ss.db.logPrintln("SELECT : ", sql, args)
 
 	var count int
 	startTime := time.Now()
 	err = ss.db.getTxElseDb().QueryRow(sql, args...).Scan(&count)
 	condumedTime := timeElapsedSince(startTime)
 	ss.db.addConsumedTime(condumedTime)
-	ss.db.LogDuration(condumedTime)
+	ss.db.logDuration(condumedTime)
 	if err != nil {
-		ss.db.LogPrintln("ERROR : ", err)
+		ss.db.logPrintln("ERROR : ", err)
 		return 0, err
 	}
 

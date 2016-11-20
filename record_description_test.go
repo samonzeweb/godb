@@ -18,7 +18,7 @@ func (*otherTypeToDescribe) TableName() string {
 	return "others"
 }
 
-func TestbuildRecordDescription(t *testing.T) {
+func TestBuildRecordDescription(t *testing.T) {
 	Convey("Given a single instance pointer", t, func() {
 		instance := &typeToDescribe{}
 
