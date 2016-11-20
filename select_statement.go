@@ -31,13 +31,8 @@ type joinPart struct {
 // a given instance pointer and a columns names list.
 type pointersGetter func(record interface{}, columns []string) ([]interface{}, error)
 
-// SelectFrom initialise a select statement builder
+// SelectFrom initialise a SELECT statement builder
 func (db *DB) SelectFrom(tableName string) *selectStatement {
-	return newSelectStatement(db, tableName)
-}
-
-// Create a new select statement
-func newSelectStatement(db *DB, tableName string) *selectStatement {
 	ss := &selectStatement{db: db}
 	return ss.From(tableName)
 }
