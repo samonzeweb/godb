@@ -32,6 +32,7 @@ type fieldMapping struct {
 
 // subStructMapping contrains nested structs
 type subStructMapping struct {
+	name          string
 	prefix        string
 	structMapping StructMapping
 }
@@ -114,7 +115,10 @@ func (sm *StructMapping) newSubStructMapping(structField reflect.StructField) (*
 		return nil, err
 	}
 
-	subStructMapping := &subStructMapping{structMapping: *structMapping}
+	subStructMapping := &subStructMapping{
+		name:          structField.Name,
+		structMapping: *structMapping,
+	}
 
 	// Optionnal prefix
 	subStructMapping.prefix, _ = sm.tagData(structField.Tag)
@@ -227,26 +231,67 @@ func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string)
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
 
-	pointers := make([]interface{}, 0, len(columns))
-	for _, column := range columns {
-		fieldMapping, err := sm.findFieldMapping(column)
-		if err != nil {
-			return nil, err
+	// Find pointers
+	pointersMap := make(map[string]interface{})
+	f := func(fullName string, value *reflect.Value) (stop bool, err error) {
+		for _, columnName := range columns {
+			if columnName == fullName {
+				pointersMap[columnName] = value.Addr().Interface()
+			}
 		}
-		fieldValue := v.FieldByName(fieldMapping.name)
-		pointers = append(pointers, fieldValue.Addr().Interface())
+		return false, nil
+	}
+
+	// Explore the struct tree
+	sm.traverseTree("", &v, f)
+
+	// Returns pointers in the same order than names
+	pointers := make([]interface{}, 0, len(columns))
+	for _, columnName := range columns {
+		pointer, ok := pointersMap[columnName]
+		if !ok {
+			return nil, fmt.Errorf("Unknown column name %s in struct %s", columnName, sm.Name)
+		}
+		pointers = append(pointers, pointer)
 	}
 
 	return pointers, nil
 }
 
-// findFieldMapping find the fieldMapping instance for the given column name
-func (sm *StructMapping) findFieldMapping(columnName string) (*fieldMapping, error) {
+type treeExplorer func(fullName string, value *reflect.Value) (stop bool, err error)
+
+// TODO
+func (sm *StructMapping) traverseTree(prefix string, startValue *reflect.Value, f treeExplorer) (bool, error) {
+	var stopped bool
+	var err error
+
+	// Fields in in current StructMapping
 	for _, fm := range sm.fieldsMapping {
-		if fm.sqlName == columnName {
-			return &fm, nil
+		fullName := prefix + fm.sqlName
+		if startValue != nil {
+			fieldValue := startValue.FieldByName(fm.name)
+			stopped, err = f(fullName, &fieldValue)
+		} else {
+			stopped, err = f(fullName, nil)
+		}
+		if stopped || err != nil {
+			return stopped, err
 		}
 	}
 
-	return nil, fmt.Errorf("No field mapping for column %s", columnName)
+	// Nested structs
+	for _, sub := range sm.subStructMapping {
+		if startValue != nil {
+			structValue := startValue.FieldByName(sub.name)
+			stopped, err = sub.structMapping.traverseTree(prefix+sub.prefix, &structValue, f)
+		} else {
+			stopped, err = sub.structMapping.traverseTree(prefix+sub.prefix, nil, f)
+		}
+
+		if stopped || err != nil {
+			return stopped, err
+		}
+	}
+
+	return false, nil
 }

@@ -7,33 +7,35 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type simpleStruct struct {
+type SimpleStruct struct {
 	ID    int    `db:"id,key,auto"`
 	Text  string `db:"my_text"`
 	Other string
 }
 
-type complexStruct struct {
+type ComplexStruct struct {
 	// without prefix, empty string is mandatory as it is a key,value
 	// (see https://golang.org/pkg/reflect/#StructTag)
-	simpleStruct `db:""`
+	SimpleStruct `db:""`
 	// without prefix
-	foobar subStruct `db:"nested"`
+	Foobar SubStruct `db:"nested_"`
 	// ignored
-	ignored subStruct
+	Ignored SubStruct
+	// not nested field
+	IAmNotNested string `db:"iamnotnested"`
 }
 
-type subStruct struct {
-	foo string `db:"foo"`
-	bar string `db:"bar"`
+type SubStruct struct {
+	Foo string `db:"foo"`
+	Bar string `db:"bar"`
 }
 
 func TestStructMapping(t *testing.T) {
 	Convey("NewStructMapping with a struct type", t, func() {
-		structMap, _ := NewStructMapping(reflect.TypeOf(simpleStruct{}))
+		structMap, _ := NewStructMapping(reflect.TypeOf(SimpleStruct{}))
 
 		Convey("It stores the struct name ", func() {
-			So(structMap.Name, ShouldEndWith, "simpleStruct")
+			So(structMap.Name, ShouldEndWith, "SimpleStruct")
 		})
 
 		Convey("It store data about all tagged fields ", func() {
@@ -44,17 +46,17 @@ func TestStructMapping(t *testing.T) {
 	})
 
 	Convey("NewStructMapping with a complex struct type with sub-structs", t, func() {
-		structMap, _ := NewStructMapping(reflect.TypeOf(complexStruct{}))
+		structMap, _ := NewStructMapping(reflect.TypeOf(ComplexStruct{}))
 		So(len(structMap.subStructMapping), ShouldEqual, 2)
 
 		Convey("It store data about sub struct without prefix ", func() {
 			So(structMap.subStructMapping[0].prefix, ShouldEqual, "")
-			So(structMap.subStructMapping[0].structMapping.Name, ShouldEndWith, "simpleStruct")
+			So(structMap.subStructMapping[0].structMapping.Name, ShouldEndWith, "SimpleStruct")
 		})
 
 		Convey("It store data about sub struct with prefix ", func() {
-			So(structMap.subStructMapping[1].prefix, ShouldEqual, "nested")
-			So(structMap.subStructMapping[1].structMapping.Name, ShouldEndWith, "subStruct")
+			So(structMap.subStructMapping[1].prefix, ShouldEqual, "nested_")
+			So(structMap.subStructMapping[1].structMapping.Name, ShouldEndWith, "SubStruct")
 		})
 	})
 
@@ -73,15 +75,8 @@ func TestNewStructMappingErrors(t *testing.T) {
 
 func TestGetPointersForColumns(t *testing.T) {
 	Convey("Given a StructMapping and a struct instance", t, func() {
-		structInstance := simpleStruct{}
+		structInstance := SimpleStruct{}
 		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
-
-		Convey("GetPointersForColumns return pointers corresponding to a given column name", func() {
-			ptrs, err := structMap.GetPointersForColumns(&structInstance, "my_text")
-			So(err, ShouldBeNil)
-			So(len(ptrs), ShouldEqual, 1)
-			So(ptrs[0], ShouldEqual, &(structInstance.Text))
-		})
 
 		Convey("GetPointersForColumns return pointers corresponding to given columns names", func() {
 			ptrs, err := structMap.GetPointersForColumns(&structInstance, "id", "my_text")
@@ -91,18 +86,18 @@ func TestGetPointersForColumns(t *testing.T) {
 			So(ptrs[1], ShouldEqual, &(structInstance.Text))
 		})
 	})
-}
 
-func TestFindFieldMapping(t *testing.T) {
 	Convey("Given a StructMapping and a struct instance", t, func() {
-		structInstance := simpleStruct{}
+		structInstance := ComplexStruct{}
 		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
 
-		Convey("findFieldMapping return a fieldMapping for a given column name", func() {
-			fm, err := structMap.findFieldMapping("my_text")
+		Convey("GetPointersForColumns return pointers corresponding to a given column name", func() {
+			ptrs, err := structMap.GetPointersForColumns(&structInstance, "my_text", "nested_bar", "iamnotnested")
 			So(err, ShouldBeNil)
-			So(fm, ShouldNotBeNil)
-			So(fm.sqlName, ShouldEqual, "my_text")
+			So(len(ptrs), ShouldEqual, 3)
+			So(ptrs[0], ShouldEqual, &(structInstance.Text))
+			So(ptrs[1], ShouldEqual, &(structInstance.Foobar.Bar))
+			So(ptrs[2], ShouldEqual, &(structInstance.IAmNotNested))
 		})
 	})
 }
