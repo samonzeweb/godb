@@ -210,8 +210,10 @@ func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 
 	values := make([]interface{}, 0, 0)
 
-	f := func(fullName string, _ *fieldMapping, value *reflect.Value) (stop bool, err error) {
-		values = append(values, value.Interface())
+	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
+		if !fieldMapping.isAuto {
+			values = append(values, value.Interface())
+		}
 		return false, nil
 	}
 	sm.traverseTree("", &v, f)
@@ -252,6 +254,34 @@ func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string)
 	}
 
 	return pointers, nil
+}
+
+// GetAutoKeyPointer returns a pointer for a key and auto columns.
+// It will return nil if there is no such column, but no error.
+// It will return an error if there is more than one auto and key column.
+// It is intended to be used for INSERT statements.
+func (sm *StructMapping) GetAutoKeyPointer(s interface{}) (interface{}, error) {
+	// TODO : check type
+	v := reflect.ValueOf(s)
+	v = reflect.Indirect(v)
+
+	var autoKeyPointer interface{}
+
+	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
+		if fieldMapping.isKey && fieldMapping.isAuto {
+			if autoKeyPointer != nil {
+				return true, fmt.Errorf("Multiple auto+key fields for %s", sm.Name)
+			}
+			autoKeyPointer = value.Addr().Interface()
+		}
+		return false, nil
+	}
+
+	if _, err := sm.traverseTree("", &v, f); err != nil {
+		return nil, err
+	}
+
+	return autoKeyPointer, nil
 }
 
 // treeExplorer is a callback function for traverseTree, see below

@@ -30,6 +30,12 @@ type SubStruct struct {
 	Bar string `db:"bar"`
 }
 
+type BadStructMultipleAutoKey struct {
+	ID    int    `db:"id,key,auto"`
+	Text  string `db:"my_text,key,auto"`
+	Other string
+}
+
 func TestStructMapping(t *testing.T) {
 	Convey("NewStructMapping with a struct type", t, func() {
 		structMap, _ := NewStructMapping(reflect.TypeOf(SimpleStruct{}))
@@ -152,12 +158,11 @@ func TestGetNonAutoFieldsValues(t *testing.T) {
 
 		Convey("GetNonAutoFieldsValues return pointers corresponding to a given column name", func() {
 			values := structMap.GetNonAutoFieldsValues(&structInstance)
-			So(len(values), ShouldEqual, 5)
+			So(len(values), ShouldEqual, 4)
 			So(values[0], ShouldEqual, structInstance.IAmNotNested)
-			So(values[1], ShouldEqual, structInstance.ID)
-			So(values[2], ShouldEqual, structInstance.Text)
-			So(values[3], ShouldEqual, structInstance.Foobar.Foo)
-			So(values[4], ShouldEqual, structInstance.Foobar.Bar)
+			So(values[1], ShouldEqual, structInstance.Text)
+			So(values[2], ShouldEqual, structInstance.Foobar.Foo)
+			So(values[3], ShouldEqual, structInstance.Foobar.Bar)
 		})
 	})
 }
@@ -189,4 +194,29 @@ func TestGetPointersForColumns(t *testing.T) {
 			So(ptrs[2], ShouldEqual, &(structInstance.IAmNotNested))
 		})
 	})
+}
+
+func TestGetAutoKeyPointer(t *testing.T) {
+	Convey("Given a StructMapping and a struct instance", t, func() {
+		structInstance := ComplexStruct{}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetAutoKeyPointer returns a pointer to the columns wich is key and auto", func() {
+			pointer, err := structMap.GetAutoKeyPointer(&structInstance)
+			So(err, ShouldBeNil)
+			So(pointer, ShouldEqual, &(structInstance.ID))
+		})
+	})
+
+	Convey("Given a StructMapping and a struct instance", t, func() {
+		structInstance := BadStructMultipleAutoKey{}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetAutoKeyPointer returns an error if ther eare multiple auto+key fields", func() {
+			pointer, err := structMap.GetAutoKeyPointer(&structInstance)
+			So(err, ShouldNotBeNil)
+			So(pointer, ShouldBeNil)
+		})
+	})
+
 }
