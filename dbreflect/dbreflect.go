@@ -15,6 +15,7 @@ const optionAuto = "auto"
 const optionOptimisticLocking = "oplock"
 
 // StructMapping contains the relation between a struct and database columns
+// TODO : change structs to have a root with cache info (like # fields, ...)
 type StructMapping struct {
 	Name             string
 	fieldsMapping    []fieldMapping
@@ -126,15 +127,6 @@ func (sm *StructMapping) newSubStructMapping(structField reflect.StructField) (*
 	return subStructMapping, nil
 }
 
-//
-func (sm *StructMapping) GetAllColumnsNames() []string {
-	columns := make([]string, 0, len(sm.fieldsMapping))
-	for _, fieldMapping := range sm.fieldsMapping {
-		columns = append(columns, fieldMapping.sqlName)
-	}
-	return columns
-}
-
 // tagData extract tag data :
 // * the first value is returned as is (column name or prefix)
 // * others values are used to build a key,value map (options)
@@ -158,13 +150,30 @@ func (*StructMapping) tagData(tag reflect.StructTag) (string, map[string]bool) {
 }
 
 //
-func (sm *StructMapping) GetNonAutoColumnsNames() []string {
-	columns := make([]string, 0, len(sm.fieldsMapping))
-	for _, fieldMapping := range sm.fieldsMapping {
-		if fieldMapping.isAuto == false {
-			columns = append(columns, fieldMapping.sqlName)
-		}
+func (sm *StructMapping) GetAllColumnsNames() []string {
+	columns := make([]string, 0, 0)
+
+	f := func(fullName string, _ *fieldMapping, _ *reflect.Value) (stop bool, err error) {
+		columns = append(columns, fullName)
+		return false, nil
 	}
+	sm.traverseTree("", nil, f)
+
+	return columns
+}
+
+//
+func (sm *StructMapping) GetNonAutoColumnsNames() []string {
+	columns := make([]string, 0, 0)
+
+	f := func(fullName string, fieldMapping *fieldMapping, _ *reflect.Value) (stop bool, err error) {
+		if !fieldMapping.isAuto {
+			columns = append(columns, fullName)
+		}
+		return false, nil
+	}
+	sm.traverseTree("", nil, f)
+
 	return columns
 }
 
@@ -174,26 +183,15 @@ func (sm *StructMapping) GetAllFieldsPointers(s interface{}) []interface{} {
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
 
-	pointers := make([]interface{}, 0, len(sm.fieldsMapping))
-	for _, fieldMapping := range sm.fieldsMapping {
-		fieldValue := v.FieldByName(fieldMapping.name)
-		pointers = append(pointers, fieldValue.Addr().Interface())
+	pointers := make([]interface{}, 0, 0)
+
+	f := func(fullName string, _ *fieldMapping, value *reflect.Value) (stop bool, err error) {
+		pointers = append(pointers, value.Addr().Interface())
+		return false, nil
 	}
+	sm.traverseTree("", &v, f)
+
 	return pointers
-}
-
-//
-func (sm *StructMapping) GetAllFieldsValues(s interface{}) []interface{} {
-	// TODO : check type
-	v := reflect.ValueOf(s)
-	v = reflect.Indirect(v)
-
-	values := make([]interface{}, 0, len(sm.fieldsMapping))
-	for _, fieldMapping := range sm.fieldsMapping {
-		fieldValue := v.FieldByName(fieldMapping.name)
-		values = append(values, fieldValue.Interface())
-	}
-	return values
 }
 
 func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
@@ -201,28 +199,15 @@ func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
 
-	values := make([]interface{}, 0, len(sm.fieldsMapping))
-	for _, fieldMapping := range sm.fieldsMapping {
-		if fieldMapping.isAuto == false {
-			fieldValue := v.FieldByName(fieldMapping.name)
-			values = append(values, fieldValue.Interface())
-		}
+	values := make([]interface{}, 0, 0)
+
+	f := func(fullName string, _ *fieldMapping, value *reflect.Value) (stop bool, err error) {
+		values = append(values, value.Interface())
+		return false, nil
 	}
+	sm.traverseTree("", &v, f)
+
 	return values
-}
-
-func (sm *StructMapping) GetNonAutoColumnsNamesAndValues(s interface{}) map[string]interface{} {
-	// TODO : check type
-	v := reflect.ValueOf(s)
-	v = reflect.Indirect(v)
-
-	m := make(map[string]interface{})
-	for _, fieldMapping := range sm.fieldsMapping {
-		if fieldMapping.isAuto == false {
-			m[fieldMapping.sqlName] = v.FieldByName(fieldMapping.name).Interface()
-		}
-	}
-	return m
 }
 
 //
@@ -233,7 +218,7 @@ func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string)
 
 	// Find pointers
 	pointersMap := make(map[string]interface{})
-	f := func(fullName string, value *reflect.Value) (stop bool, err error) {
+	f := func(fullName string, _ *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		for _, columnName := range columns {
 			if columnName == fullName {
 				pointersMap[columnName] = value.Addr().Interface()
@@ -258,7 +243,7 @@ func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string)
 	return pointers, nil
 }
 
-type treeExplorer func(fullName string, value *reflect.Value) (stop bool, err error)
+type treeExplorer func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error)
 
 // TODO
 func (sm *StructMapping) traverseTree(prefix string, startValue *reflect.Value, f treeExplorer) (bool, error) {
@@ -270,9 +255,9 @@ func (sm *StructMapping) traverseTree(prefix string, startValue *reflect.Value, 
 		fullName := prefix + fm.sqlName
 		if startValue != nil {
 			fieldValue := startValue.FieldByName(fm.name)
-			stopped, err = f(fullName, &fieldValue)
+			stopped, err = f(fullName, &fm, &fieldValue)
 		} else {
-			stopped, err = f(fullName, nil)
+			stopped, err = f(fullName, &fm, nil)
 		}
 		if stopped || err != nil {
 			return stopped, err

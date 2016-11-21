@@ -73,12 +73,101 @@ func TestNewStructMappingErrors(t *testing.T) {
 	})
 }
 
+func TestGetAllColumnsNames(t *testing.T) {
+	Convey("Given a StructMapping and a struct instance", t, func() {
+		structInstance := SimpleStruct{}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetPointersForColumns return pointers corresponding to given columns names (not nested)", func() {
+			columns := structMap.GetAllColumnsNames()
+			So(len(columns), ShouldEqual, 2)
+			So(columns[0], ShouldEqual, "id")
+			So(columns[1], ShouldEqual, "my_text")
+		})
+	})
+
+	Convey("Given a StructMapping and a struct instance (nested)", t, func() {
+		structInstance := ComplexStruct{}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetAllColumnsNames return pointers corresponding to a given column name", func() {
+			columns := structMap.GetAllColumnsNames()
+			So(len(columns), ShouldEqual, 5)
+			So(columns[0], ShouldEqual, "iamnotnested")
+			So(columns[1], ShouldEqual, "id")
+			So(columns[2], ShouldEqual, "my_text")
+			So(columns[3], ShouldEqual, "nested_foo")
+			So(columns[4], ShouldEqual, "nested_bar")
+		})
+	})
+}
+
+func TestGetNonAutoColumnsNames(t *testing.T) {
+	Convey("Given a StructMapping and a struct instance (nested)", t, func() {
+		structInstance := ComplexStruct{}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetNonAutoColumnsNames return pointers corresponding to a given column name", func() {
+			columns := structMap.GetNonAutoColumnsNames()
+			So(len(columns), ShouldEqual, 4)
+			So(columns[0], ShouldEqual, "iamnotnested")
+			So(columns[1], ShouldEqual, "my_text")
+			So(columns[2], ShouldEqual, "nested_foo")
+			So(columns[3], ShouldEqual, "nested_bar")
+		})
+	})
+}
+
+func TestGetAllFieldsPointers(t *testing.T) {
+	Convey("Given a StructMapping and a struct instance (nested)", t, func() {
+		structInstance := ComplexStruct{}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetAllFieldsPointers return pointers corresponding to a given column name", func() {
+			ptrs := structMap.GetAllFieldsPointers(&structInstance)
+			So(len(ptrs), ShouldEqual, 5)
+			So(ptrs[0], ShouldEqual, &(structInstance.IAmNotNested))
+			So(ptrs[1], ShouldEqual, &(structInstance.ID))
+			So(ptrs[2], ShouldEqual, &(structInstance.Text))
+			So(ptrs[3], ShouldEqual, &(structInstance.Foobar.Foo))
+			So(ptrs[4], ShouldEqual, &(structInstance.Foobar.Bar))
+		})
+	})
+}
+
+func TestGetNonAutoFieldsValues(t *testing.T) {
+	Convey("Given a StructMapping and a struct instance (nested)", t, func() {
+		structInstance := ComplexStruct{
+			SimpleStruct: SimpleStruct{
+				ID:   1,
+				Text: "a text",
+			},
+			Foobar: SubStruct{
+				Foo: "FOO",
+				Bar: "BAR",
+			},
+			IAmNotNested: "not, i'm not",
+		}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetNonAutoFieldsValues return pointers corresponding to a given column name", func() {
+			values := structMap.GetNonAutoFieldsValues(&structInstance)
+			So(len(values), ShouldEqual, 5)
+			So(values[0], ShouldEqual, structInstance.IAmNotNested)
+			So(values[1], ShouldEqual, structInstance.ID)
+			So(values[2], ShouldEqual, structInstance.Text)
+			So(values[3], ShouldEqual, structInstance.Foobar.Foo)
+			So(values[4], ShouldEqual, structInstance.Foobar.Bar)
+		})
+	})
+}
+
 func TestGetPointersForColumns(t *testing.T) {
 	Convey("Given a StructMapping and a struct instance", t, func() {
 		structInstance := SimpleStruct{}
 		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
 
-		Convey("GetPointersForColumns return pointers corresponding to given columns names", func() {
+		Convey("GetPointersForColumns return pointers corresponding to given columns names (not nested)", func() {
 			ptrs, err := structMap.GetPointersForColumns(&structInstance, "id", "my_text")
 			So(err, ShouldBeNil)
 			So(len(ptrs), ShouldEqual, 2)
@@ -87,7 +176,7 @@ func TestGetPointersForColumns(t *testing.T) {
 		})
 	})
 
-	Convey("Given a StructMapping and a struct instance", t, func() {
+	Convey("Given a StructMapping and a struct instance (nested)", t, func() {
 		structInstance := ComplexStruct{}
 		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
 
