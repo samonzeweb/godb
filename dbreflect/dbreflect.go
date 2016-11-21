@@ -107,6 +107,7 @@ func (sm *StructMapping) newFieldMapping(structField reflect.StructField) (*fiel
 	return fieldMapping, nil
 }
 
+// newSubStructMapping build nested structs mapping
 func (sm *StructMapping) newSubStructMapping(structField reflect.StructField) (*subStructMapping, error) {
 	structInfo := structField.Type
 
@@ -149,7 +150,8 @@ func (*StructMapping) tagData(tag reflect.StructTag) (string, map[string]bool) {
 	return firstValue, tagMaps
 }
 
-//
+// GetAllColumnsNames returns the names of all columns
+// It is intended to be used for SELECT statements.
 func (sm *StructMapping) GetAllColumnsNames() []string {
 	columns := make([]string, 0, 0)
 
@@ -162,7 +164,9 @@ func (sm *StructMapping) GetAllColumnsNames() []string {
 	return columns
 }
 
-//
+// GetNonAutoColumnsNames returns the names of non auto columns
+// It is intended to be used for INSERT statements.
+// TODO : manage oplock later
 func (sm *StructMapping) GetNonAutoColumnsNames() []string {
 	columns := make([]string, 0, 0)
 
@@ -177,7 +181,9 @@ func (sm *StructMapping) GetNonAutoColumnsNames() []string {
 	return columns
 }
 
-//
+// GetAllFieldsPointers returns pointers for all fields, in the same order
+// as GetAllColumnsNames.
+// It is intended to be used for SELECT statements.
 func (sm *StructMapping) GetAllFieldsPointers(s interface{}) []interface{} {
 	// TODO : check type
 	v := reflect.ValueOf(s)
@@ -194,6 +200,9 @@ func (sm *StructMapping) GetAllFieldsPointers(s interface{}) []interface{} {
 	return pointers
 }
 
+// GetNonAutoFieldsValues returns values of non auto fiels, in the same order
+// as GetNonAutoColumnsNames.
+// It is intended to be used for INSERT statements.
 func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 	// TODO : check type
 	v := reflect.ValueOf(s)
@@ -210,7 +219,9 @@ func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 	return values
 }
 
-//
+// GetPointersForColumns returns pointers for the given instance and columns
+// names.
+// It is intended to be used for SELECT statements.
 func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string) ([]interface{}, error) {
 	// TODO : check type
 	v := reflect.ValueOf(s)
@@ -243,9 +254,22 @@ func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string)
 	return pointers, nil
 }
 
+// treeExplorer is a callback function for traverseTree, see below
 type treeExplorer func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error)
 
-// TODO
+// traverseTree traverses the structure tree of the mapping, calling a callback for each field.
+// The arguments are
+//  * prefix : the prefix for the current StructMapping, use "".
+//  * startValue : the reflect.Value of the struct to explore, or nil.
+//  * f : the treeExplorer callback.
+// It returns a boolean and an error. The boolean is true if a callback has stopped the walk through the tree.
+//
+// The callback is a treeExplorer and take 3 arguments :
+// 	* fullName : the fill name of the SQL columns (using prefixes).
+//  * fieldMapping : the fieldMapping of the field.
+//  * value : the reflect.Value of the field (or nil if traverseTree got nil as startValue).
+// The callback returns a boolean and an error. If the boolean is true, the walk is stopped.
+
 func (sm *StructMapping) traverseTree(prefix string, startValue *reflect.Value, f treeExplorer) (bool, error) {
 	var stopped bool
 	var err error
