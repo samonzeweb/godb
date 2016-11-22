@@ -2,6 +2,12 @@
 // sub-packages
 package adapters
 
+// Adapter interface is the minimal implementation for an adapter.
+type Adapter interface {
+	DriverNamer
+	Quoter
+}
+
 // DriverNamer is an interface that wraps the DriverName method.
 // Its implemntation is required for all adapters.
 //
@@ -16,4 +22,12 @@ type DriverNamer interface {
 // ie : "foo" for SQLite or Postgresql, `foo` for MySQL, [foo] for SQLServer.
 type Quoter interface {
 	Quote(string) string
+}
+
+// PlaceholdersReplacer is an interface that wraps the ReplacePlaceholders method.
+//
+// PlaceholdersReplacer change all given placeholders in given sql query with
+// the placeholder used by the databaser targeted by the adapter.
+type PlaceholdersReplacer interface {
+	ReplacePlaceholders(string, string) string
 }

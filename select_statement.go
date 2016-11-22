@@ -216,6 +216,7 @@ func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter poin
 	if err != nil {
 		return err
 	}
+	sql = ss.db.replacePlaceholders(sql)
 	ss.db.logPrintln("SELECT : ", sql, args)
 
 	startTime := time.Now()
@@ -273,6 +274,7 @@ func (ss *selectStatement) Count() (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	sql = ss.db.replacePlaceholders(sql)
 	ss.db.logPrintln("SELECT : ", sql, args)
 
 	var count int

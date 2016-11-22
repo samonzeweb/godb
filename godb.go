@@ -13,7 +13,7 @@ import (
 // Everything starts with a DB.
 // DB is not thread safe (see Clone)
 type DB struct {
-	adapter      adapters.DriverNamer
+	adapter      adapters.Adapter
 	sqlDB        *sql.DB
 	sqlTx        *sql.Tx
 	logger       *log.Logger
@@ -25,7 +25,7 @@ type DB struct {
 const Placeholder string = "?"
 
 // Open create a new DB struct and initialise a sql.DB connection.
-func Open(adapter adapters.DriverNamer, dataSourceName string) (*DB, error) {
+func Open(adapter adapters.Adapter, dataSourceName string) (*DB, error) {
 	db := DB{adapter: adapter}
 	var err error
 	db.sqlDB, err = sql.Open(adapter.DriverName(), dataSourceName)
@@ -93,4 +93,15 @@ func (db *DB) quoteAll(identifiers []string) []string {
 	}
 
 	return identifiers
+}
+
+// replacePlaceholders use the adapter to change placehodlers according to
+// the database used.
+func (db *DB) replacePlaceholders(sql string) string {
+	placeholderReplacer, ok := (db.adapter).(adapters.PlaceholdersReplacer)
+	if !ok {
+		return sql
+	}
+
+	return placeholderReplacer.ReplacePlaceholders(Placeholder, sql)
 }

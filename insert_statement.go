@@ -72,6 +72,7 @@ func (si *insertStatement) Do() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	sql = si.db.replacePlaceholders(sql)
 	si.db.logPrintln("INSERT : ", sql, args)
 
 	// Execute the INSERT statement
