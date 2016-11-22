@@ -9,14 +9,17 @@ import (
 const tagName = "db"
 const contentSeparator = ","
 
+const optionPrefix = "prefix"
 const optionKey = "key"
 const optionAuto = "auto"
 const optionOptimisticLocking = "oplock"
 
 // StructMapping contains the relation between a struct and database columns
+// TODO : change structs to have a root with cache info (like # fields, ...)
 type StructMapping struct {
-	Name          string
-	fieldsMapping []fieldMapping
+	Name             string
+	fieldsMapping    []fieldMapping
+	subStructMapping []subStructMapping
 }
 
 // fieldMapping contains the relation between a field and a database column
@@ -26,6 +29,13 @@ type fieldMapping struct {
 	isKey    bool
 	isAuto   bool
 	isOpLock bool
+}
+
+// subStructMapping contrains nested structs
+type subStructMapping struct {
+	name          string
+	prefix        string
+	structMapping StructMapping
 }
 
 // NewStructMapping build a StructMapping with a given reflect.Type
@@ -44,15 +54,30 @@ func NewStructMapping(structInfo reflect.Type) (*StructMapping, error) {
 
 	for i := 0; i < structInfo.NumField(); i++ {
 		fieldInfo := structInfo.Field(i)
-		tag := fieldInfo.Tag.Get(tagName)
-		if tag == "" {
+		// Only non pointers are mapped
+		if fieldInfo.Type.Kind() == reflect.Ptr {
 			continue
 		}
-		fieldMapping, err := structMapping.newFieldMapping(fieldInfo)
-		if err != nil {
-			return nil, err
+		// No tag, no mapping
+		if _, ok := fieldInfo.Tag.Lookup(tagName); !ok {
+			continue
 		}
-		structMapping.fieldsMapping = append(structMapping.fieldsMapping, *fieldMapping)
+
+		if fieldInfo.Type.Kind() == reflect.Struct {
+			// Map a sub struct
+			subStructMapping, err := structMapping.newSubStructMapping(fieldInfo)
+			if err != nil {
+				return nil, err
+			}
+			structMapping.subStructMapping = append(structMapping.subStructMapping, *subStructMapping)
+		} else {
+			// Map a field
+			fieldMapping, err := structMapping.newFieldMapping(fieldInfo)
+			if err != nil {
+				return nil, err
+			}
+			structMapping.fieldsMapping = append(structMapping.fieldsMapping, *fieldMapping)
+		}
 	}
 
 	return structMapping, nil
@@ -69,37 +94,73 @@ func (sm *StructMapping) newFieldMapping(structField reflect.StructField) (*fiel
 	}
 
 	// First value is always the sql column name
-	fieldMapping.sqlName = tagContent[0]
+	var options map[string]bool
+	fieldMapping.sqlName, options = sm.tagData(structField.Tag)
 	if len(fieldMapping.sqlName) < 1 {
 		return nil, fmt.Errorf("Empty tag name for %s.%s", sm.Name, fieldMapping.name)
 	}
 
-	// Parse options
-	tagContent = tagContent[1:]
-	fieldMapping.isAuto = isOptionPresent(tagContent, "auto")
-	fieldMapping.isKey = isOptionPresent(tagContent, "key")
-	fieldMapping.isOpLock = isOptionPresent(tagContent, "oplock")
+	_, fieldMapping.isAuto = options["auto"]
+	_, fieldMapping.isKey = options["key"]
+	_, fieldMapping.isOpLock = options["oplock"]
 
 	return fieldMapping, nil
 }
 
-// isOptionPresent check the presente of an option (string) in a list of options (string)
-func isOptionPresent(tagValues []string, optionName string) bool {
-	for _, option := range tagValues {
-		if option == optionName {
-			return true
-		}
+// newSubStructMapping build nested structs mapping
+func (sm *StructMapping) newSubStructMapping(structField reflect.StructField) (*subStructMapping, error) {
+	structInfo := structField.Type
+
+	// Mapping
+	structMapping, err := NewStructMapping(structInfo)
+	if err != nil {
+		return nil, err
 	}
-	return false
+
+	subStructMapping := &subStructMapping{
+		name:          structField.Name,
+		structMapping: *structMapping,
+	}
+
+	// Optionnal prefix
+	subStructMapping.prefix, _ = sm.tagData(structField.Tag)
+
+	return subStructMapping, nil
+}
+
+// tagData extract tag data :
+// * the first value is returned as is (column name or prefix)
+// * others values are used to build a key,value map (options)
+func (*StructMapping) tagData(tag reflect.StructTag) (string, map[string]bool) {
+	tagMaps := make(map[string]bool)
+	tagContent := strings.Split(tag.Get(tagName), contentSeparator)
+	isFirstData := true
+	var firstValue string
+	for _, tagOption := range tagContent {
+		value := strings.TrimSpace(tagOption)
+		if isFirstData {
+			isFirstData = false
+			firstValue = value
+			continue
+		}
+		// Options
+		tagMaps[value] = true
+	}
+
+	return firstValue, tagMaps
 }
 
 // GetAllColumnsNames returns the names of all columns
 // It is intended to be used for SELECT statements.
 func (sm *StructMapping) GetAllColumnsNames() []string {
-	columns := make([]string, 0, len(sm.fieldsMapping))
-	for _, fieldMapping := range sm.fieldsMapping {
-		columns = append(columns, fieldMapping.sqlName)
+	columns := make([]string, 0, 0)
+
+	f := func(fullName string, _ *fieldMapping, _ *reflect.Value) (stop bool, err error) {
+		columns = append(columns, fullName)
+		return false, nil
 	}
+	sm.traverseTree("", nil, f)
+
 	return columns
 }
 
@@ -107,12 +168,16 @@ func (sm *StructMapping) GetAllColumnsNames() []string {
 // It is intended to be used for INSERT statements.
 // TODO : manage oplock later
 func (sm *StructMapping) GetNonAutoColumnsNames() []string {
-	columns := make([]string, 0, len(sm.fieldsMapping))
-	for _, fieldMapping := range sm.fieldsMapping {
-		if fieldMapping.isAuto == false {
-			columns = append(columns, fieldMapping.sqlName)
+	columns := make([]string, 0, 0)
+
+	f := func(fullName string, fieldMapping *fieldMapping, _ *reflect.Value) (stop bool, err error) {
+		if !fieldMapping.isAuto {
+			columns = append(columns, fullName)
 		}
+		return false, nil
 	}
+	sm.traverseTree("", nil, f)
+
 	return columns
 }
 
@@ -124,11 +189,14 @@ func (sm *StructMapping) GetAllFieldsPointers(s interface{}) []interface{} {
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
 
-	pointers := make([]interface{}, 0, len(sm.fieldsMapping))
-	for _, fieldMapping := range sm.fieldsMapping {
-		fieldValue := v.FieldByName(fieldMapping.name)
-		pointers = append(pointers, fieldValue.Addr().Interface())
+	pointers := make([]interface{}, 0, 0)
+
+	f := func(fullName string, _ *fieldMapping, value *reflect.Value) (stop bool, err error) {
+		pointers = append(pointers, value.Addr().Interface())
+		return false, nil
 	}
+	sm.traverseTree("", &v, f)
+
 	return pointers
 }
 
@@ -140,13 +208,16 @@ func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
 
-	values := make([]interface{}, 0, len(sm.fieldsMapping))
-	for _, fieldMapping := range sm.fieldsMapping {
-		if fieldMapping.isAuto == false {
-			fieldValue := v.FieldByName(fieldMapping.name)
-			values = append(values, fieldValue.Interface())
+	values := make([]interface{}, 0, 0)
+
+	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
+		if !fieldMapping.isAuto {
+			values = append(values, value.Interface())
 		}
+		return false, nil
 	}
+	sm.traverseTree("", &v, f)
+
 	return values
 }
 
@@ -157,15 +228,31 @@ func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string)
 	// TODO : check type
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
-	pointers := make([]interface{}, 0, len(columns))
-	for _, column := range columns {
-		fieldMapping, err := sm.findFieldMapping(column)
-		if err != nil {
-			return nil, err
+
+	// Find pointers
+	pointersMap := make(map[string]interface{})
+	f := func(fullName string, _ *fieldMapping, value *reflect.Value) (stop bool, err error) {
+		for _, columnName := range columns {
+			if columnName == fullName {
+				pointersMap[columnName] = value.Addr().Interface()
+			}
 		}
-		fieldValue := v.FieldByName(fieldMapping.name)
-		pointers = append(pointers, fieldValue.Addr().Interface())
+		return false, nil
 	}
+
+	// Explore the struct tree
+	sm.traverseTree("", &v, f)
+
+	// Returns pointers in the same order than names
+	pointers := make([]interface{}, 0, len(columns))
+	for _, columnName := range columns {
+		pointer, ok := pointersMap[columnName]
+		if !ok {
+			return nil, fmt.Errorf("Unknown column name %s in struct %s", columnName, sm.Name)
+		}
+		pointers = append(pointers, pointer)
+	}
+
 	return pointers, nil
 }
 
@@ -178,27 +265,72 @@ func (sm *StructMapping) GetAutoKeyPointer(s interface{}) (interface{}, error) {
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
 
-	var pointer interface{}
-	for _, fieldMapping := range sm.fieldsMapping {
-		if fieldMapping.isAuto && fieldMapping.isKey {
-			if pointer != nil {
-				return nil, fmt.Errorf("Multiple auto+key fields for %s", sm.Name)
+	var autoKeyPointer interface{}
+
+	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
+		if fieldMapping.isKey && fieldMapping.isAuto {
+			if autoKeyPointer != nil {
+				return true, fmt.Errorf("Multiple auto+key fields for %s", sm.Name)
 			}
-			fieldValue := v.FieldByName(fieldMapping.name)
-			pointer = fieldValue.Addr().Interface()
+			autoKeyPointer = value.Addr().Interface()
 		}
+		return false, nil
 	}
 
-	return pointer, nil
+	if _, err := sm.traverseTree("", &v, f); err != nil {
+		return nil, err
+	}
+
+	return autoKeyPointer, nil
 }
 
-// findFieldMapping find the fieldMapping instance for the given column name
-func (sm *StructMapping) findFieldMapping(columnName string) (*fieldMapping, error) {
+// treeExplorer is a callback function for traverseTree, see below
+type treeExplorer func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error)
+
+// traverseTree traverses the structure tree of the mapping, calling a callback for each field.
+// The arguments are
+//  * prefix : the prefix for the current StructMapping, use "".
+//  * startValue : the reflect.Value of the struct to explore, or nil.
+//  * f : the treeExplorer callback.
+// It returns a boolean and an error. The boolean is true if a callback has stopped the walk through the tree.
+//
+// The callback is a treeExplorer and take 3 arguments :
+// 	* fullName : the fill name of the SQL columns (using prefixes).
+//  * fieldMapping : the fieldMapping of the field.
+//  * value : the reflect.Value of the field (or nil if traverseTree got nil as startValue).
+// The callback returns a boolean and an error. If the boolean is true, the walk is stopped.
+
+func (sm *StructMapping) traverseTree(prefix string, startValue *reflect.Value, f treeExplorer) (bool, error) {
+	var stopped bool
+	var err error
+
+	// Fields in in current StructMapping
 	for _, fm := range sm.fieldsMapping {
-		if fm.sqlName == columnName {
-			return &fm, nil
+		fullName := prefix + fm.sqlName
+		if startValue != nil {
+			fieldValue := startValue.FieldByName(fm.name)
+			stopped, err = f(fullName, &fm, &fieldValue)
+		} else {
+			stopped, err = f(fullName, &fm, nil)
+		}
+		if stopped || err != nil {
+			return stopped, err
 		}
 	}
 
-	return nil, fmt.Errorf("No field mapping for column %s", columnName)
+	// Nested structs
+	for _, sub := range sm.subStructMapping {
+		if startValue != nil {
+			structValue := startValue.FieldByName(sub.name)
+			stopped, err = sub.structMapping.traverseTree(prefix+sub.prefix, &structValue, f)
+		} else {
+			stopped, err = sub.structMapping.traverseTree(prefix+sub.prefix, nil, f)
+		}
+
+		if stopped || err != nil {
+			return stopped, err
+		}
+	}
+
+	return false, nil
 }
