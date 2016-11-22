@@ -59,6 +59,11 @@ func (db *DB) Close() error {
 	return db.sqlDB.Close()
 }
 
+// CurrentDB returns the current *sql.DB
+func (db *DB) CurrentDB() *sql.DB {
+	return db.sqlDB
+}
+
 // ConsumedTime returns the time consumed by SQL queries executions
 // The duration is reseted when the DB is cloned.
 func (db *DB) ConsumedTime() time.Duration {
