@@ -36,6 +36,12 @@ type BadStructMultipleAutoKey struct {
 	Other string
 }
 
+type StructMultipleAuto struct {
+	ID    int    `db:"id,key,auto"`
+	Text  string `db:"my_text,auto"`
+	Other string
+}
+
 func TestStructMapping(t *testing.T) {
 	Convey("NewStructMapping with a struct type", t, func() {
 		structMap, _ := NewStructMapping(reflect.TypeOf(SimpleStruct{}))
@@ -84,7 +90,7 @@ func TestGetAllColumnsNames(t *testing.T) {
 		structInstance := SimpleStruct{}
 		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
 
-		Convey("GetPointersForColumns return pointers corresponding to given columns names (not nested)", func() {
+		Convey("GetPointersForColumns return all columns names (not nested)", func() {
 			columns := structMap.GetAllColumnsNames()
 			So(len(columns), ShouldEqual, 2)
 			So(columns[0], ShouldEqual, "id")
@@ -96,7 +102,7 @@ func TestGetAllColumnsNames(t *testing.T) {
 		structInstance := ComplexStruct{}
 		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
 
-		Convey("GetAllColumnsNames return pointers corresponding to a given column name", func() {
+		Convey("GetAllColumnsNames return all columns names (nested)", func() {
 			columns := structMap.GetAllColumnsNames()
 			So(len(columns), ShouldEqual, 5)
 			So(columns[0], ShouldEqual, "iamnotnested")
@@ -113,7 +119,7 @@ func TestGetNonAutoColumnsNames(t *testing.T) {
 		structInstance := ComplexStruct{}
 		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
 
-		Convey("GetNonAutoColumnsNames return pointers corresponding to a given column name", func() {
+		Convey("GetNonAutoColumnsNames returns all non auto columns names", func() {
 			columns := structMap.GetNonAutoColumnsNames()
 			So(len(columns), ShouldEqual, 4)
 			So(columns[0], ShouldEqual, "iamnotnested")
@@ -124,12 +130,26 @@ func TestGetNonAutoColumnsNames(t *testing.T) {
 	})
 }
 
+func TestGetAutoColumnsNames(t *testing.T) {
+	Convey("Given a StructMapping and a struct instance (nested)", t, func() {
+		structInstance := StructMultipleAuto{}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetAutoColumnsNames returns all auto columns names", func() {
+			columns := structMap.GetAutoColumnsNames()
+			So(len(columns), ShouldEqual, 2)
+			So(columns[0], ShouldEqual, "id")
+			So(columns[1], ShouldEqual, "my_text")
+		})
+	})
+}
+
 func TestGetAllFieldsPointers(t *testing.T) {
 	Convey("Given a StructMapping and a struct instance (nested)", t, func() {
 		structInstance := ComplexStruct{}
 		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
 
-		Convey("GetAllFieldsPointers return pointers corresponding to a given column name", func() {
+		Convey("GetAllFieldsPointers returns all fields pointers", func() {
 			ptrs := structMap.GetAllFieldsPointers(&structInstance)
 			So(len(ptrs), ShouldEqual, 5)
 			So(ptrs[0], ShouldEqual, &(structInstance.IAmNotNested))
@@ -156,7 +176,7 @@ func TestGetNonAutoFieldsValues(t *testing.T) {
 		}
 		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
 
-		Convey("GetNonAutoFieldsValues return pointers corresponding to a given column name", func() {
+		Convey("GetNonAutoFieldsValues return non auto fields values", func() {
 			values := structMap.GetNonAutoFieldsValues(&structInstance)
 			So(len(values), ShouldEqual, 4)
 			So(values[0], ShouldEqual, structInstance.IAmNotNested)
@@ -201,7 +221,7 @@ func TestGetAutoKeyPointer(t *testing.T) {
 		structInstance := ComplexStruct{}
 		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
 
-		Convey("GetAutoKeyPointer returns a pointer to the columns wich is key and auto", func() {
+		Convey("GetAutoKeyPointer returns a pointer to the columns which is key and auto", func() {
 			pointer, err := structMap.GetAutoKeyPointer(&structInstance)
 			So(err, ShouldBeNil)
 			So(pointer, ShouldEqual, &(structInstance.ID))
@@ -218,5 +238,19 @@ func TestGetAutoKeyPointer(t *testing.T) {
 			So(pointer, ShouldBeNil)
 		})
 	})
+}
 
+func TestGetAutoFieldsPointers(t *testing.T) {
+	Convey("Given a StructMapping and a struct instance", t, func() {
+		structInstance := StructMultipleAuto{}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetAutoFieldsPointers returns all auto fields pointers", func() {
+			pointers, err := structMap.GetAutoFieldsPointers(&structInstance)
+			So(err, ShouldBeNil)
+			So(len(pointers), ShouldEqual, 2)
+			So(pointers[0], ShouldEqual, &(structInstance.ID))
+			So(pointers[1], ShouldEqual, &(structInstance.Text))
+		})
+	})
 }

@@ -1,6 +1,10 @@
 package godb
 
-import "fmt"
+import (
+	"fmt"
+
+	"gitlab.com/samonzeweb/godb/adapters"
+)
 
 // structSelect build an INSERT statement for the given object
 type structInsert struct {
@@ -42,6 +46,13 @@ func (si *structInsert) Do() error {
 	// Values
 	values := si.recordDescription.structMapping.GetNonAutoFieldsValues(si.recordDescription.record)
 	si.insertStatement.Values(values...)
+
+	// Specifig suffix needed ?
+	suffixer, ok := si.insertStatement.db.adapter.(adapters.InsertSuffixer)
+	if ok {
+		autoColumns := si.recordDescription.structMapping.GetAutoColumnsNames()
+		si.insertStatement.Suffix(suffixer.InsertSuffix(autoColumns))
+	}
 
 	// Run
 	insertedId, err := si.insertStatement.Do()

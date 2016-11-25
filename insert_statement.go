@@ -1,6 +1,10 @@
 package godb
 
-import "time"
+import (
+	"time"
+
+	"gitlab.com/samonzeweb/godb/adapters"
+)
 
 // insertStatement is an INSERT statement builder.
 type insertStatement struct {
@@ -67,6 +71,7 @@ func (is *insertStatement) ToSQL() (string, []interface{}, error) {
 	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
 }
 
+// TODO : comment !
 func (si *insertStatement) Do() (int64, error) {
 	sql, args, err := si.ToSQL()
 	if err != nil {
@@ -87,8 +92,12 @@ func (si *insertStatement) Do() (int64, error) {
 		return 0, err
 	}
 
-	// Return the Id
-	// TODO : postgresql : get all auto fields
+	// Return the created 'Id' (if available)
+	_, ok := si.db.adapter.(adapters.InsertSuffixer)
+	if ok {
+		// adapters with InsertSuffixer does not use LastInsertId()
+		return 0, nil
+	}
 	lastInsertId, err := result.LastInsertId()
 	return lastInsertId, err
 }

@@ -181,6 +181,24 @@ func (sm *StructMapping) GetNonAutoColumnsNames() []string {
 	return columns
 }
 
+// GetAutoColumnsNames returns the names of auto columns
+// It is intended to be used for INSERT statements with adapters
+// like PostgreSQL
+// TODO : manage oplock later
+func (sm *StructMapping) GetAutoColumnsNames() []string {
+	columns := make([]string, 0, 0)
+
+	f := func(fullName string, fieldMapping *fieldMapping, _ *reflect.Value) (stop bool, err error) {
+		if fieldMapping.isAuto {
+			columns = append(columns, fullName)
+		}
+		return false, nil
+	}
+	sm.traverseTree("", nil, f)
+
+	return columns
+}
+
 // GetAllFieldsPointers returns pointers for all fields, in the same order
 // as GetAllColumnsNames.
 // It is intended to be used for SELECT statements.
@@ -282,6 +300,29 @@ func (sm *StructMapping) GetAutoKeyPointer(s interface{}) (interface{}, error) {
 	}
 
 	return autoKeyPointer, nil
+}
+
+// GetAutoKeyPointer returns pointers of all auto fields
+// It is intended to be used for INSERT statements in special cases
+// like PostgreSQL
+func (sm *StructMapping) GetAutoFieldsPointers(s interface{}) ([]interface{}, error) {
+	// TODO : check type
+	v := reflect.ValueOf(s)
+	v = reflect.Indirect(v)
+
+	pointers := make([]interface{}, 0, 0)
+	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
+		if fieldMapping.isAuto {
+			pointers = append(pointers, value.Addr().Interface())
+		}
+		return false, nil
+	}
+
+	if _, err := sm.traverseTree("", &v, f); err != nil {
+		return nil, err
+	}
+
+	return pointers, nil
 }
 
 // treeExplorer is a callback function for traverseTree, see below
