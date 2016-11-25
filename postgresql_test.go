@@ -18,10 +18,10 @@ func skipUnlessPostgresql(t *testing.T) {
 	}
 }
 
-func fixturesSetup() (*godb.DB, func()) {
+func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 	db, err := godb.Open(postgresql.Adapter, os.Getenv("GODB_POSTGRESQL"))
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	createTable :=
@@ -33,14 +33,14 @@ func fixturesSetup() (*godb.DB, func()) {
 	`
 	_, err = db.CurrentDB().Exec(createTable)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	fixturesTeardown := func() {
 		dropTable := "drop table if exists dummies"
 		_, err := db.CurrentDB().Exec(dropTable)
 		if err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 	}
 
@@ -49,7 +49,7 @@ func fixturesSetup() (*godb.DB, func()) {
 func TestPostgresql(t *testing.T) {
 	skipUnlessPostgresql(t)
 	Convey("Given a Postgresql database", t, func() {
-		db, teardown := fixturesSetup()
+		db, teardown := fixturesSetup(t)
 		defer teardown()
 
 		//TODO
