@@ -1,6 +1,7 @@
 package godb_test
 
 import (
+	"log"
 	"os"
 	"testing"
 
@@ -9,6 +10,17 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+type Dummy struct {
+	Id          int    `db:"id,key,auto"`
+	Text        string `db:"a_text"`
+	AnotherText string `db:"another_text"`
+	AnInteger   int    `db:"an_integer"`
+}
+
+func (*Dummy) TableName() string {
+	return "dummies"
+}
 
 // GODB_POSTGRESQL="host=xxxx user=xxxx password=xxxx dbname=xxxx"
 // see https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
@@ -23,6 +35,9 @@ func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// Enable logger if needed
+	db.SetLogger(log.New(os.Stderr, "", 0))
 
 	createTable :=
 		`create temporary table if not exists dummies (
@@ -46,15 +61,23 @@ func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 
 	return db, fixturesTeardown
 }
+
 func TestPostgresql(t *testing.T) {
 	skipUnlessPostgresql(t)
 	Convey("Given a Postgresql database", t, func() {
 		db, teardown := fixturesSetup(t)
 		defer teardown()
 
-		//TODO
-		_ = db
-
+		Convey("I can insert a struct and get back its new id", func() {
+			var dummy = &Dummy{
+				Text:        "My text",
+				AnotherText: "Other text",
+				AnInteger:   123,
+			}
+			err := db.Insert(dummy).Do()
+			So(err, ShouldBeNil)
+			So(dummy.Id, ShouldBeGreaterThan, 0)
+		})
 	})
 
 }
