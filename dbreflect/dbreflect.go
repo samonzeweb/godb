@@ -230,7 +230,6 @@ func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 
 	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		if !fieldMapping.isAuto {
-			fmt.Println(fieldMapping.name)
 			values = append(values, value.Interface())
 		}
 		return false, nil
