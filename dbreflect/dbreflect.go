@@ -63,6 +63,8 @@ func NewStructMapping(structInfo reflect.Type) (*StructMapping, error) {
 			continue
 		}
 
+		// TODO : manage fields like time.Time, or pq.NullTime, ...
+		//        which are structs.
 		if fieldInfo.Type.Kind() == reflect.Struct {
 			// Map a sub struct
 			subStructMapping, err := structMapping.newSubStructMapping(fieldInfo)
