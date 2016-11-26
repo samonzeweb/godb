@@ -23,7 +23,8 @@ func fixturesSetup(t *testing.T) *godb.DB {
 		`create table books (
 		id 						integer not null primary key autoincrement,
 		title     		text not null,
-		author    	   text not null);
+		author    	  text not null,
+    published			date not null);
 	`
 	_, err = db.CurrentDB().Exec(createTable)
 	if err != nil {

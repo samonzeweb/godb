@@ -3,6 +3,7 @@ package dbreflect
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -42,6 +43,11 @@ type StructMultipleAuto struct {
 	Other string
 }
 
+type StructWithScannableStruct struct {
+	ID   int       `db:"id,key,auto"`
+	Time time.Time `db:"a_day"`
+}
+
 func TestStructMapping(t *testing.T) {
 	Convey("NewStructMapping with a struct type", t, func() {
 		structMap, _ := NewStructMapping(reflect.TypeOf(SimpleStruct{}))
@@ -72,6 +78,18 @@ func TestStructMapping(t *testing.T) {
 		})
 	})
 
+}
+
+func TestScannableStructs(t *testing.T) {
+	Convey("Calling NewStructMapping without a struct ", t, func() {
+		structWithScannableStruct := StructWithScannableStruct{}
+		structMap, err := NewStructMapping(reflect.TypeOf(structWithScannableStruct))
+		So(err, ShouldBeNil)
+
+		Convey("NewStructMapping consider time.Time as a field", func() {
+			So(structMap.GetNonAutoColumnsNames()[0], ShouldEqual, "a_day")
+		})
+	})
 }
 
 func TestNewStructMappingErrors(t *testing.T) {

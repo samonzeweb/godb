@@ -61,9 +61,9 @@ func NewStructMapping(structInfo reflect.Type) (*StructMapping, error) {
 			continue
 		}
 
-		// TODO : manage fields like time.Time, or pq.NullTime, ...
-		//        which are structs.
-		if fieldInfo.Type.Kind() == reflect.Struct {
+		// Some structs are scannable, like time.Time, or other registered types.
+		// See RegisterScannableStruct.
+		if fieldInfo.Type.Kind() == reflect.Struct && !isStructScannable(fieldInfo.Type.Name()) {
 			// Map a sub struct
 			subStructMapping, err := structMapping.newSubStructMapping(fieldInfo)
 			if err != nil {
