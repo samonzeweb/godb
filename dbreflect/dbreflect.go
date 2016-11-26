@@ -12,7 +12,6 @@ const contentSeparator = ","
 const optionPrefix = "prefix"
 const optionKey = "key"
 const optionAuto = "auto"
-const optionOptimisticLocking = "oplock"
 
 // StructMapping contains the relation between a struct and database columns
 // TODO : change structs to have a root with cache info (like # fields, ...)
@@ -24,11 +23,10 @@ type StructMapping struct {
 
 // fieldMapping contains the relation between a field and a database column
 type fieldMapping struct {
-	name     string
-	sqlName  string
-	isKey    bool
-	isAuto   bool
-	isOpLock bool
+	name    string
+	sqlName string
+	isKey   bool
+	isAuto  bool
 }
 
 // subStructMapping contrains nested structs
@@ -104,7 +102,6 @@ func (sm *StructMapping) newFieldMapping(structField reflect.StructField) (*fiel
 
 	_, fieldMapping.isAuto = options["auto"]
 	_, fieldMapping.isKey = options["key"]
-	_, fieldMapping.isOpLock = options["oplock"]
 
 	return fieldMapping, nil
 }
@@ -168,7 +165,6 @@ func (sm *StructMapping) GetAllColumnsNames() []string {
 
 // GetNonAutoColumnsNames returns the names of non auto columns
 // It is intended to be used for INSERT statements.
-// TODO : manage oplock later
 func (sm *StructMapping) GetNonAutoColumnsNames() []string {
 	columns := make([]string, 0, 0)
 
@@ -186,7 +182,6 @@ func (sm *StructMapping) GetNonAutoColumnsNames() []string {
 // GetAutoColumnsNames returns the names of auto columns
 // It is intended to be used for INSERT statements with adapters
 // like PostgreSQL
-// TODO : manage oplock later
 func (sm *StructMapping) GetAutoColumnsNames() []string {
 	columns := make([]string, 0, 0)
 
