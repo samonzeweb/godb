@@ -4,23 +4,10 @@ package adapters
 
 // Adapter interface is the minimal implementation for an adapter.
 type Adapter interface {
-	DriverNamer
-	Quoter
-}
-
-// DriverNamer is an interface that wraps the mandatory DriverName method.
-// Its implemntation is required for all adapters.
-//
-// DriverName must returns the driver name to be used with sql.Open()
-type DriverNamer interface {
+	// DriverName must returns the driver name to be used with sql.Open()
 	DriverName() string
-}
-
-// Quoter is an interface that wraps the mandatory Quote method.
-//
-// Quote must returns an SQL identifier (table name, column name) quoted,
-// ie : "foo" for SQLite or Postgresql, `foo` for MySQL, [foo] for SQLServer.
-type Quoter interface {
+	// Quote must returns an SQL identifier (table name, column name) quoted,
+	// ie : "foo" for SQLite or Postgresql, `foo` for MySQL, [foo] for SQLServer.
 	Quote(string) string
 }
 
@@ -33,12 +20,14 @@ type PlaceholdersReplacer interface {
 	ReplacePlaceholders(string, string) string
 }
 
-// InsertSuffixer is an interface that wraps the optionnal InsertSuffix method.
+// InsertReturningSuffixer is an interface that wraps the optionnal
+// InsertReturningSuffix method.
 //
-// InsertSuffix get a list of columns and return a suffix to be added to the
-// sql statement by the caller, allowing it to retrieve the values of those
-// columns. It is intended to replace the use of LastInsertId() when the
-// driver does not support it.
-type InsertSuffixer interface {
-	InsertSuffix([]string) string
+// InsertReturningSuffixer get a list of columns and return a suffix to be
+// added to the sql statement by the caller, allowing it to retrieve the values
+// of those columns. It is intended to replace the use of LastInsertId()
+// when the driver does not support it, or if there are more 'automatic' fields
+// initialized by the database.
+type InsertReturningSuffixer interface {
+	InsertReturningSuffix([]string) string
 }

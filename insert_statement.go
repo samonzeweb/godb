@@ -71,7 +71,8 @@ func (is *insertStatement) ToSQL() (string, []interface{}, error) {
 	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
 }
 
-// TODO : comment !
+// Do executes the builded INSERT statement and return the LastInsertId() if
+// the adapter does not implements InsertReturningSuffixer.
 func (si *insertStatement) Do() (int64, error) {
 	sql, args, err := si.ToSQL()
 	if err != nil {
@@ -93,11 +94,42 @@ func (si *insertStatement) Do() (int64, error) {
 	}
 
 	// Return the created 'Id' (if available)
-	_, ok := si.db.adapter.(adapters.InsertSuffixer)
+	_, ok := si.db.adapter.(adapters.InsertReturningSuffixer)
 	if ok {
 		// adapters with InsertSuffixer does not use LastInsertId()
 		return 0, nil
 	}
 	lastInsertId, err := result.LastInsertId()
 	return lastInsertId, err
+}
+
+func (si *insertStatement) doWithReturning(record interface{}) error {
+	recordDescription, err := buildRecordDescription(record)
+	if err != nil {
+		return err
+	}
+
+	sql, args, err := si.ToSQL()
+	if err != nil {
+		return err
+	}
+	sql = si.db.replacePlaceholders(sql)
+	si.db.logPrintln("INSERT : ", sql, args)
+
+	// Execute the INSERT statement
+	startTime := time.Now()
+	pointers, err := recordDescription.structMapping.GetAutoFieldsPointers(record)
+	if err != nil {
+		return err
+	}
+	err = si.db.getTxElseDb().QueryRow(sql, args...).Scan(pointers...)
+	condumedTime := timeElapsedSince(startTime)
+	si.db.addConsumedTime(condumedTime)
+	si.db.logDuration(condumedTime)
+	if err != nil {
+		si.db.logPrintln("ERROR : ", err)
+		return err
+	}
+
+	return nil
 }

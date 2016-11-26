@@ -34,6 +34,10 @@ func (db *DB) Insert(record interface{}) *structInsert {
 }
 
 // Do executes the insert statement
+//
+// The behaviour differs according to the adapter. If it implements the
+// InsertReturningSuffixer interface it will use it and fill all auto fields
+// of the given struct. Otherwise it only fill the key with LastInsertId.
 func (si *structInsert) Do() error {
 	if si.Error != nil {
 		return si.Error
@@ -48,20 +52,26 @@ func (si *structInsert) Do() error {
 	si.insertStatement.Values(values...)
 
 	// Specifig suffix needed ?
-	suffixer, ok := si.insertStatement.db.adapter.(adapters.InsertSuffixer)
+	suffixer, ok := si.insertStatement.db.adapter.(adapters.InsertReturningSuffixer)
 	if ok {
 		autoColumns := si.recordDescription.structMapping.GetAutoColumnsNames()
-		si.insertStatement.Suffix(suffixer.InsertSuffix(autoColumns))
+		si.insertStatement.Suffix(suffixer.InsertReturningSuffix(autoColumns))
 	}
 
 	// Run
+	if suffixer != nil {
+		err := si.insertStatement.doWithReturning(si.recordDescription.record)
+		return err
+	}
+
+	// Case for adapters not implenting InsertReturningSuffix(), we use the
+	// value given by LastInsertId() (through Do method)
 	insertedId, err := si.insertStatement.Do()
 	if err != nil {
 		return err
 	}
 
 	// Get the Id
-	// TODO : postgresql : get all auto fields
 	pointerToId, err := si.recordDescription.structMapping.GetAutoKeyPointer(si.recordDescription.record)
 	if err != nil {
 		return err

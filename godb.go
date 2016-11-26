@@ -86,18 +86,13 @@ func timeElapsedSince(startTime time.Time) time.Duration {
 	return time.Now().Sub(startTime)
 }
 
-// quoteAll returns all strings given quoted by the adapter if it implements
-// the Quoter interface, or the given strings slice.
+// quoteAll returns all strings given quoted by the adapter.
 func (db *DB) quoteAll(identifiers []string) []string {
-	if quoter, ok := db.adapter.(adapters.Quoter); ok {
-		quotedIdentifiers := make([]string, 0, len(identifiers))
-		for _, identifier := range identifiers {
-			quotedIdentifiers = append(quotedIdentifiers, quoter.Quote(identifier))
-		}
-		return quotedIdentifiers
+	quotedIdentifiers := make([]string, 0, len(identifiers))
+	for _, identifier := range identifiers {
+		quotedIdentifiers = append(quotedIdentifiers, db.adapter.Quote(identifier))
 	}
-
-	return identifiers
+	return quotedIdentifiers
 }
 
 // replacePlaceholders use the adapter to change placehodlers according to

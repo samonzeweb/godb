@@ -11,14 +11,14 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type Dummy struct {
+type PgDummy struct {
 	Id          int    `db:"id,key,auto"`
 	Text        string `db:"a_text"`
 	AnotherText string `db:"another_text"`
 	AnInteger   int    `db:"an_integer"`
 }
 
-func (*Dummy) TableName() string {
+func (*PgDummy) TableName() string {
 	return "dummies"
 }
 
@@ -69,7 +69,7 @@ func TestPostgresql(t *testing.T) {
 		defer teardown()
 
 		Convey("I can insert a struct and get back its new id", func() {
-			var dummy = &Dummy{
+			var dummy = &PgDummy{
 				Text:        "My text",
 				AnotherText: "Other text",
 				AnInteger:   123,

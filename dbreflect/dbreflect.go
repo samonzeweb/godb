@@ -230,6 +230,7 @@ func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 
 	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		if !fieldMapping.isAuto {
+			fmt.Println(fieldMapping.name)
 			values = append(values, value.Interface())
 		}
 		return false, nil
@@ -247,8 +248,8 @@ func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string)
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
 
-	// Find pointers
 	pointersMap := make(map[string]interface{})
+
 	f := func(fullName string, _ *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		for _, columnName := range columns {
 			if columnName == fullName {
@@ -311,6 +312,7 @@ func (sm *StructMapping) GetAutoFieldsPointers(s interface{}) ([]interface{}, er
 	v = reflect.Indirect(v)
 
 	pointers := make([]interface{}, 0, 0)
+
 	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		if fieldMapping.isAuto {
 			pointers = append(pointers, value.Addr().Interface())
