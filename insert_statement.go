@@ -83,8 +83,11 @@ func (si *insertStatement) Do() (int64, error) {
 
 	// Execute the INSERT statement
 	startTime := time.Now()
-	// TODO : postgresql : add suffix and use Query (or QueryRow), not Exec !
-	result, err := si.db.getTxElseDb().Exec(sql, args...)
+	queryable, err := si.db.getQueryable(sql)
+	if err != nil {
+		return 0, err
+	}
+	result, err := queryable.Exec(args...)
 	condumedTime := timeElapsedSince(startTime)
 	si.db.addConsumedTime(condumedTime)
 	si.db.logDuration(condumedTime)
@@ -122,7 +125,11 @@ func (si *insertStatement) doWithReturning(record interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = si.db.getTxElseDb().QueryRow(sql, args...).Scan(pointers...)
+	queryable, err := si.db.getQueryable(sql)
+	if err != nil {
+		return err
+	}
+	err = queryable.QueryRow(args...).Scan(pointers...)
 	condumedTime := timeElapsedSince(startTime)
 	si.db.addConsumedTime(condumedTime)
 	si.db.logDuration(condumedTime)

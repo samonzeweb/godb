@@ -5,12 +5,12 @@ import (
 	"fmt"
 )
 
-// Queryable represents either a Tx or DB.
-type Queryable interface {
+// PreparableAndQueryable represents either a Tx or DB.
+type PreparableAndQueryable interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
-	Prepare(query string) (*sql.Stmt, error)
 	Query(query string, args ...interface{}) (*sql.Rows, error)
 	QueryRow(query string, args ...interface{}) *sql.Row
+	Prepare(query string) (*sql.Stmt, error)
 }
 
 // Begin starts a new transaction, fails if there is already one.
@@ -38,6 +38,7 @@ func (db *DB) Commit() error {
 		return fmt.Errorf("Commit was called without existing sql transaction")
 	}
 
+	db.resetPreparedStatementsCache()
 	err := db.sqlTx.Commit()
 	db.sqlTx = nil
 	return err
@@ -51,6 +52,7 @@ func (db *DB) Rollback() error {
 		return fmt.Errorf("Rollback was called without existing sql transaction")
 	}
 
+	db.resetPreparedStatementsCache()
 	err := db.sqlTx.Rollback()
 	db.sqlTx = nil
 	return err
@@ -63,7 +65,7 @@ func (db *DB) CurrentTx() *sql.Tx {
 
 // getTxElseDb return either the current Tx, or the DB, throught
 // the Queryable interface.
-func (db *DB) getTxElseDb() Queryable {
+func (db *DB) getTxElseDb() PreparableAndQueryable {
 	if db.sqlTx != nil {
 		return db.sqlTx
 	}

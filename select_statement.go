@@ -201,7 +201,7 @@ func (ss *selectStatement) Do(record interface{}) error {
 		ss.Limit(1)
 	}
 
-	// the function wich will return the pointers according to the given columns
+	// the function which will return the pointers according to the given columns
 	f := func(record interface{}, columns []string) ([]interface{}, error) {
 		pointers, err := recordInfo.structMapping.GetPointersForColumns(record, columns...)
 		return pointers, err
@@ -220,7 +220,11 @@ func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter poin
 	ss.db.logPrintln("SELECT : ", sql, args)
 
 	startTime := time.Now()
-	rows, err := ss.db.getTxElseDb().Query(sql, args...)
+	queryable, err := ss.db.getQueryable(sql)
+	if err != nil {
+		return err
+	}
+	rows, err := queryable.Query(args...)
 	condumedTime := timeElapsedSince(startTime)
 	ss.db.addConsumedTime(condumedTime)
 	ss.db.logDuration(condumedTime)
@@ -279,7 +283,11 @@ func (ss *selectStatement) Count() (int, error) {
 
 	var count int
 	startTime := time.Now()
-	err = ss.db.getTxElseDb().QueryRow(sql, args...).Scan(&count)
+	queryable, err := ss.db.getQueryable(sql)
+	if err != nil {
+		return 0, err
+	}
+	err = queryable.QueryRow(args...).Scan(&count)
 	condumedTime := timeElapsedSince(startTime)
 	ss.db.addConsumedTime(condumedTime)
 	ss.db.logDuration(condumedTime)
