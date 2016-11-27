@@ -88,4 +88,23 @@ func MainTest(db *godb.DB, t *testing.T) {
 	if len(theLordOfTheRingsBooks) != 3 {
 		t.Fatal("Wrong books count : ", howManyBooks)
 	}
+
+	// Select during a Tx (prepared statement will be used and cached)
+	db.Begin()
+	titleToFind := []string{
+		"The Fellowship of the Ring",
+		"The Two Towers",
+		"The Return of the King",
+	}
+	for _, title := range titleToFind {
+		var book Book
+		err = db.Select(&book).Where("title = ?", title).Do()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if book.Title != title {
+			t.Fatal("Wrong books found : ", book.Title)
+		}
+	}
+	db.Commit()
 }
