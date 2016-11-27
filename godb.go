@@ -13,12 +13,15 @@ import (
 // Everything starts with a DB.
 // DB is not thread safe (see Clone)
 type DB struct {
-	adapter       adapters.Adapter
-	sqlDB         *sql.DB
-	sqlTx         *sql.Tx
-	logger        *log.Logger
-	consumedTime  time.Duration
-	preparedStmts map[string]*sql.Stmt
+	adapter      adapters.Adapter
+	sqlDB        *sql.DB
+	sqlTx        *sql.Tx
+	logger       *log.Logger
+	consumedTime time.Duration
+
+	// Prepared Statement cache
+	preparedStmts     map[string]*sql.Stmt
+	isPrepStmtEnabled bool
 }
 
 // Default placeholder, use it to build queries.
@@ -28,7 +31,11 @@ const Placeholder string = "?"
 // Open create a new DB struct and initialise a sql.DB connection.
 func Open(adapter adapters.Adapter, dataSourceName string) (*DB, error) {
 	db := DB{adapter: adapter}
+
+	// Prepared statements cache is enabled by default
+	db.EnableStmtCache()
 	db.resetPreparedStatementsCache()
+
 	var err error
 	db.sqlDB, err = sql.Open(adapter.DriverName(), dataSourceName)
 	if err != nil {

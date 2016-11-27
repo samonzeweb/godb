@@ -27,10 +27,22 @@ func (q *queryable) QueryRow(args ...interface{}) *sql.Row {
 	return q.db.QueryRow(q.sqlQuery, args...)
 }
 
+// EnableStmtCache enable prepared statement cache
+// (it is enabled by default)
+func (db *DB) EnableStmtCache() {
+	db.isPrepStmtEnabled = true
+}
+
+// DisableStmtCache disable prepared statement cache
+func (db *DB) DisableStmtCache() {
+	db.isPrepStmtEnabled = true
+}
+
 // getQueryable manage prepared statement, and its cache.
 func (db *DB) getQueryable(sql string) (Queryable, error) {
-	// Prepared statements are managed only in a Tx
-	if db.CurrentTx() == nil {
+	// Prepared statements are managed only in a Tx, and when the
+	// cache is enabled.
+	if db.CurrentTx() == nil || db.isPrepStmtEnabled == false {
 		wrapper := queryable{
 			db:       db.CurrentDB(),
 			sqlQuery: sql,
