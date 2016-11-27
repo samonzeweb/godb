@@ -29,7 +29,8 @@ func (db *DB) Insert(record interface{}) *structInsert {
 		return si
 	}
 
-	si.insertStatement = db.InsertInto(si.recordDescription.getTableName())
+	quotedTableName := db.adapter.Quote(si.recordDescription.getTableName())
+	si.insertStatement = db.InsertInto(quotedTableName)
 	return si
 }
 
