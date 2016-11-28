@@ -162,6 +162,19 @@ func TestGetAutoColumnsNames(t *testing.T) {
 	})
 }
 
+func TestGetKeyColumnsNames(t *testing.T) {
+	Convey("Given a StructMapping and a struct instance (nested)", t, func() {
+		structInstance := StructMultipleAuto{}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetKeyColumnsNames returns all auto columns names", func() {
+			columns := structMap.GetKeyColumnsNames()
+			So(len(columns), ShouldEqual, 1)
+			So(columns[0], ShouldEqual, "id")
+		})
+	})
+}
+
 func TestGetAllFieldsPointers(t *testing.T) {
 	Convey("Given a StructMapping and a struct instance (nested)", t, func() {
 		structInstance := ComplexStruct{}
@@ -201,6 +214,23 @@ func TestGetNonAutoFieldsValues(t *testing.T) {
 			So(values[1], ShouldEqual, structInstance.Text)
 			So(values[2], ShouldEqual, structInstance.Foobar.Foo)
 			So(values[3], ShouldEqual, structInstance.Foobar.Bar)
+		})
+	})
+}
+
+func TestGetKeyFieldsValues(t *testing.T) {
+	Convey("Given a StructMapping and a struct instance (nested)", t, func() {
+		structInstance := SimpleStruct{
+			ID:    123,
+			Text:  "a text",
+			Other: "what ?",
+		}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetKeyFieldsValues return non auto fields values", func() {
+			values := structMap.GetKeyFieldsValues(&structInstance)
+			So(len(values), ShouldEqual, 1)
+			So(values[0], ShouldEqual, structInstance.ID)
 		})
 	})
 }

@@ -9,7 +9,7 @@ type structUpdate struct {
 	recordDescription *recordDescription
 }
 
-// Insert initialise an insert sql statement for the given object
+// Update initialise an UPDATE sql statement for the given object
 func (db *DB) Update(record interface{}) *structUpdate {
 	var err error
 
@@ -32,7 +32,23 @@ func (db *DB) Update(record interface{}) *structUpdate {
 
 // Do executes the UPDATE statement for the struct given to the Update method.
 func (su *structUpdate) Do() (int64, error) {
-	// Find non key columns => SET
-	// Find key coluns => WHERE
+	// Which columns to update ?
+	columnsToUpdate := su.recordDescription.structMapping.GetNonAutoColumnsNames()
+	values := su.recordDescription.structMapping.GetNonAutoFieldsValues(su.recordDescription.record)
+	for i, column := range columnsToUpdate {
+		quotedColumn := su.updateStatement.db.adapter.Quote(column)
+		su.updateStatement = su.updateStatement.Set(quotedColumn, values[i])
+	}
 
+	// On wich keys
+	keyColumns := su.recordDescription.structMapping.GetKeyColumnsNames()
+	keyValues := su.recordDescription.structMapping.GetKeyFieldsValues(su.recordDescription.record)
+	for i, column := range keyColumns {
+		quotedColumn := su.updateStatement.db.adapter.Quote(column)
+		su.updateStatement = su.updateStatement.Where(quotedColumn+" = ?", keyValues[i])
+	}
+
+	// Executes the query
+	rowsAffected, err := su.updateStatement.Do()
+	return rowsAffected, err
 }

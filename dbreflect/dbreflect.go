@@ -196,6 +196,21 @@ func (sm *StructMapping) GetAutoColumnsNames() []string {
 	return columns
 }
 
+// GetKeyColumnsNames returns the names of key columns
+func (sm *StructMapping) GetKeyColumnsNames() []string {
+	columns := make([]string, 0, 0)
+
+	f := func(fullName string, fieldMapping *fieldMapping, _ *reflect.Value) (stop bool, err error) {
+		if fieldMapping.isKey {
+			columns = append(columns, fullName)
+		}
+		return false, nil
+	}
+	sm.traverseTree("", nil, f)
+
+	return columns
+}
+
 // GetAllFieldsPointers returns pointers for all fields, in the same order
 // as GetAllColumnsNames.
 // It is intended to be used for SELECT statements.
@@ -215,7 +230,7 @@ func (sm *StructMapping) GetAllFieldsPointers(s interface{}) []interface{} {
 	return pointers
 }
 
-// GetNonAutoFieldsValues returns values of non auto fiels, in the same order
+// GetNonAutoFieldsValues returns values of non auto fields, in the same order
 // as GetNonAutoColumnsNames.
 // It is intended to be used for INSERT statements.
 func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
@@ -227,6 +242,26 @@ func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 
 	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		if !fieldMapping.isAuto {
+			values = append(values, value.Interface())
+		}
+		return false, nil
+	}
+	sm.traverseTree("", &v, f)
+
+	return values
+}
+
+// GetKeyFieldsValues returns values of key fields, in the same order
+// as TestGetKeyColumnsNames.
+func (sm *StructMapping) GetKeyFieldsValues(s interface{}) []interface{} {
+	// TODO : check type
+	v := reflect.ValueOf(s)
+	v = reflect.Indirect(v)
+
+	values := make([]interface{}, 0, 0)
+
+	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
+		if fieldMapping.isKey {
 			values = append(values, value.Interface())
 		}
 		return false, nil

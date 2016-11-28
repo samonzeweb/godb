@@ -152,11 +152,13 @@ func TestDoUpdate(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(rowsAffected, ShouldEqual, 2)
 
-			// Convey("The data are in the database", func() {
-			// 	dummy := Dummy{}
-			// 	db.Select(&dummy).Where("id = ?", lastId).Do()
-			// 	So(dummy.ID, ShouldEqual, lastId)
-			// })
+			Convey("The database is up-to-date", func() {
+				dummies := make([]Dummy, 0, 0)
+				_ = db.Select(&dummies).Where("an_integer >= ?", 12).Do()
+				for _, dummy := range dummies {
+					So(dummy.AnotherText, ShouldEqual, "New text")
+				}
+			})
 		})
 	})
 }
