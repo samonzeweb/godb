@@ -6,7 +6,7 @@ import (
 	"gitlab.com/samonzeweb/godb/adapters"
 )
 
-// structSelect build an INSERT statement for the given object
+// structInsert build an INSERT statement for the given object
 type structInsert struct {
 	Error             error
 	insertStatement   *insertStatement
