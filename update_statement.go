@@ -1,5 +1,7 @@
 package godb
 
+import "time"
+
 // updateStatement will contains all parts needed to build an UPDATE statement.
 type updateStatement struct {
 	db *DB
@@ -21,8 +23,8 @@ type setPart struct {
 
 // UpdateTable create an updateStatement and specify table to update.
 // It's the entry point to build an UPDATE query.
-func UpdateTable(tableName string) *updateStatement {
-	us := &updateStatement{}
+func (db *DB) UpdateTable(tableName string) *updateStatement {
+	us := &updateStatement{db: db}
 	us.updateTable = tableName
 	return us
 }
@@ -119,4 +121,33 @@ func (us *updateStatement) ToSQL() (string, []interface{}, error) {
 	}
 
 	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
+}
+
+// Do executes the builded query, and return RowsAffected()
+func (us *updateStatement) Do() (int64, error) {
+	sql, args, err := us.ToSQL()
+	if err != nil {
+		return 0, err
+	}
+	sql = us.db.replacePlaceholders(sql)
+	us.db.logPrintln("UPDATE : ", sql, args)
+
+	// Execute the UPDATE statement
+	startTime := time.Now()
+	queryable, err := us.db.getQueryable(sql)
+	if err != nil {
+		return 0, err
+	}
+	result, err := queryable.Exec(args...)
+	condumedTime := timeElapsedSince(startTime)
+	us.db.addConsumedTime(condumedTime)
+	us.db.logDuration(condumedTime)
+	if err != nil {
+		us.db.logPrintln("ERROR : ", err)
+		return 0, err
+	}
+
+	// TODO : check if RowsAffected() is implemented by the driver
+	rowsAffected, err := result.RowsAffected()
+	return rowsAffected, err
 }

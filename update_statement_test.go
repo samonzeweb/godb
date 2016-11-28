@@ -8,7 +8,8 @@ import (
 
 func TestUpdate(t *testing.T) {
 	Convey("Create an update query", t, func() {
-		q := UpdateTable("dummies")
+		db := &DB{}
+		q := db.UpdateTable("dummies")
 		Convey("The table name is set", func() {
 			So(q.updateTable, ShouldEqual, "dummies")
 		})
@@ -17,7 +18,8 @@ func TestUpdate(t *testing.T) {
 
 func TestSet(t *testing.T) {
 	Convey("Create an update query", t, func() {
-		q := UpdateTable("dummies")
+		db := &DB{}
+		q := db.UpdateTable("dummies")
 
 		Convey("Add a SET clause", func() {
 			q.Set("foo", 1)
@@ -33,7 +35,8 @@ func TestSet(t *testing.T) {
 
 func TestSetRaw(t *testing.T) {
 	Convey("Create an update query", t, func() {
-		q := UpdateTable("dummies")
+		db := &DB{}
+		q := db.UpdateTable("dummies")
 
 		Convey("Add a raw SET clause", func() {
 			sql := "foo = foo+1"
@@ -50,7 +53,8 @@ func TestSetRaw(t *testing.T) {
 
 func TestUpdateWhere(t *testing.T) {
 	Convey("Given an update statement", t, func() {
-		q := UpdateTable("dummies")
+		db := &DB{}
+		q := db.UpdateTable("dummies")
 
 		Convey("Call Where will add a new condition", func() {
 			sql := "id = ?"
@@ -63,7 +67,8 @@ func TestUpdateWhere(t *testing.T) {
 
 func TestUpdateWhereQ(t *testing.T) {
 	Convey("Given an update statement", t, func() {
-		q := UpdateTable("dummies")
+		db := &DB{}
+		q := db.UpdateTable("dummies")
 
 		Convey("Call WhereQ will add the given condition", func() {
 			qc := Q("id = ?", 123)
@@ -76,7 +81,8 @@ func TestUpdateWhereQ(t *testing.T) {
 
 func TestUpdateSuffix(t *testing.T) {
 	Convey("Given an update statement", t, func() {
-		q := UpdateTable("dummies")
+		db := &DB{}
+		q := db.UpdateTable("dummies")
 
 		Convey("Calling Suffix will add the given string to the suffixes list", func() {
 			suffix := "RETURNING foo"
@@ -89,7 +95,8 @@ func TestUpdateSuffix(t *testing.T) {
 
 func TestUpdateToSQL(t *testing.T) {
 	Convey("Given a valid update statement", t, func() {
-		q := UpdateTable("dummies")
+		db := &DB{}
+		q := db.UpdateTable("dummies")
 
 		Convey("Calling Set add the SET clause to SQL", func() {
 			q.Set("foo", 1)
@@ -125,8 +132,31 @@ func TestUpdateToSQL(t *testing.T) {
 
 func TestUpdateToSQLErrors(t *testing.T) {
 	Convey("Table name is mandatory", t, func() {
-		q := UpdateTable("")
+		db := &DB{}
+		q := db.UpdateTable("")
 		_, _, err := q.ToSQL()
 		So(err, ShouldNotBeNil)
+	})
+}
+
+func TestDoUpdate(t *testing.T) {
+	Convey("Given a test database", t, func() {
+		db := fixturesSetup()
+
+		Convey("Do execute the query and return the count of affected rows", func() {
+			rowsAffected, err := db.UpdateTable("dummies").
+				Set("another_text", "New text").
+				Where("an_integer >= ?", 12).
+				Do()
+
+			So(err, ShouldBeNil)
+			So(rowsAffected, ShouldEqual, 2)
+
+			// Convey("The data are in the database", func() {
+			// 	dummy := Dummy{}
+			// 	db.Select(&dummy).Where("id = ?", lastId).Do()
+			// 	So(dummy.ID, ShouldEqual, lastId)
+			// })
+		})
 	})
 }
