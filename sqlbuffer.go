@@ -197,29 +197,29 @@ func (b *sqlBuffer) writeInsertValues(args [][]interface{}, columnsCount int) er
 	return nil
 }
 
-// // WriteSets writes the SET clause of an UPDATE statement.
-// func (b *sqlBuffer) writeSets(sets []*setPart) error {
-// 	if len(sets) == 0 {
-// 		return fmt.Errorf("Missing SET clause in UPDATE statement")
-// 	}
-//
-// 	b.sql.WriteString(" SET ")
-//
-// 	for i, set := range sets {
-// 		if i != 0 {
-// 			b.sql.WriteString(", ")
-// 		}
-// 		b.sql.WriteString(set.column)
-// 		b.sql.WriteString("=")
-// 		b.sql.WriteString(Placeholder)
-// 		if set.value != nil {
-// 			// column and value are given (not raw sql)
-// 			b.arguments = append(b.arguments, set.value)
-// 		}
-// 	}
-//
-// 	return nil
-// }
+// writeSets writes the SET clause of an UPDATE statement.
+func (b *sqlBuffer) writeSets(sets []*setPart) error {
+	if len(sets) == 0 {
+		return fmt.Errorf("Missing SET clause in UPDATE statement")
+	}
+
+	b.sql.WriteString(" SET ")
+
+	for i, set := range sets {
+		if i != 0 {
+			b.sql.WriteString(", ")
+		}
+		b.sql.WriteString(set.column)
+		b.sql.WriteString("=")
+		b.sql.WriteString(Placeholder)
+		if set.value != nil {
+			// column and value are given (not raw sql)
+			b.arguments = append(b.arguments, set.value)
+		}
+	}
+
+	return nil
+}
 
 // writeNameList writes a list of names, expressions, ... separated by commas.
 func (b *sqlBuffer) writeNameList(nameList []string) error {
