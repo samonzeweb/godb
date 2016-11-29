@@ -1,35 +1,36 @@
-package mysql_test
+package mssql_test
 
 import (
+	"log"
 	"os"
 	"testing"
 
 	"gitlab.com/samonzeweb/godb"
-	"gitlab.com/samonzeweb/godb/adapters/mysql"
+	"gitlab.com/samonzeweb/godb/adapters/mssql"
 	"gitlab.com/samonzeweb/godb/dbtests/common"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func fixturesSetup(t *testing.T) (*godb.DB, func()) {
-	if os.Getenv("GODB_MYSQL") == "" {
-		t.Fatal("Don't run MySQL test, GODB_MYSQL not set")
+	if os.Getenv("GODB_MSSQL") == "" {
+		t.Fatal("Don't run SQL Server test, GODB_MSSQL not set")
 	}
 
-	db, err := godb.Open(mysql.Adapter, os.Getenv("GODB_MYSQL"))
+	db, err := godb.Open(mssql.Adapter, os.Getenv("GODB_MSSQL"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Enable logger if needed
-	//db.SetLogger(log.New(os.Stderr, "", 0))
+	db.SetLogger(log.New(os.Stderr, "", 0))
 
 	createTable :=
-		`create temporary table if not exists books (
-		id 						int auto_increment primary key,
-		title     		varchar(128) not null,
-		author    	  varchar(128) not null,
-		published			date not null);
+		`create table books (
+		id 						int identity,
+		title     		nvarchar(128) not null,
+		author    	  nvarchar(128) not null,
+		published			datetime2 not null);
 	`
 	_, err = db.CurrentDB().Exec(createTable)
 	if err != nil {
@@ -37,7 +38,7 @@ func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 	}
 
 	fixturesTeardown := func() {
-		dropTable := "drop table if exists books"
+		dropTable := "drop table books"
 		_, err := db.CurrentDB().Exec(dropTable)
 		if err != nil {
 			t.Fatal(err)
@@ -48,7 +49,7 @@ func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 }
 
 func TestMySQL(t *testing.T) {
-	Convey("A DB for a MySQL database", t, func() {
+	Convey("A DB for a SQL Server database", t, func() {
 		db, teardown := fixturesSetup(t)
 		defer teardown()
 

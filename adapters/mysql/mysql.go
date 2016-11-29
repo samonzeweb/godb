@@ -2,14 +2,14 @@ package mysql
 
 import _ "github.com/go-sql-driver/mysql"
 
-type PostgreSQL struct{}
+type MySQL struct{}
 
-var Adapter = PostgreSQL{}
+var Adapter = MySQL{}
 
-func (PostgreSQL) DriverName() string {
+func (MySQL) DriverName() string {
 	return "mysql"
 }
 
-func (PostgreSQL) Quote(identifier string) string {
+func (MySQL) Quote(identifier string) string {
 	return "`" + identifier + "`"
 }
