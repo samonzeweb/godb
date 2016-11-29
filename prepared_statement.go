@@ -35,7 +35,13 @@ func (db *DB) EnableStmtCache() {
 
 // DisableStmtCache disable prepared statement cache
 func (db *DB) DisableStmtCache() {
-	db.isPrepStmtEnabled = true
+	db.isPrepStmtEnabled = false
+}
+
+// IsStmtCacheEnabled return true if the cache of prepared
+// statements is enabled.
+func (db *DB) IsStmtCacheEnabled() bool {
+	return db.isPrepStmtEnabled
 }
 
 // getQueryable manage prepared statement, and its cache.
@@ -44,7 +50,7 @@ func (db *DB) getQueryable(sql string) (Queryable, error) {
 	// cache is enabled.
 	if db.CurrentTx() == nil || db.isPrepStmtEnabled == false {
 		wrapper := queryable{
-			db:       db.CurrentDB(),
+			db:       db.getTxElseDb(),
 			sqlQuery: sql,
 		}
 		return &wrapper, nil
@@ -53,10 +59,12 @@ func (db *DB) getQueryable(sql string) (Queryable, error) {
 	// Already prepared ?
 	prepStmt, ok := db.preparedStmts[sql]
 	if ok {
+		db.logPrintln("Use cached prepared statement")
 		return prepStmt, nil
 	}
 
 	// New prepared statement
+	db.logPrintln("Prepare statement and cache it")
 	prepStmt, err := db.CurrentTx().Prepare(sql)
 	if err != nil {
 		return nil, err

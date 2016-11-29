@@ -3,6 +3,7 @@ package godb
 import (
 	"database/sql"
 	"fmt"
+	"time"
 )
 
 // PreparableAndQueryable represents either a Tx or DB.
@@ -21,7 +22,11 @@ func (db *DB) Begin() error {
 		return fmt.Errorf("Begin was called multiple times, sql transaction already exists")
 	}
 
+	startTime := time.Now()
 	tx, err := db.sqlDB.Begin()
+	condumedTime := timeElapsedSince(startTime)
+	db.addConsumedTime(condumedTime)
+	db.logDuration(condumedTime)
 	if err != nil {
 		return err
 	}
@@ -39,7 +44,11 @@ func (db *DB) Commit() error {
 	}
 
 	db.resetPreparedStatementsCache()
+	startTime := time.Now()
 	err := db.sqlTx.Commit()
+	condumedTime := timeElapsedSince(startTime)
+	db.addConsumedTime(condumedTime)
+	db.logDuration(condumedTime)
 	db.sqlTx = nil
 	return err
 }
@@ -53,7 +62,11 @@ func (db *DB) Rollback() error {
 	}
 
 	db.resetPreparedStatementsCache()
+	startTime := time.Now()
 	err := db.sqlTx.Rollback()
+	condumedTime := timeElapsedSince(startTime)
+	db.addConsumedTime(condumedTime)
+	db.logDuration(condumedTime)
 	db.sqlTx = nil
 	return err
 }
