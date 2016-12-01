@@ -43,6 +43,9 @@ func (su *structUpdate) Do() (int64, error) {
 	// On wich keys
 	keyColumns := su.recordDescription.structMapping.GetKeyColumnsNames()
 	keyValues := su.recordDescription.structMapping.GetKeyFieldsValues(su.recordDescription.record)
+	if len(keyColumns) == 0 {
+		return 0, fmt.Errorf("The object of type %T has no key : ", su.recordDescription.record)
+	}
 	for i, column := range keyColumns {
 		quotedColumn := su.updateStatement.db.adapter.Quote(column)
 		su.updateStatement = su.updateStatement.Where(quotedColumn+" = ?", keyValues[i])

@@ -303,7 +303,7 @@ func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter poin
 
 // Count run the request with COUNT(*) (remove others columns)
 // and returns the count
-func (ss *selectStatement) Count() (int, error) {
+func (ss *selectStatement) Count() (int64, error) {
 	ss.columns = ss.columns[:0]
 	ss.Columns("COUNT(*)")
 
@@ -314,7 +314,7 @@ func (ss *selectStatement) Count() (int, error) {
 	sql = ss.db.replacePlaceholders(sql)
 	ss.db.logPrintln("SELECT : ", sql, args)
 
-	var count int
+	var count int64
 	startTime := time.Now()
 	queryable, err := ss.db.getQueryable(sql)
 	if err != nil {

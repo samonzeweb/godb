@@ -81,7 +81,9 @@ func MainTest(db *godb.DB, t *testing.T) {
 
 	// Select (many)
 	theLordOfTheRingsBooks := make([]Book, 0, 0)
-	err = db.Select(&theLordOfTheRingsBooks).Where("title <> ?", "The Hobbit").Do()
+	err = db.Select(&theLordOfTheRingsBooks).Where("title <> ?", "The Hobbit").
+		OrderBy("published").
+		Do()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,4 +109,42 @@ func MainTest(db *godb.DB, t *testing.T) {
 		}
 	}
 	db.Commit()
+
+	// Update
+	for _, book := range theLordOfTheRingsBooks {
+		book.Published = book.Published.AddDate(100, 0, 0)
+		var count int64
+		count, err = db.Update(&book).Do()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if count != 1 {
+			t.Fatalf("The book %v was now updated", book)
+		}
+	}
+
+	for _, book := range theLordOfTheRingsBooks {
+		retrievedBook := Book{}
+		err = db.Select(&retrievedBook).Where("id = ?", book.Id).Do()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if retrievedBook.Published.Before(time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)) {
+			t.Fatalf("Book %v was not updated", book)
+		}
+	}
+
+	// Delete
+	book := theLordOfTheRingsBooks[0]
+	count, err := db.Delete(&book).Do()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 1 {
+		t.Fatalf("Book %v was not delete", book)
+	}
+	count, err = db.SelectFrom("books").Count()
+	if count != 3 {
+		t.Fatalf("Wrong book count : %v", count)
+	}
 }

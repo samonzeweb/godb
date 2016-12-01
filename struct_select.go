@@ -89,7 +89,7 @@ func (ss *structSelect) Do() error {
 }
 
 // Count run the request with COUNT(*) and returns the count
-func (ss *structSelect) Count() (int, error) {
+func (ss *structSelect) Count() (int64, error) {
 	if ss.Error != nil {
 		return 0, ss.Error
 	}

@@ -6,7 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestInsertUpdate(t *testing.T) {
+func TestUpdateDo(t *testing.T) {
 	Convey("Given a test database", t, func() {
 		db := fixturesSetup()
 
