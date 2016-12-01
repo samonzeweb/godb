@@ -4,19 +4,23 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+
+	"gitlab.com/samonzeweb/godb/adapters"
 )
 
 // sqlBuffer is an temporary type to build SQL query with its arguments.
 // After the building operation use String() and Arguments() to get data to
 // use with database/sql.
 type sqlBuffer struct {
+	adapter   adapters.Adapter
 	sql       *bytes.Buffer
 	arguments []interface{}
 }
 
 // newsqlBuffer create a new buffer to build SQL query with corresponding arguments.
-func newSQLBuffer(sqlLength int, argsLength int) *sqlBuffer {
+func newSQLBuffer(adapter adapters.Adapter, sqlLength int, argsLength int) *sqlBuffer {
 	return &sqlBuffer{
+		adapter:   adapter,
 		sql:       bytes.NewBuffer(make([]byte, 0, sqlLength)),
 		arguments: make([]interface{}, 0, argsLength),
 	}
@@ -141,9 +145,17 @@ func (b *sqlBuffer) writeOrderBy(columns []string) error {
 // writeOffset write OFFSET clause into the buffer.
 func (b *sqlBuffer) writeOffset(offset *int) error {
 	if offset != nil {
-		b.sql.WriteString(" OFFSET ")
-		b.sql.WriteString(Placeholder)
-		b.arguments = append(b.arguments, *offset)
+		offsetBuilder, ok := b.adapter.(adapters.OffsetBuilder)
+		if ok {
+			sqlPart := offsetBuilder.BuildOffset(*offset)
+			b.sql.WriteString(" ")
+			b.sql.WriteString(sqlPart.Sql)
+			b.arguments = append(b.arguments, sqlPart.Arguments...)
+		} else {
+			b.sql.WriteString(" OFFSET ")
+			b.sql.WriteString(Placeholder)
+			b.arguments = append(b.arguments, *offset)
+		}
 	}
 
 	return nil
@@ -152,9 +164,17 @@ func (b *sqlBuffer) writeOffset(offset *int) error {
 // writeLimit writes LIMIT clauses into the buffer.
 func (b *sqlBuffer) writeLimit(limit *int) error {
 	if limit != nil {
-		b.sql.WriteString(" LIMIT ")
-		b.sql.WriteString(Placeholder)
-		b.arguments = append(b.arguments, *limit)
+		limitBuilder, ok := b.adapter.(adapters.LimitBuilder)
+		if ok {
+			sqlPart := limitBuilder.BuildLimit(*limit)
+			b.sql.WriteString(" ")
+			b.sql.WriteString(sqlPart.Sql)
+			b.arguments = append(b.arguments, sqlPart.Arguments...)
+		} else {
+			b.sql.WriteString(" LIMIT ")
+			b.sql.WriteString(Placeholder)
+			b.arguments = append(b.arguments, *limit)
+		}
 	}
 
 	return nil

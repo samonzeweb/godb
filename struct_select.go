@@ -80,11 +80,6 @@ func (ss *structSelect) Do() error {
 	allColumns := ss.recordDescription.structMapping.GetAllColumnsNames()
 	ss.selectStatement = ss.selectStatement.Columns(ss.selectStatement.db.quoteAll(allColumns)...)
 
-	if ss.recordDescription.isSlice == false {
-		// Only one row is requested
-		ss.selectStatement.Limit(1)
-	}
-
 	f := func(record interface{}, columns []string) ([]interface{}, error) {
 		pointers := ss.recordDescription.structMapping.GetAllFieldsPointers(record)
 		return pointers, nil

@@ -31,3 +31,35 @@ type PlaceholdersReplacer interface {
 type InsertReturningSuffixer interface {
 	InsertReturningSuffix([]string) string
 }
+
+// SqlPart is a struct containing a custom part of SQL query builded by an
+// adapter.
+type SQLPart struct {
+	Sql       string
+	Arguments []interface{}
+}
+
+// LimitBuilder is an interface wrapping the optionnal BuildLimit method.
+//
+// BuildLimit get an integer and returns a string containing a LIMIT sql clause
+// or its equivalent for the adapter, and an array of sql arguments.
+type LimitBuilder interface {
+	BuildLimit(int) *SQLPart
+}
+
+// OffsetBuilder is an interface wrapping the optionnal BuildOffset method.
+//
+// BuildOffset get an integer and returns a string containing an OFFSET sql
+// clause or its equivalent for the adapter, and an array of sql arguments.
+type OffsetBuilder interface {
+	BuildOffset(int) *SQLPart
+}
+
+// LimitOffsetOrderer is an interface wrapping the optionnal IsOffsetFirst
+// method.
+//
+// The IsOffsetFirst returns true is the OFFSET clause has to precede the
+// LIMIT clause. By default the LIMIT is before the OFFSET.
+type LimitOffsetOrderer interface {
+	IsOffsetFirst() bool
+}

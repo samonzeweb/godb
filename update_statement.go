@@ -98,6 +98,7 @@ func (us *updateStatement) ToSQL() (string, []interface{}, error) {
 	}
 
 	sqlBuffer := newSQLBuffer(
+		us.db.adapter,
 		sqlWhereLength+us.approximateSetLength()+64,
 		argsWhereLength,
 	)

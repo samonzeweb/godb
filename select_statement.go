@@ -1,6 +1,10 @@
 package godb
 
-import "time"
+import (
+	"time"
+
+	"gitlab.com/samonzeweb/godb/adapters"
+)
 
 // selectStatement is a SELECT sql statement builder
 type selectStatement struct {
@@ -139,6 +143,7 @@ func (ss *selectStatement) ToSQL() (string, []interface{}, error) {
 	}
 
 	sqlBuffer := newSQLBuffer(
+		ss.db.adapter,
 		sqlWhereLength+sqlHavingLength+64,
 		argsWhereLength+argsHavingLength+4,
 	)
@@ -173,12 +178,28 @@ func (ss *selectStatement) ToSQL() (string, []interface{}, error) {
 		return "", nil, err
 	}
 
-	if err := sqlBuffer.writeOffset(ss.offset); err != nil {
-		return "", nil, err
+	offsetFirst := false
+	if limitOffsetOrderer, ok := ss.db.adapter.(adapters.LimitOffsetOrderer); ok {
+		offsetFirst = limitOffsetOrderer.IsOffsetFirst()
 	}
+	if offsetFirst {
+		// Offset is before limit
+		if err := sqlBuffer.writeOffset(ss.offset); err != nil {
+			return "", nil, err
+		}
 
-	if err := sqlBuffer.writeLimit(ss.limit); err != nil {
-		return "", nil, err
+		if err := sqlBuffer.writeLimit(ss.limit); err != nil {
+			return "", nil, err
+		}
+	} else {
+		// Limit is before offset (default case)
+		if err := sqlBuffer.writeLimit(ss.limit); err != nil {
+			return "", nil, err
+		}
+
+		if err := sqlBuffer.writeOffset(ss.offset); err != nil {
+			return "", nil, err
+		}
 	}
 
 	if err := sqlBuffer.writeStrings(ss.suffixes); err != nil {
@@ -196,11 +217,6 @@ func (ss *selectStatement) Do(record interface{}) error {
 		return err
 	}
 
-	if recordInfo.isSlice == false {
-		// Only one row is requested
-		ss.Limit(1)
-	}
-
 	// the function which will return the pointers according to the given columns
 	f := func(record interface{}, columns []string) ([]interface{}, error) {
 		pointers, err := recordInfo.structMapping.GetPointersForColumns(record, columns...)
@@ -212,6 +228,23 @@ func (ss *selectStatement) Do(record interface{}) error {
 
 // do executes the statement and fill the struct or slice
 func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter pointersGetter) error {
+	if recordInfo.isSlice == false {
+		// Only one row is requested
+		ss.Limit(1)
+		// Some DB require an offset if a limit is specified (MS SQL Server)
+		if ss.offset == nil {
+			ss.Offset(0)
+		}
+		// Some DB require an order by if offset and limit are used
+		// (still MS SQL Server)
+		if len(ss.orderBy) == 0 {
+			keysColumns := recordInfo.structMapping.GetKeyColumnsNames()
+			for _, keyColumn := range keysColumns {
+				ss.OrderBy(keyColumn)
+			}
+		}
+	}
+
 	sql, args, err := ss.ToSQL()
 	if err != nil {
 		return err

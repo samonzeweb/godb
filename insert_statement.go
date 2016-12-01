@@ -46,7 +46,7 @@ func (is *insertStatement) Suffix(suffix string) *insertStatement {
 func (is *insertStatement) ToSQL() (string, []interface{}, error) {
 
 	// TODO : estimate the buffer size !!!
-	sqlBuffer := newSQLBuffer(256, 16)
+	sqlBuffer := newSQLBuffer(is.db.adapter, 256, 16)
 
 	sqlBuffer.write("INSERT ")
 
