@@ -32,6 +32,10 @@ func (db *DB) Update(record interface{}) *structUpdate {
 
 // Do executes the UPDATE statement for the struct given to the Update method.
 func (su *structUpdate) Do() (int64, error) {
+	if su.Error != nil {
+		return 0, su.Error
+	}
+
 	// Which columns to update ?
 	columnsToUpdate := su.recordDescription.structMapping.GetNonAutoColumnsNames()
 	values := su.recordDescription.structMapping.GetNonAutoFieldsValues(su.recordDescription.record)

@@ -32,6 +32,10 @@ func (db *DB) Delete(record interface{}) *structDelete {
 
 // Do executes the DELETE statement for the struct given to the Delete method.
 func (sd *structDelete) Do() (int64, error) {
+	if sd.Error != nil {
+		return 0, sd.Error
+	}
+
 	// Keys
 	keyColumns := sd.recordDescription.structMapping.GetKeyColumnsNames()
 	keyValues := sd.recordDescription.structMapping.GetKeyFieldsValues(sd.recordDescription.record)
