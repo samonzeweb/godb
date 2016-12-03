@@ -9,7 +9,7 @@ import (
 
 func TestGetQueryable(t *testing.T) {
 	Convey("Given a connection to a database", t, func() {
-		db := fixturesSetup()
+		db := fixturesSetup(t)
 		sqlQuery := "SELECT * FROM dummies"
 
 		Convey("getQueryable returns a wrapper if there is no Tx", func() {

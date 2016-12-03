@@ -10,7 +10,7 @@ import (
 
 func TestClone(t *testing.T) {
 	Convey("Given an existing DB", t, func() {
-		db := createInMemoryConnection()
+		db := createInMemoryConnection(t)
 		db.SetLogger(log.New(os.Stderr, "", 0))
 
 		Convey("Clone create a DB copy of an existing one", func() {

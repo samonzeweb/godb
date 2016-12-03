@@ -28,7 +28,7 @@ func fixturesSetup(t *testing.T) *godb.DB {
 	`
 	_, err = db.CurrentDB().Exec(createTable)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	return db

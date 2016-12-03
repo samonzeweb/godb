@@ -8,7 +8,7 @@ import (
 
 func TestBegin(t *testing.T) {
 	Convey("Given an existing connection", t, func() {
-		db := createInMemoryConnection()
+		db := createInMemoryConnection(t)
 
 		Convey("Begin create a new transaction", func() {
 			err := db.Begin()
@@ -25,7 +25,7 @@ func TestBegin(t *testing.T) {
 
 func TestCommit(t *testing.T) {
 	Convey("Given an existing connexion", t, func() {
-		db := createInMemoryConnection()
+		db := createInMemoryConnection(t)
 
 		Convey("Commit end an existing transaction", func() {
 			db.Begin()
@@ -42,7 +42,7 @@ func TestCommit(t *testing.T) {
 
 func TestRollback(t *testing.T) {
 	Convey("Given an existing connexion", t, func() {
-		db := createInMemoryConnection()
+		db := createInMemoryConnection(t)
 
 		Convey("Commit end an existing transaction", func() {
 			db.Begin()
@@ -59,7 +59,7 @@ func TestRollback(t *testing.T) {
 
 func TestCurrentTx(t *testing.T) {
 	Convey("Given an existing connexion", t, func() {
-		db := createInMemoryConnection()
+		db := createInMemoryConnection(t)
 
 		Convey("CurrentTx returns nil there is no current transaction", func() {
 			So(db.CurrentTx(), ShouldBeNil)
@@ -74,7 +74,7 @@ func TestCurrentTx(t *testing.T) {
 
 func TestGetTxElseDb(t *testing.T) {
 	Convey("Given an existing connexion", t, func() {
-		db := createInMemoryConnection()
+		db := createInMemoryConnection(t)
 
 		Convey("getTxElseDb returns DB if there is no current transaction", func() {
 			So(db.getTxElseDb(), ShouldEqual, db.sqlDB)

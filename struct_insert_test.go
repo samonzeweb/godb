@@ -8,7 +8,7 @@ import (
 
 func TestInsertDo(t *testing.T) {
 	Convey("Given a test database", t, func() {
-		db := fixturesSetup()
+		db := fixturesSetup(t)
 
 		Convey("Given an object to insert", func() {
 			dummy := Dummy{
@@ -38,7 +38,7 @@ func TestInsertDo(t *testing.T) {
 
 func TestBulkInsertDo(t *testing.T) {
 	Convey("Given a test database", t, func() {
-		db := fixturesSetup()
+		db := fixturesSetup(t)
 
 		Convey("Given a slice of objects to insert", func() {
 			slice := make([]Dummy, 0, 0)

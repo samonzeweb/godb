@@ -18,10 +18,10 @@ func checkToSQL(t *testing.T, sqlExpected string, sqlProduced string, err error)
 	}
 }
 
-func createInMemoryConnection() *DB {
+func createInMemoryConnection(t *testing.T) *DB {
 	db, err := Open(sqlite.Adapter, ":memory:")
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	// Enable logger if needed
@@ -43,8 +43,8 @@ func (*Dummy) TableName() string {
 	return "dummies"
 }
 
-func fixturesSetup() *DB {
-	db := createInMemoryConnection()
+func fixturesSetup(t *testing.T) *DB {
+	db := createInMemoryConnection(t)
 
 	createTable :=
 		`create table dummies (
@@ -55,7 +55,7 @@ func fixturesSetup() *DB {
 	`
 	_, err := db.sqlDB.Exec(createTable)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	insertRows :=
@@ -68,7 +68,7 @@ func fixturesSetup() *DB {
 	`
 	_, err = db.sqlDB.Exec(insertRows)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	return db

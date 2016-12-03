@@ -1,7 +1,6 @@
 package mssql_test
 
 import (
-	"log"
 	"os"
 	"testing"
 
@@ -23,7 +22,7 @@ func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 	}
 
 	// Enable logger if needed
-	db.SetLogger(log.New(os.Stderr, "", 0))
+	//db.SetLogger(log.New(os.Stderr, "", 0))
 
 	createTable :=
 		`create table books (
@@ -34,7 +33,7 @@ func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 	`
 	_, err = db.CurrentDB().Exec(createTable)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	fixturesTeardown := func() {

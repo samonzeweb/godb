@@ -306,7 +306,7 @@ func TestSelectToSQLErrors(t *testing.T) {
 
 func TestSelectDo(t *testing.T) {
 	Convey("Given a test database", t, func() {
-		db := fixturesSetup()
+		db := fixturesSetup(t)
 
 		Convey("Do execute the query and fills a given instance", func() {
 			singleDummy := Dummy{}
@@ -364,7 +364,7 @@ func TestSelectDo(t *testing.T) {
 
 func TestCount(t *testing.T) {
 	Convey("Given a test database", t, func() {
-		db := fixturesSetup()
+		db := fixturesSetup(t)
 
 		Convey("Count returns the count of row mathing the request", func() {
 			selectStmt := db.SelectFrom("dummies")
