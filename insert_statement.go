@@ -137,6 +137,7 @@ func (si *insertStatement) doWithReturning(record interface{}) error {
 	index := 0
 	for rows.Next() {
 		instancePtr := recordDescription.index(index)
+		index++
 		pointers, innererr := recordDescription.structMapping.GetAutoFieldsPointers(instancePtr)
 		if innererr != nil {
 			si.db.logPrintln("ERROR : ", innererr)

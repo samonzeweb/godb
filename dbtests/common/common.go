@@ -1,6 +1,8 @@
 package common
 
 import (
+	"log"
+	"os"
 	"testing"
 	"time"
 
@@ -19,132 +21,106 @@ func (*Book) TableName() string {
 }
 
 func MainTest(db *godb.DB, t *testing.T) {
-	// Insert
-	firstBook := &Book{
-		Title:     "The Hobbit",
-		Author:    "J.R.R. tolkien",
-		Published: time.Date(1937, 9, 21, 0, 0, 0, 0, time.UTC),
-	}
+	// Enable logger if needed
+	db.SetLogger(log.New(os.Stderr, "", 0))
 
-	err := db.Insert(firstBook).Do()
+	Insert(db, t)
+	Select(db, t)
+}
+
+func Insert(db *godb.DB, t *testing.T) {
+	// Single
+	bookToInsert := bookTheHobbit
+	err := db.Insert(&bookToInsert).Do()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if firstBook.Id == 0 {
-		t.Fatal("Id not set after an insert")
+	if bookToInsert.Id == 0 {
+		t.Fatalf("Id was not set for the book %v", bookToInsert)
 	}
 
-	otherBooks := []Book{
-		Book{
-			Title:     "The Fellowship of the Ring",
-			Published: time.Date(1954, 7, 29, 0, 0, 0, 0, time.UTC),
-		},
-		Book{
-			Title:     "The Two Towers",
-			Published: time.Date(1954, 11, 11, 0, 0, 0, 0, time.UTC),
-		},
-		Book{
-			Title:     "The Return of the King",
-			Published: time.Date(1955, 10, 20, 0, 0, 0, 0, time.UTC),
-		},
+	// Bulk with slice of instances
+	booksToInsert := setTheLordOfTheRing[:]
+	err = db.BulkInsert(&booksToInsert).Do()
+	if err != nil {
+		t.Fatal(err)
 	}
-
-	for _, otherBook := range otherBooks {
-		otherBook.Author = "J.R.R. tolkien"
-		err = db.Insert(&otherBook).Do()
-		if err != nil {
-			t.Fatal(err)
+	if db.Adapter().DriverName() == "postgres" {
+		for _, book := range booksToInsert {
+			if book.Id == 0 {
+				t.Fatalf("Id was not set for the book %v", book)
+			}
 		}
 	}
 
-	// Count
-	howManyBooks, err := db.SelectFrom("books").Count()
+	// Bulk with slice of pointers
+	booksToBulkInsert := make([]*Book, 0, len(setFoundation))
+	for _, book := range setFoundation {
+		// Note : don't simply use &book, it will bit you !
+		bookToInsert := &Book{}
+		*bookToInsert = book
+		booksToBulkInsert = append(booksToBulkInsert, bookToInsert)
+	}
+	err = db.BulkInsert(&booksToBulkInsert).Do()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if howManyBooks != 4 {
-		t.Fatal("Wrong books count : ", howManyBooks)
+	if db.Adapter().DriverName() == "postgres" {
+		for _, book := range booksToBulkInsert {
+			if book.Id == 0 {
+				t.Fatalf("Id was not set for the book %v", book)
+			}
+		}
 	}
+}
 
-	// Select (one)
-	theHobbit := &Book{}
-	err = db.Select(theHobbit).Where("title = ?", "The Hobbit").Do()
+func Select(db *godb.DB, t *testing.T) {
+	// Count the books
+	count, err := db.SelectFrom("books").Count()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if theHobbit.Title != "The Hobbit" {
-		t.Fatal("Wrong books found : ", theHobbit.Title)
-	}
-	if firstBook.Published.Year() != 1937 {
-		t.Fatalf("Wrong published time : %v", firstBook.Published)
+	if count != 7 {
+		t.Fatalf("Wrong book count : %v", count)
 	}
 
-	// Select (many)
-	theLordOfTheRingsBooks := make([]Book, 0, 0)
-	err = db.Select(&theLordOfTheRingsBooks).Where("title <> ?", "The Hobbit").
-		OrderBy("published").
+	// Fetch single book
+	bilbo := Book{}
+	err = db.Select(&bilbo).Where("title = ?", bookTheHobbit.Title).Do()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bilbo.Title != bookTheHobbit.Title {
+		t.Fatalf("Book not found or wrong book : %v", bilbo)
+	}
+
+	// Fetch multiple books
+	theLordOfTheRing := make([]Book, 0, 0)
+	err = db.Select(&theLordOfTheRing).
+		Where("author = ?", authorTolkien).
+		Where("title <> ?", bookTheHobbit.Title).
 		Do()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(theLordOfTheRingsBooks) != 3 {
-		t.Fatal("Wrong books count : ", howManyBooks)
+	theLordOfTheRingSize := len(theLordOfTheRing)
+	if len(theLordOfTheRing) != 3 {
+		t.Fatalf("Wrong book count : %v", theLordOfTheRingSize)
 	}
 
-	// Select during a Tx (prepared statement will be used and cached)
+	// Multiple select in a transaction (force use of prepared statement)
 	db.Begin()
-	titleToFind := []string{
-		"The Fellowship of the Ring",
-		"The Two Towers",
-		"The Return of the King",
-	}
-	for _, title := range titleToFind {
-		var book Book
-		err = db.Select(&book).Where("title = ?", title).Do()
+	for _, book := range setFoundation {
+		retrievedBook := Book{}
+		err = db.Select(&retrievedBook).
+			Where("title = ?", book.Title).
+			Do()
 		if err != nil {
 			t.Fatal(err)
 		}
-		if book.Title != title {
-			t.Fatal("Wrong books found : ", book.Title)
+		if retrievedBook.Title != book.Title {
+			t.Fatalf("Book not found or wrong book : %v", retrievedBook)
 		}
 	}
 	db.Commit()
-
-	// Update
-	for _, book := range theLordOfTheRingsBooks {
-		book.Published = book.Published.AddDate(100, 0, 0)
-		var count int64
-		count, err = db.Update(&book).Do()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if count != 1 {
-			t.Fatalf("The book %v was now updated", book)
-		}
-	}
-
-	for _, book := range theLordOfTheRingsBooks {
-		retrievedBook := Book{}
-		err = db.Select(&retrievedBook).Where("id = ?", book.Id).Do()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if retrievedBook.Published.Before(time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)) {
-			t.Fatalf("Book %v was not updated", book)
-		}
-	}
-
-	// Delete
-	book := theLordOfTheRingsBooks[0]
-	count, err := db.Delete(&book).Do()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 1 {
-		t.Fatalf("Book %v was not delete", book)
-	}
-	count, err = db.SelectFrom("books").Count()
-	if count != 3 {
-		t.Fatalf("Wrong book count : %v", count)
-	}
 }

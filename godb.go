@@ -68,6 +68,11 @@ func (db *DB) Close() error {
 	return db.sqlDB.Close()
 }
 
+// Adapter returns the current adapter
+func (db *DB) Adapter() adapters.Adapter {
+	return db.adapter
+}
+
 // CurrentDB returns the current *sql.DB
 func (db *DB) CurrentDB() *sql.DB {
 	return db.sqlDB
