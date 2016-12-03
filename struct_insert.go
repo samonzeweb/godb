@@ -15,17 +15,39 @@ type structInsert struct {
 
 // Insert initialise an insert sql statement for the given object
 func (db *DB) Insert(record interface{}) *structInsert {
+	si := db.buildInsert(record)
+
+	if si.recordDescription.isSlice {
+		si.Error = fmt.Errorf("Insert accepts only a single instance, got a slice")
+	}
+
+	return si
+}
+
+// BuklInsert initialise an insert sql statement for a slice.
+// Warning : not all databases are able to update the auto columns in the
+//           case of insert with multiple rows. Only adapters implementing the
+//           InsertReturningSuffix interface will have auto columns updated.
+func (db *DB) BulkInsert(record interface{}) *structInsert {
+	si := db.buildInsert(record)
+
+	if !si.recordDescription.isSlice {
+		si.Error = fmt.Errorf("BulkInsert accepts only a slice")
+	}
+
+	return si
+}
+
+// buildInsert initialise an insert sql statement for the given object, either
+// a slice or a single instance.
+// For internal use only.
+func (db *DB) buildInsert(record interface{}) *structInsert {
 	var err error
 
 	si := &structInsert{}
 	si.recordDescription, err = buildRecordDescription(record)
 	if err != nil {
 		si.Error = err
-		return si
-	}
-
-	if si.recordDescription.isSlice {
-		si.Error = fmt.Errorf("Insert accept only a single instance, got a slice")
 		return si
 	}
 
@@ -49,8 +71,12 @@ func (si *structInsert) Do() error {
 	si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
 
 	// Values
-	values := si.recordDescription.structMapping.GetNonAutoFieldsValues(si.recordDescription.record)
-	si.insertStatement.Values(values...)
+	len := si.recordDescription.len()
+	for i := 0; i < len; i++ {
+		currentRecord := si.recordDescription.index(i)
+		values := si.recordDescription.structMapping.GetNonAutoFieldsValues(currentRecord)
+		si.insertStatement.Values(values...)
+	}
 
 	// Specifig suffix needed ?
 	suffixer, ok := si.insertStatement.db.adapter.(adapters.InsertReturningSuffixer)
@@ -70,6 +96,12 @@ func (si *structInsert) Do() error {
 	insertedId, err := si.insertStatement.Do()
 	if err != nil {
 		return err
+	}
+
+	// Bulk insert don't update ids with this adater, the insert was done,
+	// without error, but the new ids are unkonwn.
+	if si.recordDescription.isSlice {
+		return nil
 	}
 
 	// Get the Id

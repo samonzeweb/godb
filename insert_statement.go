@@ -119,17 +119,12 @@ func (si *insertStatement) doWithReturning(record interface{}) error {
 	sql = si.db.replacePlaceholders(sql)
 	si.db.logPrintln("INSERT : ", sql, args)
 
-	// Execute the INSERT statement
 	startTime := time.Now()
-	pointers, err := recordDescription.structMapping.GetAutoFieldsPointers(record)
-	if err != nil {
-		return err
-	}
 	queryable, err := si.db.getQueryable(sql)
 	if err != nil {
 		return err
 	}
-	err = queryable.QueryRow(args...).Scan(pointers...)
+	rows, err := queryable.Query(args...)
 	condumedTime := timeElapsedSince(startTime)
 	si.db.addConsumedTime(condumedTime)
 	si.db.logDuration(condumedTime)
@@ -137,6 +132,26 @@ func (si *insertStatement) doWithReturning(record interface{}) error {
 		si.db.logPrintln("ERROR : ", err)
 		return err
 	}
+	defer rows.Close()
 
-	return nil
+	index := 0
+	for rows.Next() {
+		instancePtr := recordDescription.index(index)
+		pointers, innererr := recordDescription.structMapping.GetAutoFieldsPointers(instancePtr)
+		if innererr != nil {
+			si.db.logPrintln("ERROR : ", innererr)
+			return innererr
+		}
+		innererr = rows.Scan(pointers...)
+		if innererr != nil {
+			si.db.logPrintln("ERROR : ", innererr)
+			return innererr
+		}
+	}
+
+	err = rows.Err()
+	if err != nil {
+		si.db.logPrintln("ERROR : ", err)
+	}
+	return err
 }
