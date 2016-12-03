@@ -1,6 +1,7 @@
 package godb
 
 import (
+	"database/sql"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -358,6 +359,12 @@ func TestSelectDo(t *testing.T) {
 			Convey("Do compute time consumed by SQL query", func() {
 				So(db.ConsumedTime(), ShouldBeGreaterThan, 0)
 			})
+		})
+
+		Convey("Do returns sql.sql.ErrNoRows if a single instance if requested but not found", func() {
+			dummy := Dummy{}
+			err := db.SelectFrom("dummies").Columns("id").Where("1 > 2").Do(&dummy)
+			So(err, ShouldEqual, sql.ErrNoRows)
 		})
 	})
 }

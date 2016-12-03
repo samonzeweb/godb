@@ -1,6 +1,7 @@
 package common
 
 import (
+	"database/sql"
 	"testing"
 	"time"
 
@@ -92,6 +93,13 @@ func selectTest(db *godb.DB, t *testing.T) {
 	}
 	if bilbo.Title != bookTheHobbit.Title {
 		t.Fatalf("Book not found or wrong book : %v", bilbo)
+	}
+
+	// Fetch nonexistant book
+	nonexistant := Book{}
+	err = db.Select(&nonexistant).Where("title = ?", "Dune").Do()
+	if err != sql.ErrNoRows {
+		t.Fatalf("Error sql.ErrNoRows awaited, got : %v", err)
 	}
 
 	// Fetch multiple books

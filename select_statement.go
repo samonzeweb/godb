@@ -1,6 +1,7 @@
 package godb
 
 import (
+	"database/sql"
 	"time"
 
 	"gitlab.com/samonzeweb/godb/adapters"
@@ -245,15 +246,15 @@ func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter poin
 		}
 	}
 
-	sql, args, err := ss.ToSQL()
+	sqlQuery, args, err := ss.ToSQL()
 	if err != nil {
 		return err
 	}
-	sql = ss.db.replacePlaceholders(sql)
-	ss.db.logPrintln("SELECT : ", sql, args)
+	sqlQuery = ss.db.replacePlaceholders(sqlQuery)
+	ss.db.logPrintln("SELECT : ", sqlQuery, args)
 
 	startTime := time.Now()
-	queryable, err := ss.db.getQueryable(sql)
+	queryable, err := ss.db.getQueryable(sqlQuery)
 	if err != nil {
 		return err
 	}
@@ -273,7 +274,9 @@ func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter poin
 		return err
 	}
 
+	var rowsCount int
 	for rows.Next() {
+		rowsCount++
 		err = recordInfo.fillRecord(
 			// Fill one instance with one row
 			func(record interface{}) error {
@@ -298,6 +301,13 @@ func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter poin
 	if err != nil {
 		ss.db.logPrintln("ERROR : ", err)
 	}
+
+	// When a single instance is requested but not found, sql.ErrNoRows is
+	// returned like QueryRow in database/sql package.
+	if recordInfo.isSlice == false && rowsCount == 0 {
+		err = sql.ErrNoRows
+	}
+
 	return err
 }
 
