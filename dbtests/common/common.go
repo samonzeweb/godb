@@ -177,5 +177,35 @@ func updateTest(db *godb.DB, t *testing.T) {
 }
 
 func deleteTest(db *godb.DB, t *testing.T) {
-	// TODO
+	bookToDelete := Book{}
+
+	countBefore, err := db.SelectFrom("books").Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = db.Select(&bookToDelete).
+		Where("published = ?", bookFoundation.Published).
+		Do()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var count int64
+	count, err = db.Delete(&bookToDelete).Do()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 1 {
+		t.Fatalf("Wrong deleted books count (from delete): %v", count)
+	}
+
+	countAfter, err := db.SelectFrom("books").Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if (countBefore - countAfter) != 1 {
+		t.Fatalf("Wrong deleted books count : %v", (countBefore - countAfter))
+	}
 }
