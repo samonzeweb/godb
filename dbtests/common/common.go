@@ -1,8 +1,6 @@
 package common
 
 import (
-	"log"
-	"os"
 	"testing"
 	"time"
 
@@ -22,13 +20,15 @@ func (*Book) TableName() string {
 
 func MainTest(db *godb.DB, t *testing.T) {
 	// Enable logger if needed
-	db.SetLogger(log.New(os.Stderr, "", 0))
+	//db.SetLogger(log.New(os.Stderr, "", 0))
 
-	Insert(db, t)
-	Select(db, t)
+	insertTest(db, t)
+	selectTest(db, t)
+	updateTest(db, t)
+	deleteTest(db, t)
 }
 
-func Insert(db *godb.DB, t *testing.T) {
+func insertTest(db *godb.DB, t *testing.T) {
 	// Single
 	bookToInsert := bookTheHobbit
 	err := db.Insert(&bookToInsert).Do()
@@ -74,7 +74,7 @@ func Insert(db *godb.DB, t *testing.T) {
 	}
 }
 
-func Select(db *godb.DB, t *testing.T) {
+func selectTest(db *godb.DB, t *testing.T) {
 	// Count the books
 	count, err := db.SelectFrom("books").Count()
 	if err != nil {
@@ -123,4 +123,59 @@ func Select(db *godb.DB, t *testing.T) {
 		}
 	}
 	db.Commit()
+}
+
+func updateTest(db *godb.DB, t *testing.T) {
+	// All the change will be rollbacked.
+	db.Begin()
+
+	booksToUpdate := make([]*Book, 0, 0)
+	err := db.Select(&booksToUpdate).
+		Where("author = ?", authorTolkien).
+		Do()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	gandalf := "Gandalf the White"
+	for _, book := range booksToUpdate {
+		var count int64
+		book.Author = gandalf
+		count, err = db.Update(book).Do()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if count != 1 {
+			t.Fatalf("Wrong count of updated books : %v (book %v)", count, book)
+		}
+	}
+
+	updatedBooks := make([]Book, 0, 0)
+	booksCount, err := db.Select(&updatedBooks).
+		Where("author = ?", gandalf).
+		Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if booksCount != 4 {
+		t.Fatalf("Wrong books count : %v", booksCount)
+	}
+
+	// Cancel all changes
+	db.Rollback()
+
+	// The changes must be lost
+	booksCount, err = db.Select(&updatedBooks).
+		Where("author = ?", gandalf).
+		Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if booksCount != 0 {
+		t.Fatalf("Wrong books count : %v", booksCount)
+	}
+}
+
+func deleteTest(db *godb.DB, t *testing.T) {
+	// TODO
 }
