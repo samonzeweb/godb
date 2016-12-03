@@ -130,6 +130,62 @@ func TestGetOneInstancePointer(t *testing.T) {
 	})
 }
 
+func TestLen(t *testing.T) {
+	Convey("Given a single instance descriptor", t, func() {
+		instancePtr := &typeToDescribe{}
+		recordDesc, _ := buildRecordDescription(instancePtr)
+		Convey("Len returns 1", func() {
+			So(recordDesc.len(), ShouldEqual, 1)
+		})
+	})
+
+	Convey("Given a slice descriptor", t, func() {
+		slice := make([]typeToDescribe, 0, 0)
+		slice = append(slice, typeToDescribe{})
+		slice = append(slice, typeToDescribe{})
+		recordDesc, _ := buildRecordDescription(&slice)
+		Convey("Len returns the len of the slice", func() {
+			So(recordDesc.len(), ShouldEqual, 2)
+		})
+	})
+}
+
+func TestIndex(t *testing.T) {
+	Convey("Given a single instance descriptor", t, func() {
+		instancePtr := &typeToDescribe{}
+		recordDesc, _ := buildRecordDescription(instancePtr)
+		Convey("Index returns the pointer to the instance", func() {
+			So(recordDesc.index(0), ShouldEqual, instancePtr)
+		})
+	})
+
+	Convey("Given a slice descriptor", t, func() {
+		slice := make([]typeToDescribe, 0, 0)
+		first := typeToDescribe{Id: 123}
+		second := typeToDescribe{Id: 456}
+		slice = append(slice, first, second)
+		recordDesc, _ := buildRecordDescription(&slice)
+		Convey("Index returns the pointer to the instance at the given index", func() {
+			So(recordDesc.index(0).(*typeToDescribe).Id, ShouldEqual, 123)
+			So(recordDesc.index(1).(*typeToDescribe).Id, ShouldEqual, 456)
+			recordDesc.index(0).(*typeToDescribe).Id = 1234
+			So(recordDesc.index(0).(*typeToDescribe).Id, ShouldEqual, 1234)
+		})
+	})
+
+	Convey("Given a slice of pointers descriptor", t, func() {
+		slice := make([]*typeToDescribe, 0, 0)
+		first := typeToDescribe{Id: 123}
+		second := typeToDescribe{Id: 456}
+		slice = append(slice, &first, &second)
+		recordDesc, _ := buildRecordDescription(&slice)
+		Convey("Index returns the pointer to the instance at the given index", func() {
+			So(recordDesc.index(0), ShouldEqual, &first)
+			So(recordDesc.index(1), ShouldEqual, &second)
+		})
+	})
+}
+
 func TestTableName(t *testing.T) {
 	Convey("Given a record descriptor", t, func() {
 		instancePtr := &typeToDescribe{}

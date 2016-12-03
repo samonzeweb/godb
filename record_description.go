@@ -110,6 +110,30 @@ func (r *recordDescription) getOneInstancePointer() interface{} {
 	return reflect.New(r.instanceType).Interface()
 }
 
+// len returns the len of the record.
+// If it is a slice, it returns the slice length, otherwise it returns 1 (for
+// a single instance).
+func (r *recordDescription) len() int {
+	if r.isSlice == false {
+		return 1
+	}
+	return reflect.Indirect(reflect.ValueOf(r.record)).Len()
+}
+
+// index returns the pointer to the record having the given index.
+func (r *recordDescription) index(i int) interface{} {
+	if r.isSlice == false {
+		return r.record
+	}
+
+	slice := reflect.Indirect(reflect.ValueOf(r.record))
+	v := slice.Index(i)
+	if v.Type().Kind() == reflect.Ptr {
+		return v.Interface()
+	}
+	return v.Addr().Interface()
+}
+
 // getTableName returns the table name to use for the current record
 func (r *recordDescription) getTableName() string {
 	p := r.getOneInstancePointer()
