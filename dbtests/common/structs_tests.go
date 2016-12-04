@@ -70,7 +70,7 @@ func structsSelectTest(db *godb.DB, t *testing.T) {
 		t.Fatal(err)
 	}
 	if count != 7 {
-		t.Fatalf("Wrong book count : %v", count)
+		t.Fatalf("Wrong books count : %v", count)
 	}
 
 	// Fetch single book
@@ -101,7 +101,7 @@ func structsSelectTest(db *godb.DB, t *testing.T) {
 	}
 	theLordOfTheRingSize := len(theLordOfTheRing)
 	if len(theLordOfTheRing) != 3 {
-		t.Fatalf("Wrong book count : %v", theLordOfTheRingSize)
+		t.Fatalf("Wrong books count : %v", theLordOfTheRingSize)
 	}
 
 	// Multiple select in a transaction (force use of prepared statement)

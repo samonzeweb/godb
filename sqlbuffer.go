@@ -230,10 +230,10 @@ func (b *sqlBuffer) writeSets(sets []*setPart) error {
 			b.sql.WriteString(", ")
 		}
 		b.sql.WriteString(set.column)
-		b.sql.WriteString("=")
-		b.sql.WriteString(Placeholder)
 		if set.value != nil {
 			// column and value are given (not raw sql)
+			b.sql.WriteString("=")
+			b.sql.WriteString(Placeholder)
 			b.arguments = append(b.arguments, set.value)
 		}
 	}
