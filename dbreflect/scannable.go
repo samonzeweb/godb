@@ -14,8 +14,9 @@ func init() {
 	RegisterScannableStruct(time.Time{})
 }
 
-// Register a struct (through an instance or pointer) as being scannable.
-// The registered structs will not be considered as sub structs in mappings.
+// RegisterScannableStruct registers a struct (through an instance or pointer)
+// as being scannable.
+// The registered structs will not be considered as a sub structs in mappings.
 func RegisterScannableStruct(instance interface{}) error {
 	instanceType := reflect.TypeOf(instance)
 	if instanceType.Kind() == reflect.Ptr {
@@ -28,7 +29,7 @@ func RegisterScannableStruct(instance interface{}) error {
 	return nil
 }
 
-// isStructScannable return true if the struct is scannable (not a sub mappin)
+// isStructScannable return true if the struct is scannable.
 func isStructScannable(typeName string) bool {
 	_, isPresent := scannableStructs[typeName]
 	return isPresent

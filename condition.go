@@ -15,7 +15,7 @@ type Condition struct {
 	args  []interface{}
 }
 
-// Q build a simple condition, managing slices in a particular way : it
+// Q builds a simple condition, managing slices in a particular way : it
 // replace the single placeholder with multiples ones according to the number
 // of arguments.
 func Q(sql string, args ...interface{}) *Condition {
@@ -104,7 +104,7 @@ func Or(conditions ...*Condition) *Condition {
 	}
 }
 
-// Not juste negates a given condition surrounding it with 'NOT (' and ')'
+// Not negates a given condition surrounding it with 'NOT (' and ')'
 func Not(condition *Condition) *Condition {
 	if condition.Error != nil {
 		return condition
@@ -155,7 +155,7 @@ func joinSQL(buffer *bytes.Buffer, conjunction string, conditions []*Condition) 
 	return buffer
 }
 
-// joinArgs concatenes all arguments of given conditions
+// joinArgs concatenates all arguments of given conditions
 func joinArgs(args []interface{}, conditions []*Condition) []interface{} {
 	for _, c := range conditions {
 		args = append(args, c.args...)

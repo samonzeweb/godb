@@ -6,14 +6,14 @@ import (
 	"gitlab.com/samonzeweb/godb/adapters"
 )
 
-// structInsert build an INSERT statement for the given object
+// structInsert builds an INSERT statement for the given object.
 type structInsert struct {
 	Error             error
 	insertStatement   *insertStatement
 	recordDescription *recordDescription
 }
 
-// Insert initialise an insert sql statement for the given object
+// Insert initializes an insert sql statement for the given object.
 func (db *DB) Insert(record interface{}) *structInsert {
 	si := db.buildInsert(record)
 
@@ -24,7 +24,7 @@ func (db *DB) Insert(record interface{}) *structInsert {
 	return si
 }
 
-// BuklInsert initialise an insert sql statement for a slice.
+// BuklInsert initializes an insert sql statement for a slice.
 // Warning : not all databases are able to update the auto columns in the
 //           case of insert with multiple rows. Only adapters implementing the
 //           InsertReturningSuffix interface will have auto columns updated.
@@ -38,7 +38,7 @@ func (db *DB) BulkInsert(record interface{}) *structInsert {
 	return si
 }
 
-// buildInsert initialise an insert sql statement for the given object, either
+// buildInsert initializes an insert sql statement for the given object, either
 // a slice or a single instance.
 // For internal use only.
 func (db *DB) buildInsert(record interface{}) *structInsert {
@@ -56,11 +56,11 @@ func (db *DB) buildInsert(record interface{}) *structInsert {
 	return si
 }
 
-// Do executes the insert statement
+// Do executes the insert statement.
 //
 // The behaviour differs according to the adapter. If it implements the
 // InsertReturningSuffixer interface it will use it and fill all auto fields
-// of the given struct. Otherwise it only fill the key with LastInsertId.
+// of the given struct. Otherwise it only fills the key with LastInsertId.
 func (si *structInsert) Do() error {
 	if si.Error != nil {
 		return si.Error

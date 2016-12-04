@@ -13,15 +13,14 @@ const optionPrefix = "prefix"
 const optionKey = "key"
 const optionAuto = "auto"
 
-// StructMapping contains the relation between a struct and database columns
-// TODO : change structs to have a root with cache info (like # fields, ...)
+// StructMapping contains the relation between a struct and database columns.
 type StructMapping struct {
 	Name             string
 	fieldsMapping    []fieldMapping
 	subStructMapping []subStructMapping
 }
 
-// fieldMapping contains the relation between a field and a database column
+// fieldMapping contains the relation between a field and a database column.
 type fieldMapping struct {
 	name    string
 	sqlName string
@@ -29,14 +28,14 @@ type fieldMapping struct {
 	isAuto  bool
 }
 
-// subStructMapping contrains nested structs
+// subStructMapping contrains nested structs.
 type subStructMapping struct {
 	name          string
 	prefix        string
 	structMapping StructMapping
 }
 
-// NewStructMapping build a StructMapping with a given reflect.Type
+// NewStructMapping builds a StructMapping with a given reflect.Type.
 func NewStructMapping(structInfo reflect.Type) (*StructMapping, error) {
 	if structInfo.Kind() == reflect.Ptr {
 		structInfo = structInfo.Elem()
@@ -83,7 +82,7 @@ func NewStructMapping(structInfo reflect.Type) (*StructMapping, error) {
 	return structMapping, nil
 }
 
-// newFieldMapping build a fieldMapping parsing tag content
+// newFieldMapping build a fieldMapping parsing tag content.
 func (sm *StructMapping) newFieldMapping(structField reflect.StructField) (*fieldMapping, error) {
 	fieldMapping := &fieldMapping{name: structField.Name}
 
@@ -106,7 +105,7 @@ func (sm *StructMapping) newFieldMapping(structField reflect.StructField) (*fiel
 	return fieldMapping, nil
 }
 
-// newSubStructMapping build nested structs mapping
+// newSubStructMapping build nested structs mapping.
 func (sm *StructMapping) newSubStructMapping(structField reflect.StructField) (*subStructMapping, error) {
 	structInfo := structField.Type
 
@@ -121,13 +120,13 @@ func (sm *StructMapping) newSubStructMapping(structField reflect.StructField) (*
 		structMapping: *structMapping,
 	}
 
-	// Optionnal prefix
+	// Optional prefix
 	subStructMapping.prefix, _ = sm.tagData(structField.Tag)
 
 	return subStructMapping, nil
 }
 
-// tagData extract tag data :
+// tagData extracts tag data :
 // * the first value is returned as is (column name or prefix)
 // * others values are used to build a key,value map (options)
 func (*StructMapping) tagData(tag reflect.StructTag) (string, map[string]bool) {
@@ -149,8 +148,7 @@ func (*StructMapping) tagData(tag reflect.StructTag) (string, map[string]bool) {
 	return firstValue, tagMaps
 }
 
-// GetAllColumnsNames returns the names of all columns
-// It is intended to be used for SELECT statements.
+// GetAllColumnsNames returns the names of all columns.
 func (sm *StructMapping) GetAllColumnsNames() []string {
 	columns := make([]string, 0, 0)
 
@@ -163,8 +161,7 @@ func (sm *StructMapping) GetAllColumnsNames() []string {
 	return columns
 }
 
-// GetNonAutoColumnsNames returns the names of non auto columns
-// It is intended to be used for INSERT statements.
+// GetNonAutoColumnsNames returns the names of non auto columns.
 func (sm *StructMapping) GetNonAutoColumnsNames() []string {
 	columns := make([]string, 0, 0)
 
@@ -179,9 +176,7 @@ func (sm *StructMapping) GetNonAutoColumnsNames() []string {
 	return columns
 }
 
-// GetAutoColumnsNames returns the names of auto columns
-// It is intended to be used for INSERT statements with adapters
-// like PostgreSQL
+// GetAutoColumnsNames returns the names of auto columns.
 func (sm *StructMapping) GetAutoColumnsNames() []string {
 	columns := make([]string, 0, 0)
 
@@ -196,7 +191,7 @@ func (sm *StructMapping) GetAutoColumnsNames() []string {
 	return columns
 }
 
-// GetKeyColumnsNames returns the names of key columns
+// GetKeyColumnsNames returns the names of key columns.
 func (sm *StructMapping) GetKeyColumnsNames() []string {
 	columns := make([]string, 0, 0)
 
@@ -213,7 +208,6 @@ func (sm *StructMapping) GetKeyColumnsNames() []string {
 
 // GetAllFieldsPointers returns pointers for all fields, in the same order
 // as GetAllColumnsNames.
-// It is intended to be used for SELECT statements.
 func (sm *StructMapping) GetAllFieldsPointers(s interface{}) []interface{} {
 	// TODO : check type
 	v := reflect.ValueOf(s)
@@ -232,7 +226,6 @@ func (sm *StructMapping) GetAllFieldsPointers(s interface{}) []interface{} {
 
 // GetNonAutoFieldsValues returns values of non auto fields, in the same order
 // as GetNonAutoColumnsNames.
-// It is intended to be used for INSERT statements.
 func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 	// TODO : check type
 	v := reflect.ValueOf(s)
@@ -273,7 +266,6 @@ func (sm *StructMapping) GetKeyFieldsValues(s interface{}) []interface{} {
 
 // GetPointersForColumns returns pointers for the given instance and columns
 // names.
-// It is intended to be used for SELECT statements.
 func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string) ([]interface{}, error) {
 	// TODO : check type
 	v := reflect.ValueOf(s)
@@ -309,7 +301,6 @@ func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string)
 // GetAutoKeyPointer returns a pointer for a key and auto columns.
 // It will return nil if there is no such column, but no error.
 // It will return an error if there is more than one auto and key column.
-// It is intended to be used for INSERT statements.
 func (sm *StructMapping) GetAutoKeyPointer(s interface{}) (interface{}, error) {
 	// TODO : check type
 	v := reflect.ValueOf(s)
@@ -334,9 +325,7 @@ func (sm *StructMapping) GetAutoKeyPointer(s interface{}) (interface{}, error) {
 	return autoKeyPointer, nil
 }
 
-// GetAutoKeyPointer returns pointers of all auto fields
-// It is intended to be used for INSERT statements in special cases
-// like PostgreSQL
+// GetAutoFieldsPointers returns pointers of all auto fields
 func (sm *StructMapping) GetAutoFieldsPointers(s interface{}) ([]interface{}, error) {
 	// TODO : check type
 	v := reflect.ValueOf(s)

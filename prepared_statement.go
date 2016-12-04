@@ -2,7 +2,7 @@ package godb
 
 import "database/sql"
 
-// Queryable represents either a Tx, a DB, or a Stmt
+// Queryable represents either a Tx, a DB, or a Stmt.
 type Queryable interface {
 	Exec(args ...interface{}) (sql.Result, error)
 	Query(args ...interface{}) (*sql.Rows, error)
@@ -15,36 +15,39 @@ type queryable struct {
 	sqlQuery string
 }
 
+// Exec wraps the Exec method for sql.DB or sql.Tx.
 func (q *queryable) Exec(args ...interface{}) (sql.Result, error) {
 	return q.db.Exec(q.sqlQuery, args...)
 }
 
+// Query wraps the Query method for sql.DB or sql.Tx.
 func (q *queryable) Query(args ...interface{}) (*sql.Rows, error) {
 	return q.db.Query(q.sqlQuery, args...)
 }
 
+// QueryRow wraps the QueryRow method for sql.DB or sql.Tx.
 func (q *queryable) QueryRow(args ...interface{}) *sql.Row {
 	return q.db.QueryRow(q.sqlQuery, args...)
 }
 
-// EnableStmtCache enable prepared statement cache
-// (it is enabled by default)
+// EnableStmtCache enables prepared statement cache.
+// It is enabled by default.
 func (db *DB) EnableStmtCache() {
 	db.isPrepStmtEnabled = true
 }
 
-// DisableStmtCache disable prepared statement cache
+// DisableStmtCache disables prepared statement cache.
 func (db *DB) DisableStmtCache() {
 	db.isPrepStmtEnabled = false
 }
 
-// IsStmtCacheEnabled return true if the cache of prepared
+// IsStmtCacheEnabled returns true if the cache of prepared
 // statements is enabled.
 func (db *DB) IsStmtCacheEnabled() bool {
 	return db.isPrepStmtEnabled
 }
 
-// getQueryable manage prepared statement, and its cache.
+// getQueryable manages prepared statement, and its cache.
 func (db *DB) getQueryable(sql string) (Queryable, error) {
 	// Prepared statements are managed only in a Tx, and when the
 	// cache is enabled.
@@ -73,7 +76,7 @@ func (db *DB) getQueryable(sql string) (Queryable, error) {
 	return prepStmt, nil
 }
 
-// clearPreparedStatement clear the prepared statements cache
+// clearPreparedStatement clears the prepared statements cache.
 func (db *DB) resetPreparedStatementsCache() {
 	db.preparedStmts = make(map[string]*sql.Stmt)
 }

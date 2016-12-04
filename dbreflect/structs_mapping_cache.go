@@ -18,7 +18,7 @@ func init() {
 	Cache = NewStructsMappingCache()
 }
 
-// NewStructsMappingCache build a new StructsMappingCache.
+// NewStructsMappingCache builds a new StructsMappingCache.
 func NewStructsMappingCache() *StructsMappingCache {
 	smc := &StructsMappingCache{}
 	smc.lock = &sync.RWMutex{}
@@ -26,7 +26,7 @@ func NewStructsMappingCache() *StructsMappingCache {
 	return smc
 }
 
-// GetOrCreateStructMapping return a StructMapping with a given type from
+// GetOrCreateStructMapping returns a StructMapping with a given type from
 // the StructMapping cache. The StructMapping will be created if needed.
 func (smc *StructsMappingCache) GetOrCreateStructMapping(structType reflect.Type) (*StructMapping, error) {
 	smc.lock.RLock()

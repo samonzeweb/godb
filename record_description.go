@@ -8,8 +8,9 @@ import (
 	"gitlab.com/samonzeweb/godb/dbreflect"
 )
 
-// recordDescription describe the source or target of a SQL statement with
-// a struct, or slice of structs, or a slice of pointers to structs.
+// recordDescription describes the source or target of a SQL statement.
+// The record (source or target) could be a struct pointer, or slice of structs,
+// or a slice of pointers to structs.
 type recordDescription struct {
 	// record is always a pointer
 	record            interface{}
@@ -19,11 +20,14 @@ type recordDescription struct {
 	isSliceOfPointers bool
 }
 
+// tableNamer wraps the TableName method, allowing a struct to specify a
+// corresponding table name in database.
 type tableNamer interface {
 	TableName() string
 }
 
-// buildRecordDescription build a recordDescription for the given objeJt.
+// buildRecordDescription builds a recordDescription for the given object.
+// Always use a pointer as argument.
 func buildRecordDescription(record interface{}) (*recordDescription, error) {
 	recordDesc := &recordDescription{}
 	recordDesc.record = record
@@ -65,10 +69,10 @@ func buildRecordDescription(record interface{}) (*recordDescription, error) {
 	return recordDesc, nil
 }
 
-// fillRecord build if needed new record (part) instance and call the given
-// function with the current record (part).
+// fillRecord build if needed new record instance and call the given function
+// with the current record.
 // If the record is a single instante it just use its pointer.
-// If the recod is a slice, it creates new instances and ann it to the slice.
+// If the recod is a slice, it creates new instances and adds it to the slice.
 func (r *recordDescription) fillRecord(f func(record interface{}) error) error {
 	if r.isSlice == false {
 		return f(r.record)
@@ -134,7 +138,7 @@ func (r *recordDescription) index(i int) interface{} {
 	return v.Addr().Interface()
 }
 
-// getTableName returns the table name to use for the current record
+// getTableName returns the table name to use for the current record.
 func (r *recordDescription) getTableName() string {
 	p := r.getOneInstancePointer()
 	if namer, ok := p.(tableNamer); ok {

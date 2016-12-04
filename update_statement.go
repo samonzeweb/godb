@@ -12,8 +12,8 @@ type updateStatement struct {
 	suffixes    []string
 }
 
-// setPart contain elements for a single SET clause
-// the value could be nil for a raw clause (ie count=count+1)
+// setPart contains elements for a single SET clause.
+// The value could be nil for a raw clause (ie count=count+1)
 type setPart struct {
 	// The column name, or the full SET clause for a raw clause
 	column string
@@ -21,7 +21,7 @@ type setPart struct {
 	value interface{}
 }
 
-// UpdateTable create an updateStatement and specify table to update.
+// UpdateTable creates an updateStatement and specify table to update.
 // It's the entry point to build an UPDATE query.
 func (db *DB) UpdateTable(tableName string) *updateStatement {
 	us := &updateStatement{db: db}
@@ -29,7 +29,7 @@ func (db *DB) UpdateTable(tableName string) *updateStatement {
 	return us
 }
 
-// Set add a part of SET clause to the query.
+// Set adds a part of SET clause to the query.
 func (us *updateStatement) Set(column string, value interface{}) *updateStatement {
 	setClause := &setPart{
 		column: column,
@@ -39,7 +39,7 @@ func (us *updateStatement) Set(column string, value interface{}) *updateStatemen
 	return us
 }
 
-// SetRaw add a raw SET clause to the query.
+// SetRaw adds a raw SET clause to the query.
 func (us *updateStatement) SetRaw(rawSQL string) *updateStatement {
 	rawSetClause := &setPart{
 		column: rawSQL,
@@ -49,19 +49,19 @@ func (us *updateStatement) SetRaw(rawSQL string) *updateStatement {
 	return us
 }
 
-// Where add a condition using string and arguments.
+// Where adds a condition using string and arguments.
 func (us *updateStatement) Where(sql string, args ...interface{}) *updateStatement {
 	return us.WhereQ(Q(sql, args...))
 }
 
-// WhereQ add a simple or complex predicate generated with Q and
+// WhereQ adds a simple or complex predicate generated with Q and
 // confunctions.
 func (us *updateStatement) WhereQ(condition *Condition) *updateStatement {
 	us.where = append(us.where, condition)
 	return us
 }
 
-// Suffix add an expression to suffix the statement.
+// Suffix adds an expression to suffix the statement.
 func (us *updateStatement) Suffix(suffix string) *updateStatement {
 	us.suffixes = append(us.suffixes, suffix)
 	return us
@@ -70,7 +70,7 @@ func (us *updateStatement) Suffix(suffix string) *updateStatement {
 // approximateSetLength returns an approximation of final size of all set
 // clauses.
 func (us *updateStatement) approximateSetLength() int {
-	// initialise with the count needed for "=" and ","
+	// initialized with the count needed for "=" and ","
 	length := 2 * len(us.sets)
 	for _, s := range us.sets {
 		// column or raw sql
@@ -148,7 +148,6 @@ func (us *updateStatement) Do() (int64, error) {
 		return 0, err
 	}
 
-	// TODO : check if RowsAffected() is implemented by the driver
 	rowsAffected, err := result.RowsAffected()
 	return rowsAffected, err
 }

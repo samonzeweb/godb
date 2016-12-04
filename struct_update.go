@@ -2,14 +2,14 @@ package godb
 
 import "fmt"
 
-// structUpdate build an UPDATE statement for the given object
+// structUpdate builds an UPDATE statement for the given object.
 type structUpdate struct {
 	Error             error
 	updateStatement   *updateStatement
 	recordDescription *recordDescription
 }
 
-// Update initialise an UPDATE sql statement for the given object
+// Update initializes an UPDATE sql statement for the given object.
 func (db *DB) Update(record interface{}) *structUpdate {
 	var err error
 

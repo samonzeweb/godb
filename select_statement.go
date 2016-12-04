@@ -7,7 +7,7 @@ import (
 	"gitlab.com/samonzeweb/godb/adapters"
 )
 
-// selectStatement is a SELECT sql statement builder
+// selectStatement is a SELECT sql statement builder.
 type selectStatement struct {
 	db *DB
 
@@ -24,7 +24,7 @@ type selectStatement struct {
 	suffixes   []string
 }
 
-// joinPart describe a sql JOIN clause
+// joinPart describes a sql JOIN clause.
 type joinPart struct {
 	joinType  string
 	tableName string
@@ -36,31 +36,31 @@ type joinPart struct {
 // a given instance pointer and a columns names list.
 type pointersGetter func(record interface{}, columns []string) ([]interface{}, error)
 
-// SelectFrom initialise a SELECT statement builder
+// SelectFrom initializes a SELECT statement builder.
 func (db *DB) SelectFrom(tableName string) *selectStatement {
 	ss := &selectStatement{db: db}
 	return ss.From(tableName)
 }
 
-// From add table to the select statement. It can be called multiple times.
+// From adds table to the select statement. It can be called multiple times.
 func (ss *selectStatement) From(tableName string) *selectStatement {
 	ss.fromTables = append(ss.fromTables, tableName)
 	return ss
 }
 
-// Columns add columns to select.
+// Columns adds columns to select.
 func (ss *selectStatement) Columns(columns ...string) *selectStatement {
 	ss.columns = append(ss.columns, columns...)
 	return ss
 }
 
-// Distinct will add DISTINCT keyword the the generated statement.
+// Distinct adds DISTINCT keyword the the generated statement.
 func (ss *selectStatement) Distinct() *selectStatement {
 	ss.distinct = true
 	return ss
 }
 
-// LeftJoin add a LEFT JOIN clause, wich will be inserted between FROM and WHERE
+// LeftJoin adds a LEFT JOIN clause, wich will be inserted between FROM and WHERE
 // clauses.
 func (ss *selectStatement) LeftJoin(tableName string, as string, on *Condition) *selectStatement {
 	join := &joinPart{
@@ -73,58 +73,58 @@ func (ss *selectStatement) LeftJoin(tableName string, as string, on *Condition) 
 	return ss
 }
 
-// Where add a condition using string and arguments.
+// Where adds a condition using string and arguments.
 func (ss *selectStatement) Where(sql string, args ...interface{}) *selectStatement {
 	return ss.WhereQ(Q(sql, args...))
 }
 
-// WhereQ add a simple or complex predicate generated with Q and
+// WhereQ adds a simple or complex predicate generated with Q and
 // conjunctions.
 func (ss *selectStatement) WhereQ(condition *Condition) *selectStatement {
 	ss.where = append(ss.where, condition)
 	return ss
 }
 
-// GroupBy add a GROUP BY clause.
+// GroupBy adds a GROUP BY clause.
 func (ss *selectStatement) GroupBy(groupBy string) *selectStatement {
 	ss.groupBy = append(ss.groupBy, groupBy)
 	return ss
 }
 
-// Having add a HAVING clause with a condition build with a sql string and
+// Having adds a HAVING clause with a condition build with a sql string and
 // its arguments (like Where).
 func (ss *selectStatement) Having(sql string, args ...interface{}) *selectStatement {
 	return ss.HavingQ(Q(sql, args...))
 }
 
-// HavingQ add a simple or complex predicate generated with Q and
-// conjunctions (like WhereQ)
+// HavingQ adds a simple or complex predicate generated with Q and
+// conjunctions (like WhereQ).
 func (ss *selectStatement) HavingQ(condition *Condition) *selectStatement {
 	ss.having = append(ss.having, condition)
 	return ss
 }
 
-// OrderBy add an expression for the ORDER BY clause.
+// OrderBy adds an expression for the ORDER BY clause.
 func (ss *selectStatement) OrderBy(orderBy string) *selectStatement {
 	ss.orderBy = append(ss.orderBy, orderBy)
 	return ss
 }
 
-// Offset specify the value for the OFFSET clause.
+// Offset specifies the value for the OFFSET clause.
 func (ss *selectStatement) Offset(offset int) *selectStatement {
 	ss.offset = new(int)
 	*ss.offset = offset
 	return ss
 }
 
-// Limit specify the value for the LIMIT clause.
+// Limit specifies the value for the LIMIT clause.
 func (ss *selectStatement) Limit(limit int) *selectStatement {
 	ss.limit = new(int)
 	*ss.limit = limit
 	return ss
 }
 
-// Suffix add an expression to suffix the query.
+// Suffix adds an expression to suffix the query.
 func (ss *selectStatement) Suffix(suffix string) *selectStatement {
 	ss.suffixes = append(ss.suffixes, suffix)
 	return ss
@@ -210,8 +210,8 @@ func (ss *selectStatement) ToSQL() (string, []interface{}, error) {
 	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
 }
 
-// Do execute the select statement
-// The record argument has to be a pointer to a struct or a slice
+// Do executes the select statement.
+// The record argument has to be a pointer to a struct or a slice.
 func (ss *selectStatement) Do(record interface{}) error {
 	recordInfo, err := buildRecordDescription(record)
 	if err != nil {
@@ -227,7 +227,8 @@ func (ss *selectStatement) Do(record interface{}) error {
 	return ss.do(recordInfo, f)
 }
 
-// do executes the statement and fill the struct or slice
+// do executes the statement and fill the struct or slice given through the
+// recordDescription.
 func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter pointersGetter) error {
 	if recordInfo.isSlice == false {
 		// Only one row is requested
@@ -311,8 +312,8 @@ func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter poin
 	return err
 }
 
-// Count run the request with COUNT(*) (remove others columns)
-// and returns the count
+// Count runs the request with COUNT(*) (remove others columns)
+// and returns the count.
 func (ss *selectStatement) Count() (int64, error) {
 	ss.columns = ss.columns[:0]
 	ss.Columns("COUNT(*)")

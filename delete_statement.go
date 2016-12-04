@@ -3,7 +3,7 @@ package godb
 import "time"
 
 // deleteStatement is a DELETE sql statement builder.
-// Initialise it with the Delete function.
+// Initialize it with the DeleteFrom function.
 type deleteStatement struct {
 	db *DB
 
@@ -12,26 +12,26 @@ type deleteStatement struct {
 	suffixes  []string
 }
 
-// DeleteFrom initialise a DELETE statement builder.
+// DeleteFrom initializes a DELETE statement builder.
 func (db *DB) DeleteFrom(tableName string) *deleteStatement {
 	ds := &deleteStatement{db: db}
 	ds.fromTable = tableName
 	return ds
 }
 
-// Where add a condition using string and arguments.
+// Where adds a condition using string and arguments.
 func (ds *deleteStatement) Where(sql string, args ...interface{}) *deleteStatement {
 	return ds.WhereQ(Q(sql, args...))
 }
 
-// WhereQ add a simple or complex predicate generated with Q and
+// WhereQ adds a simple or complex predicate generated with Q and
 // confunctions.
 func (ds *deleteStatement) WhereQ(condition *Condition) *deleteStatement {
 	ds.where = append(ds.where, condition)
 	return ds
 }
 
-// Suffix add an expression to suffix the statement.
+// Suffix adds an expression to suffix the statement.
 func (ds *deleteStatement) Suffix(suffix string) *deleteStatement {
 	ds.suffixes = append(ds.suffixes, suffix)
 	return ds
@@ -68,7 +68,7 @@ func (ds *deleteStatement) ToSQL() (string, []interface{}, error) {
 	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
 }
 
-// Do executes the builded query, and return RowsAffected()
+// Do executes the builded query, and returns RowsAffected()
 func (ds *deleteStatement) Do() (int64, error) {
 	sql, args, err := ds.ToSQL()
 	if err != nil {
@@ -92,7 +92,6 @@ func (ds *deleteStatement) Do() (int64, error) {
 		return 0, err
 	}
 
-	// TODO : check if RowsAffected() is implemented by the driver
 	rowsAffected, err := result.RowsAffected()
 	return rowsAffected, err
 }

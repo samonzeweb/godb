@@ -16,26 +16,26 @@ type insertStatement struct {
 	suffixes  []string
 }
 
-// InsertInto initialise a INSERT INTO statement builder
+// InsertInto initializes a INSERT statement builder
 func (db *DB) InsertInto(tableName string) *insertStatement {
 	ip := &insertStatement{db: db}
 	ip.intoTable = tableName
 	return ip
 }
 
-// Columns add columns to insert.
+// Columns adds columns to insert.
 func (is *insertStatement) Columns(columns ...string) *insertStatement {
 	is.columns = append(is.columns, columns...)
 	return is
 }
 
-// Values to insert
+// Values add values to insert.
 func (is *insertStatement) Values(values ...interface{}) *insertStatement {
 	is.values = append(is.values, values)
 	return is
 }
 
-// Suffix add an expression to suffix the statement.
+// Suffix adds an expression to suffix the statement.
 func (is *insertStatement) Suffix(suffix string) *insertStatement {
 	is.suffixes = append(is.suffixes, suffix)
 	return is
@@ -45,7 +45,7 @@ func (is *insertStatement) Suffix(suffix string) *insertStatement {
 // the arguments slices, and an error.
 func (is *insertStatement) ToSQL() (string, []interface{}, error) {
 
-	// TODO : estimate the buffer size !!!
+	// TODO : estimate the buffer size.
 	sqlBuffer := newSQLBuffer(is.db.adapter, 256, 16)
 
 	sqlBuffer.write("INSERT ")
@@ -71,8 +71,8 @@ func (is *insertStatement) ToSQL() (string, []interface{}, error) {
 	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
 }
 
-// Do executes the builded INSERT statement and return the LastInsertId() if
-// the adapter does not implements InsertReturningSuffixer.
+// Do executes the builded INSERT statement and returns the LastInsertId() if
+// the adapter does not implement InsertReturningSuffixer.
 func (si *insertStatement) Do() (int64, error) {
 	sql, args, err := si.ToSQL()
 	if err != nil {
@@ -106,6 +106,8 @@ func (si *insertStatement) Do() (int64, error) {
 	return lastInsertId, err
 }
 
+// doWithReturning executes the statement and fills the auto fields.
+// It is called when the adapter implements InsertReturningSuffixer.
 func (si *insertStatement) doWithReturning(record interface{}) error {
 	recordDescription, err := buildRecordDescription(record)
 	if err != nil {

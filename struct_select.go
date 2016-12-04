@@ -1,13 +1,13 @@
 package godb
 
-// structSelect build a SELECT statement for the given object
+// structSelect builds a SELECT statement for the given object.
 type structSelect struct {
 	Error             error
 	selectStatement   *selectStatement
 	recordDescription *recordDescription
 }
 
-// Select initialise a SQL Select Statement with the given pointer as
+// Select initializes a SQL Select Statement with the given pointer as
 // target. The pointer could point to a single instance or a slice.
 func (db *DB) Select(record interface{}) *structSelect {
 	var err error
@@ -23,7 +23,7 @@ func (db *DB) Select(record interface{}) *structSelect {
 	return ss
 }
 
-// Where add a condition using string and arguments.
+// Where adds a condition using string and arguments.
 func (ss *structSelect) Where(sql string, args ...interface{}) *structSelect {
 	if ss.Error != nil {
 		return ss
@@ -32,7 +32,7 @@ func (ss *structSelect) Where(sql string, args ...interface{}) *structSelect {
 	return ss
 }
 
-// WhereQ add a simple or complex predicate generated with Q and
+// WhereQ adds a simple or complex predicate generated with Q and
 // confunctions.
 func (ss *structSelect) WhereQ(condition *Condition) *structSelect {
 	if ss.Error != nil {
@@ -42,7 +42,7 @@ func (ss *structSelect) WhereQ(condition *Condition) *structSelect {
 	return ss
 }
 
-// OrderBy add an expression for the ORDER BY clause.
+// OrderBy adds an expression for the ORDER BY clause.
 func (ss *structSelect) OrderBy(orderBy string) *structSelect {
 	if ss.Error != nil {
 		return ss
@@ -51,7 +51,7 @@ func (ss *structSelect) OrderBy(orderBy string) *structSelect {
 	return ss
 }
 
-// Offset specify the value for the OFFSET clause.
+// Offset specifies the value for the OFFSET clause.
 func (ss *structSelect) Offset(offset int) *structSelect {
 	if ss.Error != nil {
 		return ss
@@ -60,7 +60,7 @@ func (ss *structSelect) Offset(offset int) *structSelect {
 	return ss
 }
 
-// Limit specify the value for the LIMIT clause.
+// Limit specifies the value for the LIMIT clause.
 func (ss *structSelect) Limit(limit int) *structSelect {
 	if ss.Error != nil {
 		return ss
@@ -69,7 +69,7 @@ func (ss *structSelect) Limit(limit int) *structSelect {
 	return ss
 }
 
-// Do execute the select statement, the record given to Select will contain
+// Do executes the select statement, the record given to Select will contain
 // the data.
 func (ss *structSelect) Do() error {
 	if ss.Error != nil {

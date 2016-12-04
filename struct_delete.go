@@ -2,14 +2,14 @@ package godb
 
 import "fmt"
 
-// structDelete build a DELETE statement for the given object
+// structDelete builds a DELETE statement for the given object.
 type structDelete struct {
 	Error             error
 	deleteStatement   *deleteStatement
 	recordDescription *recordDescription
 }
 
-// Delete initialise aa DELETE sql statement for the given object
+// Delete initializes a DELETE sql statement for the given object.
 func (db *DB) Delete(record interface{}) *structDelete {
 	var err error
 

@@ -1,4 +1,5 @@
-// TODO: add package documentation
+// Package godb is a simple ORM allowing go code to execute sql queries
+// with go structs.
 package godb
 
 import (
@@ -9,9 +10,9 @@ import (
 	"gitlab.com/samonzeweb/godb/adapters"
 )
 
-// DB store a connection to the database, the current transaction, logger, ...
+// DB stores a connection to the database, the current transaction, logger, ...
 // Everything starts with a DB.
-// DB is not thread safe (see Clone)
+// DB is not thread safe (see Clone).
 type DB struct {
 	adapter      adapters.Adapter
 	sqlDB        *sql.DB
@@ -25,10 +26,10 @@ type DB struct {
 }
 
 // Default placeholder, use it to build queries.
-// Adapters could change it before the queries are executed.
+// Adapters could change it before queries are executed.
 const Placeholder string = "?"
 
-// Open create a new DB struct and initialise a sql.DB connection.
+// Open creates a new DB struct and initialise a sql.DB connection.
 func Open(adapter adapters.Adapter, dataSourceName string) (*DB, error) {
 	db := DB{adapter: adapter}
 
@@ -44,7 +45,7 @@ func Open(adapter adapters.Adapter, dataSourceName string) (*DB, error) {
 	return &db, nil
 }
 
-// Clone create a copy of an existing DB, without the current transaction.
+// Clone creates a copy of an existing DB, without the current transaction.
 // Use it to create new DB object before starting a goroutine.
 func (db *DB) Clone() *DB {
 	return &DB{
@@ -56,8 +57,8 @@ func (db *DB) Clone() *DB {
 	}
 }
 
-// Close close an existing DB created by Open.
-// Dont't close a cloned DB ustill sed by others goroutines as the sql.DB
+// Close closes an existing DB created by Open.
+// Dont't close a cloned DB still used by others goroutines as the sql.DB
 // is shared !
 // Don't use a DB anymore after a call to Close.
 func (db *DB) Close() error {
@@ -68,12 +69,13 @@ func (db *DB) Close() error {
 	return db.sqlDB.Close()
 }
 
-// Adapter returns the current adapter
+// Adapter returns the current adapter.
 func (db *DB) Adapter() adapters.Adapter {
 	return db.adapter
 }
 
-// CurrentDB returns the current *sql.DB
+// CurrentDB returns the current *sql.DB.
+// Use it wisely.
 func (db *DB) CurrentDB() *sql.DB {
 	return db.sqlDB
 }
@@ -89,7 +91,7 @@ func (db *DB) ResetConsumedTime() {
 	db.consumedTime = 0
 }
 
-// add duration to the consumed time
+// addConsumedTime adds duration to the consumed time
 func (db *DB) addConsumedTime(duration time.Duration) {
 	db.consumedTime += duration
 }
@@ -109,7 +111,7 @@ func (db *DB) quoteAll(identifiers []string) []string {
 	return quotedIdentifiers
 }
 
-// replacePlaceholders use the adapter to change placehodlers according to
+// replacePlaceholders uses the adapter to change placehodlers according to
 // the database used.
 func (db *DB) replacePlaceholders(sql string) string {
 	placeholderReplacer, ok := (db.adapter).(adapters.PlaceholdersReplacer)

@@ -8,7 +8,7 @@ import (
 	"gitlab.com/samonzeweb/godb/adapters"
 )
 
-// sqlBuffer is an temporary type to build SQL query with its arguments.
+// sqlBuffer is an temporary type to build a SQL query with its arguments.
 // After the building operation use String() and Arguments() to get data to
 // use with database/sql.
 type sqlBuffer struct {
@@ -17,7 +17,7 @@ type sqlBuffer struct {
 	arguments []interface{}
 }
 
-// newsqlBuffer create a new buffer to build SQL query with corresponding arguments.
+// newsqlBuffer creates a new buffer to build SQL query with corresponding arguments.
 func newSQLBuffer(adapter adapters.Adapter, sqlLength int, argsLength int) *sqlBuffer {
 	return &sqlBuffer{
 		adapter:   adapter,
@@ -142,7 +142,7 @@ func (b *sqlBuffer) writeOrderBy(columns []string) error {
 	return nil
 }
 
-// writeOffset write OFFSET clause into the buffer.
+// writeOffset writes OFFSET clause into the buffer.
 func (b *sqlBuffer) writeOffset(offset *int) error {
 	if offset != nil {
 		offsetBuilder, ok := b.adapter.(adapters.OffsetBuilder)
@@ -275,7 +275,8 @@ func (b *sqlBuffer) writeConditions(conditions []*Condition) error {
 	return b.writeCondition(c)
 }
 
-// buildGroupOfPlaceholders build a group of placeholders for values : (?, ?, ?, ?)
+// buildGroupOfPlaceholders builds a group of placeholders for values
+// like : (?, ?, ?, ?)
 func buildGroupOfPlaceholders(placeholderCount int) *bytes.Buffer {
 	placeholderGroup := bytes.NewBuffer(make([]byte, 0, placeholderCount*3))
 	placeholderGroup.WriteString("(")
