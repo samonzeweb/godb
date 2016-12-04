@@ -32,10 +32,6 @@ type joinPart struct {
 	on        *Condition
 }
 
-// pointersGetter is a func type, returning a list of pointers (and error) for
-// a given instance pointer and a columns names list.
-type pointersGetter func(record interface{}, columns []string) ([]interface{}, error)
-
 // SelectFrom initializes a SELECT statement builder.
 func (db *DB) SelectFrom(tableName string) *selectStatement {
 	ss := &selectStatement{db: db}

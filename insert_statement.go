@@ -1,10 +1,6 @@
 package godb
 
-import (
-	"time"
-
-	"gitlab.com/samonzeweb/godb/adapters"
-)
+import "gitlab.com/samonzeweb/godb/adapters"
 
 // insertStatement is an INSERT statement builder.
 type insertStatement struct {
@@ -108,55 +104,13 @@ func (si *insertStatement) DoWithReturning(record interface{}) error {
 	return si.doWithReturning(recordDescription, f)
 }
 
-// doWithReturning executes the statement and fills the auto fields.
-// It is called when the adapter implements InsertReturningSuffixer.
+// DoWithReturning executes the statement and fills the fields according to
+// the columns in RETURNING clause.
 func (si *insertStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
-	sql, args, err := si.ToSQL()
+	query, args, err := si.ToSQL()
 	if err != nil {
 		return err
 	}
-	sql = si.db.replacePlaceholders(sql)
-	si.db.logPrintln("INSERT : ", sql, args)
 
-	startTime := time.Now()
-	queryable, err := si.db.getQueryable(sql)
-	if err != nil {
-		return err
-	}
-	rows, err := queryable.Query(args...)
-	condumedTime := timeElapsedSince(startTime)
-	si.db.addConsumedTime(condumedTime)
-	si.db.logDuration(condumedTime)
-	if err != nil {
-		si.db.logPrintln("ERROR : ", err)
-		return err
-	}
-	defer rows.Close()
-
-	columns, err := rows.Columns()
-	if err != nil {
-		si.db.logPrintln("ERROR : ", err)
-		return err
-	}
-
-	index := 0
-	for rows.Next() {
-		instancePtr := recordDescription.index(index)
-		index++
-		pointers, innererr := pointersGetter(instancePtr, columns)
-		if innererr != nil {
-			return innererr
-		}
-		innererr = rows.Scan(pointers...)
-		if innererr != nil {
-			si.db.logPrintln("ERROR : ", innererr)
-			return innererr
-		}
-	}
-
-	err = rows.Err()
-	if err != nil {
-		si.db.logPrintln("ERROR : ", err)
-	}
-	return err
+	return si.db.doWithReturning(query, args, recordDescription, pointersGetter)
 }
