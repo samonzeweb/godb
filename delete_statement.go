@@ -1,7 +1,5 @@
 package godb
 
-import "time"
-
 // deleteStatement is a DELETE sql statement builder.
 // Initialize it with the DeleteFrom function.
 type deleteStatement struct {
@@ -68,30 +66,14 @@ func (ds *deleteStatement) ToSQL() (string, []interface{}, error) {
 	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
 }
 
-// Do executes the builded query, and returns RowsAffected()
+// Do executes the builded query, and return RowsAffected()
 func (ds *deleteStatement) Do() (int64, error) {
-	sql, args, err := ds.ToSQL()
+	query, args, err := ds.ToSQL()
 	if err != nil {
-		return 0, err
-	}
-	sql = ds.db.replacePlaceholders(sql)
-	ds.db.logPrintln("DELETE : ", sql, args)
-
-	// Execute the DELETE statement
-	startTime := time.Now()
-	queryable, err := ds.db.getQueryable(sql)
-	if err != nil {
-		return 0, err
-	}
-	result, err := queryable.Exec(args...)
-	condumedTime := timeElapsedSince(startTime)
-	ds.db.addConsumedTime(condumedTime)
-	ds.db.logDuration(condumedTime)
-	if err != nil {
-		ds.db.logPrintln("ERROR : ", err)
 		return 0, err
 	}
 
+	result, err := ds.db.do(query, args)
 	rowsAffected, err := result.RowsAffected()
 	return rowsAffected, err
 }

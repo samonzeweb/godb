@@ -74,27 +74,12 @@ func (is *insertStatement) ToSQL() (string, []interface{}, error) {
 // Do executes the builded INSERT statement and returns the LastInsertId() if
 // the adapter does not implement InsertReturningSuffixer.
 func (si *insertStatement) Do() (int64, error) {
-	sql, args, err := si.ToSQL()
+	query, args, err := si.ToSQL()
 	if err != nil {
 		return 0, err
 	}
-	sql = si.db.replacePlaceholders(sql)
-	si.db.logPrintln("INSERT : ", sql, args)
 
-	// Execute the INSERT statement
-	startTime := time.Now()
-	queryable, err := si.db.getQueryable(sql)
-	if err != nil {
-		return 0, err
-	}
-	result, err := queryable.Exec(args...)
-	condumedTime := timeElapsedSince(startTime)
-	si.db.addConsumedTime(condumedTime)
-	si.db.logDuration(condumedTime)
-	if err != nil {
-		si.db.logPrintln("ERROR : ", err)
-		return 0, err
-	}
+	result, err := si.db.do(query, args)
 
 	// Return the created 'Id' (if available)
 	_, ok := si.db.adapter.(adapters.InsertReturningSuffixer)

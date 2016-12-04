@@ -1,7 +1,5 @@
 package godb
 
-import "time"
-
 // updateStatement will contains all parts needed to build an UPDATE statement.
 type updateStatement struct {
 	db *DB
@@ -126,28 +124,12 @@ func (us *updateStatement) ToSQL() (string, []interface{}, error) {
 
 // Do executes the builded query, and return RowsAffected()
 func (us *updateStatement) Do() (int64, error) {
-	sql, args, err := us.ToSQL()
+	query, args, err := us.ToSQL()
 	if err != nil {
-		return 0, err
-	}
-	sql = us.db.replacePlaceholders(sql)
-	us.db.logPrintln("UPDATE : ", sql, args)
-
-	// Execute the UPDATE statement
-	startTime := time.Now()
-	queryable, err := us.db.getQueryable(sql)
-	if err != nil {
-		return 0, err
-	}
-	result, err := queryable.Exec(args...)
-	condumedTime := timeElapsedSince(startTime)
-	us.db.addConsumedTime(condumedTime)
-	us.db.logDuration(condumedTime)
-	if err != nil {
-		us.db.logPrintln("ERROR : ", err)
 		return 0, err
 	}
 
+	result, err := us.db.do(query, args)
 	rowsAffected, err := result.RowsAffected()
 	return rowsAffected, err
 }
