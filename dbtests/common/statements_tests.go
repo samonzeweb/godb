@@ -26,14 +26,13 @@ func statementInsertTest(db *godb.DB, t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if id == 0 && db.Adapter().DriverName() != "postgres" {
+	if id == 0 && !hasReturning(db) {
 		t.Fatal("Id was not returned.")
 	}
 
-	// Multiple insert
+	// Multiple insert (without returning clause)
 	booksToInsert := setTheLordOfTheRing[:]
-	withReturning := db.Adapter().DriverName() == "postgres"
-	if !withReturning {
+	if !hasReturning(db) {
 		booksToInsert = append(booksToInsert, setFoundation...)
 	}
 	query = db.InsertInto("books").
@@ -46,8 +45,8 @@ func statementInsertTest(db *godb.DB, t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Multiple insert with returning statements (only postgreSQL)
-	if withReturning {
+	// Multiple insert with returning clause (if implemented)
+	if hasReturning(db) {
 		booksToInsert = setFoundation[:]
 
 		query = db.InsertInto("books").
