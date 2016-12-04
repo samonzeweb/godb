@@ -13,7 +13,7 @@ import (
 
 func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 	if os.Getenv("GODB_MYSQL") == "" {
-		t.Fatal("Don't run MySQL test, GODB_MYSQL not set")
+		t.Skip("Don't run MySQL test, GODB_MYSQL not set")
 	}
 
 	db, err := godb.Open(mysql.Adapter, os.Getenv("GODB_MYSQL"))

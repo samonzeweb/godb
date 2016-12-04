@@ -13,7 +13,7 @@ import (
 
 func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 	if os.Getenv("GODB_MSSQL") == "" {
-		t.Fatal("Don't run SQL Server test, GODB_MSSQL not set")
+		t.Skip("Don't run SQL Server test, GODB_MSSQL not set")
 	}
 
 	db, err := godb.Open(mssql.Adapter, os.Getenv("GODB_MSSQL"))

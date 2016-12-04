@@ -13,7 +13,7 @@ import (
 
 func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 	if os.Getenv("GODB_POSTGRESQL") == "" {
-		t.Fatal("Don't run PostgreSQL test, GODB_POSTGRESQL not set")
+		t.Skip("Don't run PostgreSQL test, GODB_POSTGRESQL not set")
 	}
 
 	db, err := godb.Open(postgresql.Adapter, os.Getenv("GODB_POSTGRESQL"))

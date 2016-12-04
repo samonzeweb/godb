@@ -11,9 +11,9 @@ import (
 func TestClone(t *testing.T) {
 	Convey("Given an existing DB", t, func() {
 		db := createInMemoryConnection(t)
-		db.SetLogger(log.New(os.Stderr, "", 0))
 
 		Convey("Clone create a DB copy of an existing one", func() {
+			db.SetLogger(log.New(os.Stderr, "", 0))
 			clone := db.Clone()
 			So(clone.adapter, ShouldHaveSameTypeAs, db.adapter)
 			So(clone.sqlDB, ShouldEqual, db.sqlDB)
