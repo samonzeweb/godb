@@ -106,14 +106,26 @@ func (si *insertStatement) Do() (int64, error) {
 	return lastInsertId, err
 }
 
-// doWithReturning executes the statement and fills the auto fields.
-// It is called when the adapter implements InsertReturningSuffixer.
-func (si *insertStatement) doWithReturning(record interface{}) error {
+// DoWithReturning executes the statement and fills the fields according to
+// the columns in RETURNING clause.
+func (si *insertStatement) DoWithReturning(record interface{}) error {
 	recordDescription, err := buildRecordDescription(record)
 	if err != nil {
 		return err
 	}
 
+	// the function which will return the pointers according to the given columns
+	f := func(record interface{}, columns []string) ([]interface{}, error) {
+		pointers, err := recordDescription.structMapping.GetPointersForColumns(record, columns...)
+		return pointers, err
+	}
+
+	return si.doWithReturning(recordDescription, f)
+}
+
+// doWithReturning executes the statement and fills the auto fields.
+// It is called when the adapter implements InsertReturningSuffixer.
+func (si *insertStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
 	sql, args, err := si.ToSQL()
 	if err != nil {
 		return err
@@ -136,13 +148,18 @@ func (si *insertStatement) doWithReturning(record interface{}) error {
 	}
 	defer rows.Close()
 
+	columns, err := rows.Columns()
+	if err != nil {
+		si.db.logPrintln("ERROR : ", err)
+		return err
+	}
+
 	index := 0
 	for rows.Next() {
 		instancePtr := recordDescription.index(index)
 		index++
-		pointers, innererr := recordDescription.structMapping.GetAutoFieldsPointers(instancePtr)
+		pointers, innererr := pointersGetter(instancePtr, columns)
 		if innererr != nil {
-			si.db.logPrintln("ERROR : ", innererr)
 			return innererr
 		}
 		innererr = rows.Scan(pointers...)

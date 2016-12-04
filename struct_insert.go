@@ -87,7 +87,12 @@ func (si *structInsert) Do() error {
 
 	// Run
 	if suffixer != nil {
-		err := si.insertStatement.doWithReturning(si.recordDescription.record)
+		// the function which will return the pointers according to the given columns
+		f := func(record interface{}, columns []string) ([]interface{}, error) {
+			pointers, err := si.recordDescription.structMapping.GetAutoFieldsPointers(record)
+			return pointers, err
+		}
+		err := si.insertStatement.doWithReturning(si.recordDescription, f)
 		return err
 	}
 

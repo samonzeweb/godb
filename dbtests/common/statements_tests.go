@@ -32,8 +32,10 @@ func statementInsertTest(db *godb.DB, t *testing.T) {
 
 	// Multiple insert
 	booksToInsert := setTheLordOfTheRing[:]
-	booksToInsert = append(booksToInsert, setFoundation...)
-
+	withReturning := db.Adapter().DriverName() == "postgres"
+	if !withReturning {
+		booksToInsert = append(booksToInsert, setFoundation...)
+	}
 	query = db.InsertInto("books").
 		Columns("title", "author", "published")
 	for _, book := range booksToInsert {
@@ -42,6 +44,27 @@ func statementInsertTest(db *godb.DB, t *testing.T) {
 	_, err = query.Do()
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	// Multiple insert with returning statements (only postgreSQL)
+	if withReturning {
+		booksToInsert = setFoundation[:]
+
+		query = db.InsertInto("books").
+			Columns("title", "author", "published").
+			Suffix("RETURNING id")
+		for _, book := range booksToInsert {
+			query.Values(book.Title, book.Author, book.Published)
+		}
+		err = query.DoWithReturning(&booksToInsert)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, book := range booksToInsert {
+			if book.Id == 0 {
+				t.Fatalf("Id not set, fail go get returning values : %v", book)
+			}
+		}
 	}
 }
 
