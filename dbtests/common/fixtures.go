@@ -2,6 +2,22 @@ package common
 
 import "time"
 
+type Book struct {
+	Id        int       `db:"id,key,auto"`
+	Title     string    `db:"title"`
+	Author    string    `db:"author"`
+	Published time.Time `db:"published"`
+}
+
+func (*Book) TableName() string {
+	return "books"
+}
+
+type CountByAuthor struct {
+	Author string `db:"author"`
+	Count  int    `db:"count"`
+}
+
 var authorTolkien = "J.R.R. tolkien"
 
 var bookTheHobbit = Book{

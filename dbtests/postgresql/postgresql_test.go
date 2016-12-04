@@ -47,13 +47,24 @@ func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 	return db, fixturesTeardown
 }
 
-func TestPostgreSQL(t *testing.T) {
+func TestStatementsPostgreSQL(t *testing.T) {
 	Convey("A DB for a PostgreSQL database", t, func() {
 		db, teardown := fixturesSetup(t)
 		defer teardown()
 
 		Convey("The common tests must pass", func() {
-			common.MainTest(db, t)
+			common.StatementsTests(db, t)
+		})
+	})
+}
+
+func TestStructsPostgreSQL(t *testing.T) {
+	Convey("A DB for a PostgreSQL database", t, func() {
+		db, teardown := fixturesSetup(t)
+		defer teardown()
+
+		Convey("The common tests must pass", func() {
+			common.StructsTests(db, t)
 		})
 	})
 }

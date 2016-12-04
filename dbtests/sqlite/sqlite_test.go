@@ -34,12 +34,22 @@ func fixturesSetup(t *testing.T) *godb.DB {
 	return db
 }
 
-func TestSQLite(t *testing.T) {
+func TestStatementsSQLite(t *testing.T) {
 	Convey("A DB for a SQLite database", t, func() {
 		db := fixturesSetup(t)
 
 		Convey("The common tests must pass", func() {
-			common.MainTest(db, t)
+			common.StatementsTests(db, t)
+		})
+	})
+}
+
+func TestStructsSQLite(t *testing.T) {
+	Convey("A DB for a SQLite database", t, func() {
+		db := fixturesSetup(t)
+
+		Convey("The common tests must pass", func() {
+			common.StructsTests(db, t)
 		})
 	})
 }

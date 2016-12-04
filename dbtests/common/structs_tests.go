@@ -3,33 +3,21 @@ package common
 import (
 	"database/sql"
 	"testing"
-	"time"
 
 	"gitlab.com/samonzeweb/godb"
 )
 
-type Book struct {
-	Id        int       `db:"id,key,auto"`
-	Title     string    `db:"title"`
-	Author    string    `db:"author"`
-	Published time.Time `db:"published"`
-}
-
-func (*Book) TableName() string {
-	return "books"
-}
-
-func MainTest(db *godb.DB, t *testing.T) {
+func StructsTests(db *godb.DB, t *testing.T) {
 	// Enable logger if needed
 	//db.SetLogger(log.New(os.Stderr, "", 0))
 
-	insertTest(db, t)
-	selectTest(db, t)
-	updateTest(db, t)
-	deleteTest(db, t)
+	structsInsertTest(db, t)
+	structsSelectTest(db, t)
+	structsUpdateTest(db, t)
+	structsDeleteTest(db, t)
 }
 
-func insertTest(db *godb.DB, t *testing.T) {
+func structsInsertTest(db *godb.DB, t *testing.T) {
 	// Single
 	bookToInsert := bookTheHobbit
 	err := db.Insert(&bookToInsert).Do()
@@ -75,8 +63,8 @@ func insertTest(db *godb.DB, t *testing.T) {
 	}
 }
 
-func selectTest(db *godb.DB, t *testing.T) {
-	// Count the books
+func structsSelectTest(db *godb.DB, t *testing.T) {
+	// Count books
 	count, err := db.SelectFrom("books").Count()
 	if err != nil {
 		t.Fatal(err)
@@ -133,7 +121,7 @@ func selectTest(db *godb.DB, t *testing.T) {
 	db.Commit()
 }
 
-func updateTest(db *godb.DB, t *testing.T) {
+func structsUpdateTest(db *godb.DB, t *testing.T) {
 	// All the change will be rollbacked.
 	db.Begin()
 
@@ -184,7 +172,7 @@ func updateTest(db *godb.DB, t *testing.T) {
 	}
 }
 
-func deleteTest(db *godb.DB, t *testing.T) {
+func structsDeleteTest(db *godb.DB, t *testing.T) {
 	bookToDelete := Book{}
 
 	countBefore, err := db.SelectFrom("books").Count()
