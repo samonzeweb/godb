@@ -61,7 +61,7 @@ func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescr
 		return err
 	}
 
-	_, err = db.fillWithValues(recordDescription, pointersGetter, columns, rows)
+	err = db.fillWithValues(recordDescription, pointersGetter, columns, rows)
 	if err != nil {
 		db.logPrintln("ERROR : ", err)
 		return err
@@ -74,27 +74,33 @@ func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescr
 	return err
 }
 
-// fillWithReturningValues fill the record with rows,
-func (db *DB) fillWithValues(recordDescription *recordDescription, pointersGetter pointersGetter, columns []string, rows *sql.Rows) (int, error) {
+// fillWithReturningValues fill the record with rows, the record size must has
+// the same size has the rows count.
+func (db *DB) fillWithValues(recordDescription *recordDescription, pointersGetter pointersGetter, columns []string, rows *sql.Rows) error {
 	rowsCount := 0
 	recordLength := recordDescription.len()
 	for rows.Next() {
 		rowsCount++
 		if rowsCount > recordLength {
-			return 0, fmt.Errorf("There are more rows returned than the target size : %v", recordLength)
+			return fmt.Errorf("There are more rows returned than the target size : %v", recordLength)
 		}
 		instancePtr := recordDescription.index(rowsCount - 1)
 
 		pointers, err := pointersGetter(instancePtr, columns)
 		if err != nil {
-			return 0, err
+			return err
 		}
 		err = rows.Scan(pointers...)
 		if err != nil {
-			return 0, err
+			return err
 		}
 	}
-	return rowsCount, nil
+
+	if rowsCount < recordLength {
+		return fmt.Errorf("There are less rows returned than the target size, rows count : %v", rowsCount)
+	}
+
+	return nil
 }
 
 // growAndFillWithReturningValues fill the record with rows, and make it growing.
