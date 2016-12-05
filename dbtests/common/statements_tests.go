@@ -72,17 +72,14 @@ func statementInsertTest(db *godb.DB, t *testing.T) {
 
 func statementSelectTest(db *godb.DB, t *testing.T) {
 	// Count books
-	count, err := db.SelectFrom("books").Count()
-	if err != nil {
-		t.Fatal(err)
-	}
+	count := CountBooks(t, db)
 	if count != 7 {
 		t.Fatalf("Wrong books count : %v", count)
 	}
 
 	// Select a single row
 	book := Book{}
-	err = db.SelectFrom("books").
+	err := db.SelectFrom("books").
 		Columns("id", "title", "author", "published").
 		Where("title = ?", bookTheHobbit.Title).Do(&book)
 	if err != nil {
@@ -186,7 +183,7 @@ func statementUpdateTest(db *godb.DB, t *testing.T) {
 		// returned by the database.
 		updatedBooks := make([]Book, 0, 0)
 		hari := "Hari Seldon"
-		err := db.UpdateTable("books").
+		err = db.UpdateTable("books").
 			Set("author", hari).
 			Where("author = ?", authorAssimov).
 			Suffix("RETURNING id, title, author, published").
@@ -204,6 +201,8 @@ func statementUpdateTest(db *godb.DB, t *testing.T) {
 }
 
 func statementDeleteTest(db *godb.DB, t *testing.T) {
+	db.Begin()
+
 	deleted, err := db.DeleteFrom("books").
 		Where("author = ?", authorAssimov).
 		Do()
@@ -213,12 +212,32 @@ func statementDeleteTest(db *godb.DB, t *testing.T) {
 	if deleted != 3 {
 		t.Fatalf("Wrong count of deleted books : %v", deleted)
 	}
-	// Count books
-	count, err := db.SelectFrom("books").Count()
-	if err != nil {
-		t.Fatal(err)
-	}
+
+	count := CountBooks(t, db)
 	if count != 4 {
 		t.Fatalf("Wrong books count : %v", count)
+	}
+
+	db.Rollback()
+
+	if hasReturning(db) {
+		deletedBooks := make([]Book, 0, 0)
+		err = db.DeleteFrom("books").
+			Where("author = ?", authorAssimov).
+			Suffix("RETURNING id, title, author, published").
+			DoWithReturning(&deletedBooks)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, book := range deletedBooks {
+			if book.Id == 0 || book.Author != authorAssimov || !strings.Contains(book.Title, "Foundation") {
+				t.Fatalf("Fields not set in delete statement with returning clause : %v", book)
+			}
+		}
+		count := CountBooks(t, db)
+		if count != 4 {
+			t.Fatalf("Wrong books count : %v", count)
+		}
+		db.Rollback()
 	}
 }

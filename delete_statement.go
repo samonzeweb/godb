@@ -77,3 +77,31 @@ func (ds *deleteStatement) Do() (int64, error) {
 	rowsAffected, err := result.RowsAffected()
 	return rowsAffected, err
 }
+
+// DoWithReturning executes the statement and fills the fields according to
+// the columns in RETURNING clause.
+func (ds *deleteStatement) DoWithReturning(record interface{}) error {
+	recordDescription, err := buildRecordDescription(record)
+	if err != nil {
+		return err
+	}
+
+	// the function which will return the pointers according to the given columns
+	f := func(record interface{}, columns []string) ([]interface{}, error) {
+		pointers, err := recordDescription.structMapping.GetPointersForColumns(record, columns...)
+		return pointers, err
+	}
+
+	return ds.doWithReturning(recordDescription, f)
+}
+
+// DoWithReturning executes the statement and fills the fields according to
+// the columns in RETURNING clause.
+func (ds *deleteStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
+	query, args, err := ds.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	return ds.db.doWithReturning(query, args, recordDescription, pointersGetter)
+}

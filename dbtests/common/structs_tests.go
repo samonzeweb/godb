@@ -65,17 +65,14 @@ func structsInsertTest(db *godb.DB, t *testing.T) {
 
 func structsSelectTest(db *godb.DB, t *testing.T) {
 	// Count books
-	count, err := db.SelectFrom("books").Count()
-	if err != nil {
-		t.Fatal(err)
-	}
+	count := CountBooks(t, db)
 	if count != 7 {
 		t.Fatalf("Wrong books count : %v", count)
 	}
 
 	// Fetch single book
 	bilbo := Book{}
-	err = db.Select(&bilbo).Where("title = ?", bookTheHobbit.Title).Do()
+	err := db.Select(&bilbo).Where("title = ?", bookTheHobbit.Title).Do()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -175,12 +172,9 @@ func structsUpdateTest(db *godb.DB, t *testing.T) {
 func structsDeleteTest(db *godb.DB, t *testing.T) {
 	bookToDelete := Book{}
 
-	countBefore, err := db.SelectFrom("books").Count()
-	if err != nil {
-		t.Fatal(err)
-	}
+	countBefore := CountBooks(t, db)
 
-	err = db.Select(&bookToDelete).
+	err := db.Select(&bookToDelete).
 		Where("published = ?", bookFoundation.Published).
 		Do()
 	if err != nil {
@@ -196,10 +190,7 @@ func structsDeleteTest(db *godb.DB, t *testing.T) {
 		t.Fatalf("Wrong deleted books count (from delete): %v", count)
 	}
 
-	countAfter, err := db.SelectFrom("books").Count()
-	if err != nil {
-		t.Fatal(err)
-	}
+	countAfter := CountBooks(t, db)
 
 	if (countBefore - countAfter) != 1 {
 		t.Fatalf("Wrong deleted books count : %v", (countBefore - countAfter))
