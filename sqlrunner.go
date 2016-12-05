@@ -61,23 +61,10 @@ func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescr
 		return err
 	}
 
-	index := 0
-	recordLength := recordDescription.len()
-	for rows.Next() {
-		if index >= recordLength {
-			return fmt.Errorf("There are more rows returned than the slice length : %v", recordLength)
-		}
-		instancePtr := recordDescription.index(index)
-		index++
-		pointers, innererr := pointersGetter(instancePtr, columns)
-		if innererr != nil {
-			return innererr
-		}
-		innererr = rows.Scan(pointers...)
-		if innererr != nil {
-			db.logPrintln("ERROR : ", innererr)
-			return innererr
-		}
+	_, err = db.fillWithValues(recordDescription, pointersGetter, columns, rows)
+	if err != nil {
+		db.logPrintln("ERROR : ", err)
+		return err
 	}
 
 	err = rows.Err()
@@ -85,4 +72,57 @@ func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescr
 		db.logPrintln("ERROR : ", err)
 	}
 	return err
+}
+
+// fillWithReturningValues fill the record with rows,
+func (db *DB) fillWithValues(recordDescription *recordDescription, pointersGetter pointersGetter, columns []string, rows *sql.Rows) (int, error) {
+	rowsCount := 0
+	recordLength := recordDescription.len()
+	for rows.Next() {
+		rowsCount++
+		if rowsCount > recordLength {
+			return 0, fmt.Errorf("There are more rows returned than the target size : %v", recordLength)
+		}
+		instancePtr := recordDescription.index(rowsCount - 1)
+
+		pointers, err := pointersGetter(instancePtr, columns)
+		if err != nil {
+			return 0, err
+		}
+		err = rows.Scan(pointers...)
+		if err != nil {
+			return 0, err
+		}
+	}
+	return rowsCount, nil
+}
+
+// growAndFillWithReturningValues fill the record with rows, and make it growing.
+func (db *DB) growAndFillWithValues(recordDescription *recordDescription, pointersGetter pointersGetter, columns []string, rows *sql.Rows) (int, error) {
+	rowsCount := 0
+	for rows.Next() {
+		rowsCount++
+		if rowsCount > 1 && !recordDescription.isSlice {
+			return 0, fmt.Errorf("There are multiple rows for a single instance")
+		}
+		err := recordDescription.fillRecord(
+			// Fill one instance with one row
+			func(record interface{}) error {
+				fieldsPointers, err := pointersGetter(record, columns)
+				if err != nil {
+					return err
+				}
+				err = rows.Scan(fieldsPointers...)
+				if err != nil {
+					return err
+				}
+				return nil
+			})
+
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return rowsCount, nil
 }

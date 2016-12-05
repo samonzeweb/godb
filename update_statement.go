@@ -133,3 +133,31 @@ func (us *updateStatement) Do() (int64, error) {
 	rowsAffected, err := result.RowsAffected()
 	return rowsAffected, err
 }
+
+// DoWithReturning executes the statement and fills the fields according to
+// the columns in RETURNING clause.
+func (us *updateStatement) DoWithReturning(record interface{}) error {
+	recordDescription, err := buildRecordDescription(record)
+	if err != nil {
+		return err
+	}
+
+	// the function which will return the pointers according to the given columns
+	f := func(record interface{}, columns []string) ([]interface{}, error) {
+		pointers, err := recordDescription.structMapping.GetPointersForColumns(record, columns...)
+		return pointers, err
+	}
+
+	return us.doWithReturning(recordDescription, f)
+}
+
+// DoWithReturning executes the statement and fills the fields according to
+// the columns in RETURNING clause.
+func (us *updateStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
+	query, args, err := us.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	return us.db.doWithReturning(query, args, recordDescription, pointersGetter)
+}

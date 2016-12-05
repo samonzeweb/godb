@@ -271,32 +271,15 @@ func (ss *selectStatement) do(recordInfo *recordDescription, pointersGetter poin
 		return err
 	}
 
-	var rowsCount int
-	for rows.Next() {
-		rowsCount++
-		err = recordInfo.fillRecord(
-			// Fill one instance with one row
-			func(record interface{}) error {
-				fieldsPointers, innererr := pointersGetter(record, columns)
-				if innererr != nil {
-					return innererr
-				}
-				innererr = rows.Scan(fieldsPointers...)
-				if err != nil {
-					return innererr
-				}
-				return nil
-			})
-
-		if err != nil {
-			ss.db.logPrintln("ERROR : ", err)
-			return err
-		}
+	rowsCount, err := ss.db.growAndFillWithValues(recordInfo, pointersGetter, columns, rows)
+	if err != nil {
+		ss.db.logPrintln("ERROR : ", err)
+		return err
 	}
-
 	err = rows.Err()
 	if err != nil {
 		ss.db.logPrintln("ERROR : ", err)
+		return err
 	}
 
 	// When a single instance is requested but not found, sql.ErrNoRows is
