@@ -2,6 +2,7 @@ package godb
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 )
 
@@ -61,7 +62,11 @@ func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescr
 	}
 
 	index := 0
+	recordLength := recordDescription.len()
 	for rows.Next() {
+		if index >= recordLength {
+			return fmt.Errorf("There are more rows returned than the slice length : %v", recordLength)
+		}
 		instancePtr := recordDescription.index(index)
 		index++
 		pointers, innererr := pointersGetter(instancePtr, columns)
