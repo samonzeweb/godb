@@ -61,7 +61,16 @@ func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescr
 		return err
 	}
 
-	err = db.fillWithValues(recordDescription, pointersGetter, columns, rows)
+	// If the given slice is empty, the slice grows as the rows are read.
+	// If the given slice isn't empty it's filled with rows, and both rows and
+	// slice length have to be equals.
+	// If it's a single instance, it's juste filled, and the result must have
+	// only one row.
+	if recordDescription.len() > 0 {
+		err = db.fillWithValues(recordDescription, pointersGetter, columns, rows)
+	} else {
+		_, err = db.growAndFillWithValues(recordDescription, pointersGetter, columns, rows)
+	}
 	if err != nil {
 		db.logPrintln("ERROR : ", err)
 		return err
@@ -114,11 +123,11 @@ func (db *DB) growAndFillWithValues(recordDescription *recordDescription, pointe
 		err := recordDescription.fillRecord(
 			// Fill one instance with one row
 			func(record interface{}) error {
-				fieldsPointers, err := pointersGetter(record, columns)
+				pointers, err := pointersGetter(record, columns)
 				if err != nil {
 					return err
 				}
-				err = rows.Scan(fieldsPointers...)
+				err = rows.Scan(pointers...)
 				if err != nil {
 					return err
 				}

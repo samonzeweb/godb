@@ -1,6 +1,7 @@
 package common
 
 import (
+	"strings"
 	"testing"
 
 	"gitlab.com/samonzeweb/godb"
@@ -46,6 +47,8 @@ func statementInsertTest(db *godb.DB, t *testing.T) {
 	}
 
 	// Multiple insert with returning clause (if implemented)
+	// As the given slice isn't empty, it is filled with the values returned
+	// by the database. Of course order of values and slice content must match !
 	if hasReturning(db) {
 		booksToInsert = setFoundation[:]
 
@@ -146,6 +149,8 @@ func statementSelectTest(db *godb.DB, t *testing.T) {
 }
 
 func statementUpdateTest(db *godb.DB, t *testing.T) {
+	db.Begin()
+
 	// Update books
 	gandalf := "Gandalf the Grey"
 	updated, err := db.UpdateTable("books").
@@ -170,6 +175,31 @@ func statementUpdateTest(db *godb.DB, t *testing.T) {
 	}
 	if count != updated {
 		t.Fatalf("Wrong books count : %v", count)
+	}
+
+	db.Rollback()
+
+	if hasReturning(db) {
+		db.Begin()
+		// Update books and get back all updated books
+		// As the given slice is empty, it will add instances filled by the values
+		// returned by the database.
+		updatedBooks := make([]Book, 0, 0)
+		hari := "Hari Seldon"
+		err := db.UpdateTable("books").
+			Set("author", hari).
+			Where("author = ?", authorAssimov).
+			Suffix("RETURNING id, title, author, published").
+			DoWithReturning(&updatedBooks)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, book := range updatedBooks {
+			if book.Id == 0 || book.Author != hari || !strings.Contains(book.Title, "Foundation") {
+				t.Fatalf("Fields not set in update statement with returning clause : %v", book)
+			}
+		}
+		db.Rollback()
 	}
 }
 
