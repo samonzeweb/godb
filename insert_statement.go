@@ -76,6 +76,9 @@ func (si *insertStatement) Do() (int64, error) {
 	}
 
 	result, err := si.db.do(query, args)
+	if err != nil {
+		return 0, err
+	}
 
 	// Return the created 'Id' (if available)
 	_, ok := si.db.adapter.(adapters.InsertReturningSuffixer)
