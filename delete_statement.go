@@ -74,6 +74,10 @@ func (ds *deleteStatement) Do() (int64, error) {
 	}
 
 	result, err := ds.db.do(query, args)
+	if err != nil {
+		return 0, err
+	}
+
 	rowsAffected, err := result.RowsAffected()
 	return rowsAffected, err
 }

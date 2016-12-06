@@ -130,6 +130,10 @@ func (us *updateStatement) Do() (int64, error) {
 	}
 
 	result, err := us.db.do(query, args)
+	if err != nil {
+		return 0, err
+	}
+
 	rowsAffected, err := result.RowsAffected()
 	return rowsAffected, err
 }
