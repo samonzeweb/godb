@@ -36,7 +36,7 @@ func TestQ(t *testing.T) {
 		Convey("A simple condition with one placeholder and one argument", func() {
 			sql := "id = ?"
 			q := Q(sql, 123, 456)
-			So(q.Error, ShouldNotBeNil)
+			So(q.error, ShouldNotBeNil)
 		})
 	})
 }
@@ -66,10 +66,10 @@ func TestAND(t *testing.T) {
 	})
 
 	Convey("Given conditions with at least one error", t, func() {
-		c := &Condition{Error: fmt.Errorf("A mysterious error has occurred")}
+		c := &Condition{error: fmt.Errorf("A mysterious error has occurred")}
 
 		Convey("And return a condition with an error", func() {
-			So(And(c).Error, ShouldNotBeNil)
+			So(And(c).error, ShouldNotBeNil)
 		})
 	})
 }
@@ -99,10 +99,10 @@ func TestOR(t *testing.T) {
 	})
 
 	Convey("Given conditions with at least one error", t, func() {
-		c := &Condition{Error: fmt.Errorf("A mysterious error has occurred")}
+		c := &Condition{error: fmt.Errorf("A mysterious error has occurred")}
 
 		Convey("Or return a condition with an error", func() {
-			So(Or(c).Error, ShouldNotBeNil)
+			So(Or(c).error, ShouldNotBeNil)
 		})
 	})
 }
@@ -121,10 +121,10 @@ func TestNOT(t *testing.T) {
 	})
 
 	Convey("Given a condition with an error", t, func() {
-		c := &Condition{Error: fmt.Errorf("A mysterious error has occurred")}
+		c := &Condition{error: fmt.Errorf("A mysterious error has occurred")}
 
 		Convey("Not return a condition with an error", func() {
-			So(Not(c).Error, ShouldNotBeNil)
+			So(Not(c).error, ShouldNotBeNil)
 		})
 	})
 }

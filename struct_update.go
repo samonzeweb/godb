@@ -2,26 +2,26 @@ package godb
 
 import "fmt"
 
-// structUpdate builds an UPDATE statement for the given object.
-type structUpdate struct {
-	Error             error
-	updateStatement   *updateStatement
+// StructUpdate builds an UPDATE statement for the given object.
+type StructUpdate struct {
+	error             error
+	updateStatement   *UpdateStatement
 	recordDescription *recordDescription
 }
 
 // Update initializes an UPDATE sql statement for the given object.
-func (db *DB) Update(record interface{}) *structUpdate {
+func (db *DB) Update(record interface{}) *StructUpdate {
 	var err error
 
-	su := &structUpdate{}
+	su := &StructUpdate{}
 	su.recordDescription, err = buildRecordDescription(record)
 	if err != nil {
-		su.Error = err
+		su.error = err
 		return su
 	}
 
 	if su.recordDescription.isSlice {
-		su.Error = fmt.Errorf("Update accept only a single instance, got a slice")
+		su.error = fmt.Errorf("Update accept only a single instance, got a slice")
 		return su
 	}
 
@@ -31,9 +31,9 @@ func (db *DB) Update(record interface{}) *structUpdate {
 }
 
 // Do executes the UPDATE statement for the struct given to the Update method.
-func (su *structUpdate) Do() (int64, error) {
-	if su.Error != nil {
-		return 0, su.Error
+func (su *StructUpdate) Do() (int64, error) {
+	if su.error != nil {
+		return 0, su.error
 	}
 
 	// Which columns to update ?

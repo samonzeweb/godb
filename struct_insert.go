@@ -6,19 +6,19 @@ import (
 	"gitlab.com/samonzeweb/godb/adapters"
 )
 
-// structInsert builds an INSERT statement for the given object.
-type structInsert struct {
-	Error             error
-	insertStatement   *insertStatement
+// StructInsert builds an INSERT statement for the given object.
+type StructInsert struct {
+	error             error
+	insertStatement   *InsertStatement
 	recordDescription *recordDescription
 }
 
 // Insert initializes an insert sql statement for the given object.
-func (db *DB) Insert(record interface{}) *structInsert {
+func (db *DB) Insert(record interface{}) *StructInsert {
 	si := db.buildInsert(record)
 
 	if si.recordDescription.isSlice {
-		si.Error = fmt.Errorf("Insert accepts only a single instance, got a slice")
+		si.error = fmt.Errorf("Insert accepts only a single instance, got a slice")
 	}
 
 	return si
@@ -28,11 +28,11 @@ func (db *DB) Insert(record interface{}) *structInsert {
 // Warning : not all databases are able to update the auto columns in the
 //           case of insert with multiple rows. Only adapters implementing the
 //           InsertReturningSuffix interface will have auto columns updated.
-func (db *DB) BulkInsert(record interface{}) *structInsert {
+func (db *DB) BulkInsert(record interface{}) *StructInsert {
 	si := db.buildInsert(record)
 
 	if !si.recordDescription.isSlice {
-		si.Error = fmt.Errorf("BulkInsert accepts only a slice")
+		si.error = fmt.Errorf("BulkInsert accepts only a slice")
 	}
 
 	return si
@@ -41,13 +41,13 @@ func (db *DB) BulkInsert(record interface{}) *structInsert {
 // buildInsert initializes an insert sql statement for the given object, either
 // a slice or a single instance.
 // For internal use only.
-func (db *DB) buildInsert(record interface{}) *structInsert {
+func (db *DB) buildInsert(record interface{}) *StructInsert {
 	var err error
 
-	si := &structInsert{}
+	si := &StructInsert{}
 	si.recordDescription, err = buildRecordDescription(record)
 	if err != nil {
-		si.Error = err
+		si.error = err
 		return si
 	}
 
@@ -61,9 +61,9 @@ func (db *DB) buildInsert(record interface{}) *structInsert {
 // The behaviour differs according to the adapter. If it implements the
 // InsertReturningSuffixer interface it will use it and fill all auto fields
 // of the given struct. Otherwise it only fills the key with LastInsertId.
-func (si *structInsert) Do() error {
-	if si.Error != nil {
-		return si.Error
+func (si *StructInsert) Do() error {
+	if si.error != nil {
+		return si.error
 	}
 
 	// Columns names

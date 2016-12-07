@@ -15,7 +15,7 @@ func TestGetQueryable(t *testing.T) {
 		Convey("getQueryable returns a wrapper if there is no Tx", func() {
 			q, err := db.getQueryable(sqlQuery)
 			So(err, ShouldBeNil)
-			So(q, ShouldHaveSameTypeAs, &queryable{})
+			So(q, ShouldHaveSameTypeAs, &queryWrapper{})
 		})
 
 		Convey("getQueryable returns a prepared statement during a Tx", func() {

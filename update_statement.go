@@ -1,7 +1,7 @@
 package godb
 
-// updateStatement will contains all parts needed to build an UPDATE statement.
-type updateStatement struct {
+// UpdateStatement will contains all parts needed to build an UPDATE statement.
+type UpdateStatement struct {
 	db *DB
 
 	updateTable string
@@ -19,16 +19,16 @@ type setPart struct {
 	value interface{}
 }
 
-// UpdateTable creates an updateStatement and specify table to update.
+// UpdateTable creates an UpdateStatement and specify table to update.
 // It's the entry point to build an UPDATE query.
-func (db *DB) UpdateTable(tableName string) *updateStatement {
-	us := &updateStatement{db: db}
+func (db *DB) UpdateTable(tableName string) *UpdateStatement {
+	us := &UpdateStatement{db: db}
 	us.updateTable = tableName
 	return us
 }
 
 // Set adds a part of SET clause to the query.
-func (us *updateStatement) Set(column string, value interface{}) *updateStatement {
+func (us *UpdateStatement) Set(column string, value interface{}) *UpdateStatement {
 	setClause := &setPart{
 		column: column,
 		value:  value,
@@ -38,7 +38,7 @@ func (us *updateStatement) Set(column string, value interface{}) *updateStatemen
 }
 
 // SetRaw adds a raw SET clause to the query.
-func (us *updateStatement) SetRaw(rawSQL string) *updateStatement {
+func (us *UpdateStatement) SetRaw(rawSQL string) *UpdateStatement {
 	rawSetClause := &setPart{
 		column: rawSQL,
 		value:  nil,
@@ -48,26 +48,26 @@ func (us *updateStatement) SetRaw(rawSQL string) *updateStatement {
 }
 
 // Where adds a condition using string and arguments.
-func (us *updateStatement) Where(sql string, args ...interface{}) *updateStatement {
+func (us *UpdateStatement) Where(sql string, args ...interface{}) *UpdateStatement {
 	return us.WhereQ(Q(sql, args...))
 }
 
 // WhereQ adds a simple or complex predicate generated with Q and
 // confunctions.
-func (us *updateStatement) WhereQ(condition *Condition) *updateStatement {
+func (us *UpdateStatement) WhereQ(condition *Condition) *UpdateStatement {
 	us.where = append(us.where, condition)
 	return us
 }
 
 // Suffix adds an expression to suffix the statement.
-func (us *updateStatement) Suffix(suffix string) *updateStatement {
+func (us *UpdateStatement) Suffix(suffix string) *UpdateStatement {
 	us.suffixes = append(us.suffixes, suffix)
 	return us
 }
 
 // approximateSetLength returns an approximation of final size of all set
 // clauses.
-func (us *updateStatement) approximateSetLength() int {
+func (us *UpdateStatement) approximateSetLength() int {
 	// initialized with the count needed for "=" and ","
 	length := 2 * len(us.sets)
 	for _, s := range us.sets {
@@ -89,7 +89,7 @@ func (us *updateStatement) approximateSetLength() int {
 
 // ToSQL returns a string with the SQL statement (containing placeholders),
 // the arguments slices, and an error.
-func (us *updateStatement) ToSQL() (string, []interface{}, error) {
+func (us *UpdateStatement) ToSQL() (string, []interface{}, error) {
 	sqlWhereLength, argsWhereLength, err := sumOfConditionsLengths(us.where)
 	if err != nil {
 		return "", nil, err
@@ -123,7 +123,7 @@ func (us *updateStatement) ToSQL() (string, []interface{}, error) {
 }
 
 // Do executes the builded query, and return RowsAffected()
-func (us *updateStatement) Do() (int64, error) {
+func (us *UpdateStatement) Do() (int64, error) {
 	query, args, err := us.ToSQL()
 	if err != nil {
 		return 0, err
@@ -140,7 +140,7 @@ func (us *updateStatement) Do() (int64, error) {
 
 // DoWithReturning executes the statement and fills the fields according to
 // the columns in RETURNING clause.
-func (us *updateStatement) DoWithReturning(record interface{}) error {
+func (us *UpdateStatement) DoWithReturning(record interface{}) error {
 	recordDescription, err := buildRecordDescription(record)
 	if err != nil {
 		return err
@@ -157,7 +157,7 @@ func (us *updateStatement) DoWithReturning(record interface{}) error {
 
 // DoWithReturning executes the statement and fills the fields according to
 // the columns in RETURNING clause.
-func (us *updateStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
+func (us *UpdateStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
 	query, args, err := us.ToSQL()
 	if err != nil {
 		return err

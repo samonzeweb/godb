@@ -2,8 +2,8 @@ package godb
 
 import "gitlab.com/samonzeweb/godb/adapters"
 
-// insertStatement is an INSERT statement builder.
-type insertStatement struct {
+// InsertStatement is an INSERT statement builder.
+type InsertStatement struct {
 	db *DB
 
 	columns   []string
@@ -13,33 +13,33 @@ type insertStatement struct {
 }
 
 // InsertInto initializes a INSERT statement builder
-func (db *DB) InsertInto(tableName string) *insertStatement {
-	ip := &insertStatement{db: db}
+func (db *DB) InsertInto(tableName string) *InsertStatement {
+	ip := &InsertStatement{db: db}
 	ip.intoTable = tableName
 	return ip
 }
 
 // Columns adds columns to insert.
-func (is *insertStatement) Columns(columns ...string) *insertStatement {
+func (is *InsertStatement) Columns(columns ...string) *InsertStatement {
 	is.columns = append(is.columns, columns...)
 	return is
 }
 
 // Values add values to insert.
-func (is *insertStatement) Values(values ...interface{}) *insertStatement {
+func (is *InsertStatement) Values(values ...interface{}) *InsertStatement {
 	is.values = append(is.values, values)
 	return is
 }
 
 // Suffix adds an expression to suffix the statement.
-func (is *insertStatement) Suffix(suffix string) *insertStatement {
+func (is *InsertStatement) Suffix(suffix string) *InsertStatement {
 	is.suffixes = append(is.suffixes, suffix)
 	return is
 }
 
 // ToSQL returns a string with the SQL statement (containing placeholders),
 // the arguments slices, and an error.
-func (is *insertStatement) ToSQL() (string, []interface{}, error) {
+func (is *InsertStatement) ToSQL() (string, []interface{}, error) {
 
 	// TODO : estimate the buffer size.
 	sqlBuffer := newSQLBuffer(is.db.adapter, 256, 16)
@@ -69,7 +69,7 @@ func (is *insertStatement) ToSQL() (string, []interface{}, error) {
 
 // Do executes the builded INSERT statement and returns the LastInsertId() if
 // the adapter does not implement InsertReturningSuffixer.
-func (si *insertStatement) Do() (int64, error) {
+func (si *InsertStatement) Do() (int64, error) {
 	query, args, err := si.ToSQL()
 	if err != nil {
 		return 0, err
@@ -92,7 +92,7 @@ func (si *insertStatement) Do() (int64, error) {
 
 // DoWithReturning executes the statement and fills the fields according to
 // the columns in RETURNING clause.
-func (si *insertStatement) DoWithReturning(record interface{}) error {
+func (si *InsertStatement) DoWithReturning(record interface{}) error {
 	recordDescription, err := buildRecordDescription(record)
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func (si *insertStatement) DoWithReturning(record interface{}) error {
 
 // DoWithReturning executes the statement and fills the fields according to
 // the columns in RETURNING clause.
-func (si *insertStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
+func (si *InsertStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
 	query, args, err := si.ToSQL()
 	if err != nil {
 		return err

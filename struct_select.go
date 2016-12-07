@@ -1,21 +1,21 @@
 package godb
 
-// structSelect builds a SELECT statement for the given object.
-type structSelect struct {
-	Error             error
-	selectStatement   *selectStatement
+// StructSelect builds a SELECT statement for the given object.
+type StructSelect struct {
+	error             error
+	selectStatement   *SelectStatement
 	recordDescription *recordDescription
 }
 
 // Select initializes a SQL Select Statement with the given pointer as
 // target. The pointer could point to a single instance or a slice.
-func (db *DB) Select(record interface{}) *structSelect {
+func (db *DB) Select(record interface{}) *StructSelect {
 	var err error
 
-	ss := &structSelect{}
+	ss := &StructSelect{}
 	ss.recordDescription, err = buildRecordDescription(record)
 	if err != nil {
-		ss.Error = err
+		ss.error = err
 		return ss
 	}
 	quotedTableName := db.adapter.Quote(ss.recordDescription.getTableName())
@@ -24,8 +24,8 @@ func (db *DB) Select(record interface{}) *structSelect {
 }
 
 // Where adds a condition using string and arguments.
-func (ss *structSelect) Where(sql string, args ...interface{}) *structSelect {
-	if ss.Error != nil {
+func (ss *StructSelect) Where(sql string, args ...interface{}) *StructSelect {
+	if ss.error != nil {
 		return ss
 	}
 	ss.selectStatement = ss.selectStatement.WhereQ(Q(sql, args...))
@@ -34,8 +34,8 @@ func (ss *structSelect) Where(sql string, args ...interface{}) *structSelect {
 
 // WhereQ adds a simple or complex predicate generated with Q and
 // confunctions.
-func (ss *structSelect) WhereQ(condition *Condition) *structSelect {
-	if ss.Error != nil {
+func (ss *StructSelect) WhereQ(condition *Condition) *StructSelect {
+	if ss.error != nil {
 		return ss
 	}
 	ss.selectStatement = ss.selectStatement.WhereQ(condition)
@@ -43,8 +43,8 @@ func (ss *structSelect) WhereQ(condition *Condition) *structSelect {
 }
 
 // OrderBy adds an expression for the ORDER BY clause.
-func (ss *structSelect) OrderBy(orderBy string) *structSelect {
-	if ss.Error != nil {
+func (ss *StructSelect) OrderBy(orderBy string) *StructSelect {
+	if ss.error != nil {
 		return ss
 	}
 	ss.selectStatement = ss.selectStatement.OrderBy(orderBy)
@@ -52,8 +52,8 @@ func (ss *structSelect) OrderBy(orderBy string) *structSelect {
 }
 
 // Offset specifies the value for the OFFSET clause.
-func (ss *structSelect) Offset(offset int) *structSelect {
-	if ss.Error != nil {
+func (ss *StructSelect) Offset(offset int) *StructSelect {
+	if ss.error != nil {
 		return ss
 	}
 	ss.selectStatement = ss.selectStatement.Offset(offset)
@@ -61,8 +61,8 @@ func (ss *structSelect) Offset(offset int) *structSelect {
 }
 
 // Limit specifies the value for the LIMIT clause.
-func (ss *structSelect) Limit(limit int) *structSelect {
-	if ss.Error != nil {
+func (ss *StructSelect) Limit(limit int) *StructSelect {
+	if ss.error != nil {
 		return ss
 	}
 	ss.selectStatement = ss.selectStatement.Limit(limit)
@@ -71,9 +71,9 @@ func (ss *structSelect) Limit(limit int) *structSelect {
 
 // Do executes the select statement, the record given to Select will contain
 // the data.
-func (ss *structSelect) Do() error {
-	if ss.Error != nil {
-		return ss.Error
+func (ss *StructSelect) Do() error {
+	if ss.error != nil {
+		return ss.error
 	}
 
 	// Columns names
@@ -89,9 +89,9 @@ func (ss *structSelect) Do() error {
 }
 
 // Count run the request with COUNT(*) and returns the count
-func (ss *structSelect) Count() (int64, error) {
-	if ss.Error != nil {
-		return 0, ss.Error
+func (ss *StructSelect) Count() (int64, error) {
+	if ss.error != nil {
+		return 0, ss.error
 	}
 
 	return ss.selectStatement.Count()

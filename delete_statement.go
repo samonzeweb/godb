@@ -1,8 +1,8 @@
 package godb
 
-// deleteStatement is a DELETE sql statement builder.
+// DeleteStatement is a DELETE sql statement builder.
 // Initialize it with the DeleteFrom function.
-type deleteStatement struct {
+type DeleteStatement struct {
 	db *DB
 
 	fromTable string
@@ -11,33 +11,33 @@ type deleteStatement struct {
 }
 
 // DeleteFrom initializes a DELETE statement builder.
-func (db *DB) DeleteFrom(tableName string) *deleteStatement {
-	ds := &deleteStatement{db: db}
+func (db *DB) DeleteFrom(tableName string) *DeleteStatement {
+	ds := &DeleteStatement{db: db}
 	ds.fromTable = tableName
 	return ds
 }
 
 // Where adds a condition using string and arguments.
-func (ds *deleteStatement) Where(sql string, args ...interface{}) *deleteStatement {
+func (ds *DeleteStatement) Where(sql string, args ...interface{}) *DeleteStatement {
 	return ds.WhereQ(Q(sql, args...))
 }
 
 // WhereQ adds a simple or complex predicate generated with Q and
 // confunctions.
-func (ds *deleteStatement) WhereQ(condition *Condition) *deleteStatement {
+func (ds *DeleteStatement) WhereQ(condition *Condition) *DeleteStatement {
 	ds.where = append(ds.where, condition)
 	return ds
 }
 
 // Suffix adds an expression to suffix the statement.
-func (ds *deleteStatement) Suffix(suffix string) *deleteStatement {
+func (ds *DeleteStatement) Suffix(suffix string) *DeleteStatement {
 	ds.suffixes = append(ds.suffixes, suffix)
 	return ds
 }
 
 // ToSQL returns a string with the SQL statement (containing placeholders),
 // the arguments slices, and an error.
-func (ds *deleteStatement) ToSQL() (string, []interface{}, error) {
+func (ds *DeleteStatement) ToSQL() (string, []interface{}, error) {
 	sqlWhereLength, argsWhereLength, err := sumOfConditionsLengths(ds.where)
 	if err != nil {
 		return "", nil, err
@@ -67,7 +67,7 @@ func (ds *deleteStatement) ToSQL() (string, []interface{}, error) {
 }
 
 // Do executes the builded query, and return RowsAffected()
-func (ds *deleteStatement) Do() (int64, error) {
+func (ds *DeleteStatement) Do() (int64, error) {
 	query, args, err := ds.ToSQL()
 	if err != nil {
 		return 0, err
@@ -84,7 +84,7 @@ func (ds *deleteStatement) Do() (int64, error) {
 
 // DoWithReturning executes the statement and fills the fields according to
 // the columns in RETURNING clause.
-func (ds *deleteStatement) DoWithReturning(record interface{}) error {
+func (ds *DeleteStatement) DoWithReturning(record interface{}) error {
 	recordDescription, err := buildRecordDescription(record)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (ds *deleteStatement) DoWithReturning(record interface{}) error {
 
 // DoWithReturning executes the statement and fills the fields according to
 // the columns in RETURNING clause.
-func (ds *deleteStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
+func (ds *DeleteStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
 	query, args, err := ds.ToSQL()
 	if err != nil {
 		return err

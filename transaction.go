@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-// PreparableAndQueryable represents either a Tx or DB.
-type PreparableAndQueryable interface {
+// preparableAndQueryable represents either a Tx or DB.
+type preparableAndQueryable interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	Query(query string, args ...interface{}) (*sql.Rows, error)
 	QueryRow(query string, args ...interface{}) *sql.Row
@@ -78,7 +78,7 @@ func (db *DB) CurrentTx() *sql.Tx {
 
 // getTxElseDb return either the current Tx, or the DB, throught
 // the Queryable interface.
-func (db *DB) getTxElseDb() PreparableAndQueryable {
+func (db *DB) getTxElseDb() preparableAndQueryable {
 	if db.sqlTx != nil {
 		return db.sqlTx
 	}

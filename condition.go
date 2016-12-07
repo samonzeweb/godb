@@ -10,7 +10,7 @@ import (
 // Condition is a struct allowing complex condition building, composing
 // SQL predicates, and managing associated arguments.
 type Condition struct {
-	Error error
+	error error
 	sql   string
 	args  []interface{}
 }
@@ -22,7 +22,7 @@ func Q(sql string, args ...interface{}) *Condition {
 	c := Condition{}
 
 	if strings.Count(sql, Placeholder) != len(args) {
-		c.Error = fmt.Errorf("Wrong number of arguments in condition %s", sql)
+		c.error = fmt.Errorf("Wrong number of arguments in condition %s", sql)
 		return &c
 	}
 
@@ -63,7 +63,7 @@ func And(conditions ...*Condition) *Condition {
 
 	sqlLength, argsLength, err := sumOfConditionsLengths(conditions)
 	if err != nil {
-		return &Condition{Error: err}
+		return &Condition{error: err}
 	}
 
 	// because len(" AND ") == 5
@@ -86,7 +86,7 @@ func Or(conditions ...*Condition) *Condition {
 
 	sqlLength, argsLength, err := sumOfConditionsLengths(conditions)
 	if err != nil {
-		return &Condition{Error: err}
+		return &Condition{error: err}
 	}
 
 	// len(" OR ") == 4 , plus parentheses
@@ -106,7 +106,7 @@ func Or(conditions ...*Condition) *Condition {
 
 // Not negates a given condition surrounding it with 'NOT (' and ')'
 func Not(condition *Condition) *Condition {
-	if condition.Error != nil {
+	if condition.error != nil {
 		return condition
 	}
 
@@ -129,8 +129,8 @@ func sumOfConditionsLengths(conditions []*Condition) (int, int, error) {
 	sqlLength := 0
 	argsLength := 0
 	for _, c := range conditions {
-		if c.Error != nil {
-			return 0, 0, c.Error
+		if c.error != nil {
+			return 0, 0, c.error
 		}
 		sqlLength += len(c.sql)
 		argsLength += len(c.args)

@@ -2,26 +2,26 @@ package godb
 
 import "fmt"
 
-// structDelete builds a DELETE statement for the given object.
-type structDelete struct {
-	Error             error
-	deleteStatement   *deleteStatement
+// StructDelete builds a DELETE statement for the given object.
+type StructDelete struct {
+	error             error
+	deleteStatement   *DeleteStatement
 	recordDescription *recordDescription
 }
 
 // Delete initializes a DELETE sql statement for the given object.
-func (db *DB) Delete(record interface{}) *structDelete {
+func (db *DB) Delete(record interface{}) *StructDelete {
 	var err error
 
-	sd := &structDelete{}
+	sd := &StructDelete{}
 	sd.recordDescription, err = buildRecordDescription(record)
 	if err != nil {
-		sd.Error = err
+		sd.error = err
 		return sd
 	}
 
 	if sd.recordDescription.isSlice {
-		sd.Error = fmt.Errorf("Delete accept only a single instance, got a slice")
+		sd.error = fmt.Errorf("Delete accept only a single instance, got a slice")
 		return sd
 	}
 
@@ -31,9 +31,9 @@ func (db *DB) Delete(record interface{}) *structDelete {
 }
 
 // Do executes the DELETE statement for the struct given to the Delete method.
-func (sd *structDelete) Do() (int64, error) {
-	if sd.Error != nil {
-		return 0, sd.Error
+func (sd *StructDelete) Do() (int64, error) {
+	if sd.error != nil {
+		return 0, sd.error
 	}
 
 	// Keys

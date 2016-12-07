@@ -2,31 +2,31 @@ package godb
 
 import "database/sql"
 
-// Queryable represents either a Tx, a DB, or a Stmt.
-type Queryable interface {
+// queryable represents either a Tx, a DB, or a Stmt.
+type queryable interface {
 	Exec(args ...interface{}) (sql.Result, error)
 	Query(args ...interface{}) (*sql.Rows, error)
 	QueryRow(args ...interface{}) *sql.Row
 }
 
-// The queryable type implements Queryable for sql.DB and sql.Tx
-type queryable struct {
-	db       PreparableAndQueryable
+// The queryWrapper type implements Queryable for sql.DB and sql.Tx
+type queryWrapper struct {
+	db       preparableAndQueryable
 	sqlQuery string
 }
 
 // Exec wraps the Exec method for sql.DB or sql.Tx.
-func (q *queryable) Exec(args ...interface{}) (sql.Result, error) {
+func (q *queryWrapper) Exec(args ...interface{}) (sql.Result, error) {
 	return q.db.Exec(q.sqlQuery, args...)
 }
 
 // Query wraps the Query method for sql.DB or sql.Tx.
-func (q *queryable) Query(args ...interface{}) (*sql.Rows, error) {
+func (q *queryWrapper) Query(args ...interface{}) (*sql.Rows, error) {
 	return q.db.Query(q.sqlQuery, args...)
 }
 
 // QueryRow wraps the QueryRow method for sql.DB or sql.Tx.
-func (q *queryable) QueryRow(args ...interface{}) *sql.Row {
+func (q *queryWrapper) QueryRow(args ...interface{}) *sql.Row {
 	return q.db.QueryRow(q.sqlQuery, args...)
 }
 
@@ -48,11 +48,11 @@ func (db *DB) IsStmtCacheEnabled() bool {
 }
 
 // getQueryable manages prepared statement, and its cache.
-func (db *DB) getQueryable(sql string) (Queryable, error) {
+func (db *DB) getQueryable(sql string) (queryable, error) {
 	// Prepared statements are managed only in a Tx, and when the
 	// cache is enabled.
 	if db.CurrentTx() == nil || db.isPrepStmtEnabled == false {
-		wrapper := queryable{
+		wrapper := queryWrapper{
 			db:       db.getTxElseDb(),
 			sqlQuery: sql,
 		}
