@@ -1,4 +1,4 @@
-package sqlite_test
+package godb_test
 
 import (
 	"testing"
@@ -10,7 +10,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func fixturesSetup(t *testing.T) *godb.DB {
+func fixturesSetupSQLite(t *testing.T) *godb.DB {
 	db, err := godb.Open(sqlite.Adapter, ":memory:")
 	if err != nil {
 		t.Fatal(err)
@@ -36,7 +36,7 @@ func fixturesSetup(t *testing.T) *godb.DB {
 
 func TestStatementsSQLite(t *testing.T) {
 	Convey("A DB for a SQLite database", t, func() {
-		db := fixturesSetup(t)
+		db := fixturesSetupSQLite(t)
 
 		Convey("The common tests must pass", func() {
 			common.StatementsTests(db, t)
@@ -46,7 +46,7 @@ func TestStatementsSQLite(t *testing.T) {
 
 func TestStructsSQLite(t *testing.T) {
 	Convey("A DB for a SQLite database", t, func() {
-		db := fixturesSetup(t)
+		db := fixturesSetupSQLite(t)
 
 		Convey("The common tests must pass", func() {
 			common.StructsTests(db, t)

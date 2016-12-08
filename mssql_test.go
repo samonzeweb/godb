@@ -1,4 +1,4 @@
-package mssql_test
+package godb_test
 
 import (
 	"os"
@@ -11,7 +11,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func fixturesSetup(t *testing.T) (*godb.DB, func()) {
+func fixturesSetupMSSQL(t *testing.T) (*godb.DB, func()) {
 	if os.Getenv("GODB_MSSQL") == "" {
 		t.Skip("Don't run SQL Server test, GODB_MSSQL not set")
 	}
@@ -49,7 +49,7 @@ func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 
 func TestStatementsMSSQL(t *testing.T) {
 	Convey("A DB for a SQL Server database", t, func() {
-		db, teardown := fixturesSetup(t)
+		db, teardown := fixturesSetupMSSQL(t)
 		defer teardown()
 
 		Convey("The common tests must pass", func() {
@@ -60,7 +60,7 @@ func TestStatementsMSSQL(t *testing.T) {
 
 func TestStructsMSSQL(t *testing.T) {
 	Convey("A DB for a SQL Server database", t, func() {
-		db, teardown := fixturesSetup(t)
+		db, teardown := fixturesSetupMSSQL(t)
 		defer teardown()
 
 		Convey("The common tests must pass", func() {

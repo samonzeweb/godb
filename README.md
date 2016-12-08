@@ -26,6 +26,8 @@ WARNING : it is still a young project and the public API could change.
 
 godb does not manage relationship.
 
+I made some tests of godb on Windows and Linux, ARM (Cortex A7) and Intel x64.
+
 ## Install
 
 ```
@@ -36,21 +38,20 @@ Install the required driver (see tests). You cas use multiple databases if neede
 
 ## Tests
 
-godb tests use GoConvey and SQLite :
+godb tests use GoConvey and at least SQLite :
 
 ```
 go get github.com/smartystreets/goconvey
 go get github.com/mattn/go-sqlite3
 ```
 
-SQLite tests are done with in memory database.
-
-You can run tests with others databases, see below.
-
 To run tests, go into the godb directory and executes `go test ./...`
 
+SQLite tests are done with in memory database, it's fast. You can run tests with others databases, see below.
 
-### PostgreSQL
+With the exception of SQLite, all drivers are *pure Go* code, and does not require external dependencies.
+
+### Tests with PostgreSQL
 
 Install the driver and set the `GODB_POSTGRESQL` environment variable with the PostgreSQL connection string.
 
@@ -59,7 +60,7 @@ go get github.com/lib/pq
 GODB_POSTGRESQL="your connection string" go test ./...
 ```
 
-### MySQL / MariaDB
+### Tests with MySQL / MariaDB
 
 Install the driver and set the `GODB_MYSQL` environment variable with the MySQL connection string.
 
@@ -68,7 +69,7 @@ go get github.com/go-sql-driver/mysql
 GODB_MYSQL="your connection string" go test ./...
 ```
 
-### MS SQL Server
+### Tests with MS SQL Server
 
 Install the driver and set the `GODB_MSSQL` environment variable with the SQL Server connection string.
 

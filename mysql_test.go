@@ -1,4 +1,4 @@
-package mysql_test
+package godb_test
 
 import (
 	"os"
@@ -11,7 +11,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func fixturesSetup(t *testing.T) (*godb.DB, func()) {
+func fixturesSetupMySQL(t *testing.T) (*godb.DB, func()) {
 	if os.Getenv("GODB_MYSQL") == "" {
 		t.Skip("Don't run MySQL test, GODB_MYSQL not set")
 	}
@@ -49,7 +49,7 @@ func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 
 func TestStatementsMySQL(t *testing.T) {
 	Convey("A DB for a MySQL database", t, func() {
-		db, teardown := fixturesSetup(t)
+		db, teardown := fixturesSetupMySQL(t)
 		defer teardown()
 
 		Convey("The common tests must pass", func() {
@@ -60,7 +60,7 @@ func TestStatementsMySQL(t *testing.T) {
 
 func TestStructsMySQL(t *testing.T) {
 	Convey("A DB for a MySQL database", t, func() {
-		db, teardown := fixturesSetup(t)
+		db, teardown := fixturesSetupMySQL(t)
 		defer teardown()
 
 		Convey("The common tests must pass", func() {

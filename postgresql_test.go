@@ -1,4 +1,4 @@
-package postgresql_test
+package godb_test
 
 import (
 	"os"
@@ -11,7 +11,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func fixturesSetup(t *testing.T) (*godb.DB, func()) {
+func fixturesSetupPostgreSQL(t *testing.T) (*godb.DB, func()) {
 	if os.Getenv("GODB_POSTGRESQL") == "" {
 		t.Skip("Don't run PostgreSQL test, GODB_POSTGRESQL not set")
 	}
@@ -49,7 +49,7 @@ func fixturesSetup(t *testing.T) (*godb.DB, func()) {
 
 func TestStatementsPostgreSQL(t *testing.T) {
 	Convey("A DB for a PostgreSQL database", t, func() {
-		db, teardown := fixturesSetup(t)
+		db, teardown := fixturesSetupPostgreSQL(t)
 		defer teardown()
 
 		Convey("The common tests must pass", func() {
@@ -60,7 +60,7 @@ func TestStatementsPostgreSQL(t *testing.T) {
 
 func TestStructsPostgreSQL(t *testing.T) {
 	Convey("A DB for a PostgreSQL database", t, func() {
-		db, teardown := fixturesSetup(t)
+		db, teardown := fixturesSetupPostgreSQL(t)
 		defer teardown()
 
 		Convey("The common tests must pass", func() {
