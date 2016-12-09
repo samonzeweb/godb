@@ -1,5 +1,3 @@
-// Package godb is a simple ORM allowing go code to execute sql queries
-// with go structs.
 package godb
 
 import (
