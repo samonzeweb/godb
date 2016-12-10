@@ -366,6 +366,22 @@ func TestSelectDo(t *testing.T) {
 			err := db.SelectFrom("dummies").Columns("id").Where("1 > 2").Do(&dummy)
 			So(err, ShouldEqual, sql.ErrNoRows)
 		})
+
+		Convey("Do fills nullable fields", func() {
+			dummiesSlice := make([]Dummy, 0, 0)
+			selectStmt := db.SelectFrom("dummies").
+				Columns("id", "a_nullable_string").
+				OrderBy("an_integer")
+
+			err := selectStmt.Do(&dummiesSlice)
+			So(err, ShouldBeNil)
+			So(len(dummiesSlice), ShouldEqual, 3)
+			So(dummiesSlice[0].ANullableString.Valid, ShouldBeTrue)
+			So(dummiesSlice[0].ANullableString.String, ShouldEqual, "Not empty")
+			So(dummiesSlice[1].ANullableString.Valid, ShouldBeTrue)
+			So(dummiesSlice[1].ANullableString.String, ShouldEqual, "")
+			So(dummiesSlice[2].ANullableString.Valid, ShouldBeFalse)
+		})
 	})
 }
 

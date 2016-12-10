@@ -1,6 +1,7 @@
 package dbreflect
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"time"
@@ -12,6 +13,11 @@ func init() {
 	scannableStructs = make(map[string]bool)
 	// time.Time is scannable by default
 	RegisterScannableStruct(time.Time{})
+	// Sql nullable type
+	RegisterScannableStruct(sql.NullBool{})
+	RegisterScannableStruct(sql.NullFloat64{})
+	RegisterScannableStruct(sql.NullInt64{})
+	RegisterScannableStruct(sql.NullString{})
 }
 
 // RegisterScannableStruct registers a struct (through an instance or pointer)
