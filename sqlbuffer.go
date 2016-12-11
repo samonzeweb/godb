@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/samonzeweb/godb/adapters"
+	"github.com/samonzeweb/godb/adapters"
 )
 
 // sqlBuffer is an temporary type to build a SQL query with its arguments.

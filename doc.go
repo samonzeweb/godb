@@ -16,8 +16,8 @@ godb needs adapters to use databases, some are packaged with godb for :
 Start with an adapter, and the Open method which returns a godb.DB pointer :
 
 	import (
-		"gitlab.com/samonzeweb/godb"
-		"gitlab.com/samonzeweb/godb/adapters/sqlite"
+		"github.com/samonzeweb/godb"
+		"github.com/samonzeweb/godb/adapters/sqlite"
 	)
 
 	func main() {

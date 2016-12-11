@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"gitlab.com/samonzeweb/godb/adapters"
+	"github.com/samonzeweb/godb/adapters"
 )
 
 // DB stores a connection to the database, the current transaction, logger, ...

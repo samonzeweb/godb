@@ -1,6 +1,6 @@
 package godb
 
-import "gitlab.com/samonzeweb/godb/adapters"
+import "github.com/samonzeweb/godb/adapters"
 
 // InsertStatement is an INSERT statement builder.
 // Initialize it with the InsertInto method.

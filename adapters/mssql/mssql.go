@@ -2,7 +2,7 @@ package mssql
 
 import (
 	_ "github.com/denisenkom/go-mssqldb"
-	"gitlab.com/samonzeweb/godb/adapters"
+	"github.com/samonzeweb/godb/adapters"
 )
 
 type MSSQL struct{}

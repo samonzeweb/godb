@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"gitlab.com/samonzeweb/godb/dbreflect"
+	"github.com/samonzeweb/godb/dbreflect"
 )
 
 // recordDescription describes the source or target of a SQL statement.

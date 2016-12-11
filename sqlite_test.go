@@ -3,9 +3,9 @@ package godb_test
 import (
 	"testing"
 
-	"gitlab.com/samonzeweb/godb"
-	"gitlab.com/samonzeweb/godb/adapters/sqlite"
-	"gitlab.com/samonzeweb/godb/dbtests/common"
+	"github.com/samonzeweb/godb"
+	"github.com/samonzeweb/godb/adapters/sqlite"
+	"github.com/samonzeweb/godb/dbtests/common"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

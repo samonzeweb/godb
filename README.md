@@ -31,7 +31,7 @@ I made some tests of godb on Windows and Linux, ARM (Cortex A7) and Intel x64.
 ## Install
 
 ```
-go get gitlab.com/samonzeweb/godb
+go get github.com/samonzeweb/godb
 ```
 
 Install the required driver (see tests). You cas use multiple databases if needed.
@@ -93,8 +93,8 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/samonzeweb/godb"
-	"gitlab.com/samonzeweb/godb/adapters/sqlite"
+	"github.com/samonzeweb/godb"
+	"github.com/samonzeweb/godb/adapters/sqlite"
 )
 
 /*

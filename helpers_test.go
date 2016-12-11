@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"gitlab.com/samonzeweb/godb/adapters/sqlite"
+	"github.com/samonzeweb/godb/adapters/sqlite"
 )
 
 func checkToSQL(t *testing.T, sqlExpected string, sqlProduced string, err error) {

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"gitlab.com/samonzeweb/godb/adapters"
+	"github.com/samonzeweb/godb/adapters"
 )
 
 // SelectStatement is a SELECT sql statement builder.

@@ -3,7 +3,7 @@ package godb
 import (
 	"fmt"
 
-	"gitlab.com/samonzeweb/godb/adapters"
+	"github.com/samonzeweb/godb/adapters"
 )
 
 // StructInsert builds an INSERT statement for the given object.

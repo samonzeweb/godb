@@ -3,7 +3,7 @@ package common
 import (
 	"testing"
 
-	"gitlab.com/samonzeweb/godb"
+	"github.com/samonzeweb/godb"
 )
 
 func CountBooks(t *testing.T, db *godb.DB) int64 {

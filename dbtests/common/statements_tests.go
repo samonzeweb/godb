@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"gitlab.com/samonzeweb/godb"
+	"github.com/samonzeweb/godb"
 )
 
 func StatementsTests(db *godb.DB, t *testing.T) {

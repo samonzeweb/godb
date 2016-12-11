@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"gitlab.com/samonzeweb/godb"
-	"gitlab.com/samonzeweb/godb/adapters/postgresql"
-	"gitlab.com/samonzeweb/godb/dbtests/common"
+	"github.com/samonzeweb/godb"
+	"github.com/samonzeweb/godb/adapters/postgresql"
+	"github.com/samonzeweb/godb/dbtests/common"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
