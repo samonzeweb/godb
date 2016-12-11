@@ -25,9 +25,10 @@ func (db *DB) Insert(record interface{}) *StructInsert {
 }
 
 // BuklInsert initializes an insert sql statement for a slice.
+//
 // Warning : not all databases are able to update the auto columns in the
-//           case of insert with multiple rows. Only adapters implementing the
-//           InsertReturningSuffix interface will have auto columns updated.
+// case of insert with multiple rows. Only adapters implementing the
+// InsertReturningSuffix interface will have auto columns updated.
 func (db *DB) BulkInsert(record interface{}) *StructInsert {
 	si := db.buildInsert(record)
 

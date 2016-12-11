@@ -71,7 +71,8 @@ func (db *DB) Rollback() error {
 	return err
 }
 
-// CurrentTx returns the current Tx (or nil).
+// CurrentTx returns the current Tx (or nil). Don't commit or rollback it
+// directly !
 func (db *DB) CurrentTx() *sql.Tx {
 	return db.sqlTx
 }

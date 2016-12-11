@@ -44,6 +44,7 @@ func Open(adapter adapters.Adapter, dataSourceName string) (*DB, error) {
 }
 
 // Clone creates a copy of an existing DB, without the current transaction.
+// The clone has no consumed time.
 // Use it to create new DB object before starting a goroutine.
 func (db *DB) Clone() *DB {
 	return &DB{

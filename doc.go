@@ -214,5 +214,23 @@ multiple ones. This allows code like :
 
 	count, err := db.SelectFrom("bar").Where("foo in (?)", fooSlice).Count()
 
+
+Consumed Time
+
+godb keep track of time consumed while executing queries. You can reset it and
+get the time consumed since Open or the previous reset :
+
+	fmt.Prinln("Consumed time : %v", db.ConsumedTime())
+	db.ResetConsumedTime()
+
+
+Logger
+
+
+You can log all executed queried and details of condumed time. Simply add a
+logger :
+
+	db.SetLogger(log.New(os.Stderr, "", 0))
+
 */
 package godb
