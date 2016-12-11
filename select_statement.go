@@ -8,6 +8,13 @@ import (
 )
 
 // SelectStatement is a SELECT sql statement builder.
+// Initialize it with the SelectFrom method.
+//
+// Examples :
+// 	err := db.SelecFrom("bar").
+// 		Columns("foo", "baz").
+// 		Where("foo > 2").
+// 		Do(&target)
 type SelectStatement struct {
 	db *DB
 
@@ -44,7 +51,7 @@ func (ss *SelectStatement) From(tableName string) *SelectStatement {
 	return ss
 }
 
-// Columns adds columns to select.
+// Columns adds columns to select. Multple calls of columns are allowed.
 func (ss *SelectStatement) Columns(columns ...string) *SelectStatement {
 	ss.columns = append(ss.columns, columns...)
 	return ss
@@ -81,7 +88,7 @@ func (ss *SelectStatement) WhereQ(condition *Condition) *SelectStatement {
 	return ss
 }
 
-// GroupBy adds a GROUP BY clause.
+// GroupBy adds a GROUP BY clause. You can call GroupBy multiple times.
 func (ss *SelectStatement) GroupBy(groupBy string) *SelectStatement {
 	ss.groupBy = append(ss.groupBy, groupBy)
 	return ss
@@ -101,6 +108,7 @@ func (ss *SelectStatement) HavingQ(condition *Condition) *SelectStatement {
 }
 
 // OrderBy adds an expression for the ORDER BY clause.
+// You can call GroupBy multiple times.
 func (ss *SelectStatement) OrderBy(orderBy string) *SelectStatement {
 	ss.orderBy = append(ss.orderBy, orderBy)
 	return ss
@@ -208,6 +216,8 @@ func (ss *SelectStatement) ToSQL() (string, []interface{}, error) {
 
 // Do executes the select statement.
 // The record argument has to be a pointer to a struct or a slice.
+// If the argument is not a slice, a row is expected, and Do returns
+// sql.ErrNoRows is none where found.
 func (ss *SelectStatement) Do(record interface{}) error {
 	recordInfo, err := buildRecordDescription(record)
 	if err != nil {

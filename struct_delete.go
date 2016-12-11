@@ -3,6 +3,11 @@ package godb
 import "fmt"
 
 // StructDelete builds a DELETE statement for the given object.
+//
+// Example (book is a struct instance):
+//
+// 	 count, err := db.Delete(&book).Do()
+//
 type StructDelete struct {
 	error             error
 	deleteStatement   *DeleteStatement
@@ -30,7 +35,8 @@ func (db *DB) Delete(record interface{}) *StructDelete {
 	return sd
 }
 
-// Do executes the DELETE statement for the struct given to the Delete method.
+// Do executes the DELETE statement for the struct given to the Delete method,
+// and returns the count of deleted rows and an error.
 func (sd *StructDelete) Do() (int64, error) {
 	if sd.error != nil {
 		return 0, sd.error

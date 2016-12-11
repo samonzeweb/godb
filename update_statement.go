@@ -1,6 +1,13 @@
 package godb
 
 // UpdateStatement will contains all parts needed to build an UPDATE statement.
+// Initialize it with the UpdateTable method.
+//
+// Example :
+// 	count, err := db.UpdateTable("bar").
+// 		Set("foo", 1).
+// 		Where("foo = ?", 2).
+// 		Do()
 type UpdateStatement struct {
 	db *DB
 
@@ -59,7 +66,8 @@ func (us *UpdateStatement) WhereQ(condition *Condition) *UpdateStatement {
 	return us
 }
 
-// Suffix adds an expression to suffix the statement.
+// Suffix adds an expression to suffix the statement. Use it to add a
+// RETURNING clause with PostgreSQL (or whatever you need).
 func (us *UpdateStatement) Suffix(suffix string) *UpdateStatement {
 	us.suffixes = append(us.suffixes, suffix)
 	return us

@@ -232,5 +232,18 @@ logger :
 
 	db.SetLogger(log.New(os.Stderr, "", 0))
 
+
+RETURNING Clause
+
+godb takes advantage of PostgreSQL RETURNING clause.
+
+With statements tools you have to add a RETURNING clause with the Suffix method
+and call DoWithReturning method instead of Do(). It's optionnal.
+
+With StructInsert it's transparent, the RETURNING clause is added with all
+'auto' columns and it's managed for you. One of the big advantage is with
+BulkInsert : for others databases the rows are inserted but the new keys
+are unkonwns. With PostgreSQL the slice if updated for all inserted rows.
+
 */
 package godb

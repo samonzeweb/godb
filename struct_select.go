@@ -1,13 +1,19 @@
 package godb
 
 // StructSelect builds a SELECT statement for the given object.
+//
+// Example (book is a struct instance, books a slice) :
+//
+// 	 err := db.Select(&book).Where("id = ?", 123).Do()
+//
+// 	 err = db.Select(&books).Where("id > 1").Where("id < 10").Do()
 type StructSelect struct {
 	error             error
 	selectStatement   *SelectStatement
 	recordDescription *recordDescription
 }
 
-// Select initializes a SQL Select Statement with the given pointer as
+// Select initializes a SELECT statement with the given pointer as
 // target. The pointer could point to a single instance or a slice.
 func (db *DB) Select(record interface{}) *StructSelect {
 	var err error

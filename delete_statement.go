@@ -1,7 +1,10 @@
 package godb
 
 // DeleteStatement is a DELETE sql statement builder.
-// Initialize it with the DeleteFrom function.
+// Initialize it with the DeleteFrom method.
+//
+// Example :
+// 	count, err := db.DeleteFrom("bar").Where("foo = 1").Do()
 type DeleteStatement struct {
 	db *DB
 
@@ -29,7 +32,8 @@ func (ds *DeleteStatement) WhereQ(condition *Condition) *DeleteStatement {
 	return ds
 }
 
-// Suffix adds an expression to suffix the statement.
+// Suffix adds an expression to suffix the statement. Use it to add a
+// RETURNING clause with PostgreSQL (or whatever you need).
 func (ds *DeleteStatement) Suffix(suffix string) *DeleteStatement {
 	ds.suffixes = append(ds.suffixes, suffix)
 	return ds
@@ -66,7 +70,7 @@ func (ds *DeleteStatement) ToSQL() (string, []interface{}, error) {
 	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
 }
 
-// Do executes the builded query, and return RowsAffected()
+// Do executes the builded query, and return thr rows affected count.
 func (ds *DeleteStatement) Do() (int64, error) {
 	query, args, err := ds.ToSQL()
 	if err != nil {

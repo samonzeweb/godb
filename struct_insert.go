@@ -7,13 +7,19 @@ import (
 )
 
 // StructInsert builds an INSERT statement for the given object.
+//
+// Example (book is a struct instance, books a slice) :
+//
+// 	 err := db.Insert(&book).Do()
+//
+// 	 err = db.BulkInsert(&books).Do()
 type StructInsert struct {
 	error             error
 	insertStatement   *InsertStatement
 	recordDescription *recordDescription
 }
 
-// Insert initializes an insert sql statement for the given object.
+// Insert initializes an INSERT sql statement for the given object.
 func (db *DB) Insert(record interface{}) *StructInsert {
 	si := db.buildInsert(record)
 
@@ -24,7 +30,7 @@ func (db *DB) Insert(record interface{}) *StructInsert {
 	return si
 }
 
-// BuklInsert initializes an insert sql statement for a slice.
+// BuklInsert initializes an INSERT sql statement for a slice.
 //
 // Warning : not all databases are able to update the auto columns in the
 // case of insert with multiple rows. Only adapters implementing the
@@ -62,6 +68,9 @@ func (db *DB) buildInsert(record interface{}) *StructInsert {
 // The behaviour differs according to the adapter. If it implements the
 // InsertReturningSuffixer interface it will use it and fill all auto fields
 // of the given struct. Otherwise it only fills the key with LastInsertId.
+//
+// With BulkInsert the behaviour changeq occording to the adapter, see
+// BulkInsert documentation for more informations.
 func (si *StructInsert) Do() error {
 	if si.error != nil {
 		return si.error

@@ -3,6 +3,11 @@ package godb
 import "fmt"
 
 // StructUpdate builds an UPDATE statement for the given object.
+//
+// Example (book is a struct instance):
+//
+// 	 count, err := db.Update(&book).Do()
+//
 type StructUpdate struct {
 	error             error
 	updateStatement   *UpdateStatement

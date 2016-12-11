@@ -3,6 +3,14 @@ package godb
 import "gitlab.com/samonzeweb/godb/adapters"
 
 // InsertStatement is an INSERT statement builder.
+// Initialize it with the InsertInto method.
+//
+// Examples :
+//
+// 	id, err := db.InsertInto("bar").
+// 		Columns("foo", "baz").
+// 		Values(2, "something").
+// 		Do()
 type InsertStatement struct {
 	db *DB
 
@@ -31,7 +39,8 @@ func (is *InsertStatement) Values(values ...interface{}) *InsertStatement {
 	return is
 }
 
-// Suffix adds an expression to suffix the statement.
+// Suffix adds an expression to suffix the statement. Use it to add a
+// RETURNING clause with PostgreSQL (or whatever you need).
 func (is *InsertStatement) Suffix(suffix string) *InsertStatement {
 	is.suffixes = append(is.suffixes, suffix)
 	return is
@@ -67,7 +76,7 @@ func (is *InsertStatement) ToSQL() (string, []interface{}, error) {
 	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
 }
 
-// Do executes the builded INSERT statement and returns the LastInsertId() if
+// Do executes the builded INSERT statement and returns the creadted 'id' if
 // the adapter does not implement InsertReturningSuffixer.
 func (si *InsertStatement) Do() (int64, error) {
 	query, args, err := si.ToSQL()
