@@ -198,7 +198,21 @@ Condition struct like this :
 	q := godb.Or(godb.Q("foo is null"), godb.Q("foo > ?", 123))
 	count, err := db.SelectFrom("bar").WhereQ(q).Count()
 
+WhereQ methods take a Condition instance build by godb.Q . Where mathods take
+raw SQL, but is just a syntactic sugar. These calls are equivalents :
 
+	…WhereQ(godb.Q("id = ?", 123))…
+	…Where("id = ?", 123)…
+
+Multiple calls to Where or WhereQ are allowed, these calls are equivalents :
+
+	…Where("id = ?", 123).Where("foo is null")…
+	…WhereQ(godb.And(godb.Q("id = ?", 123), godb.Q("foo is null")))…
+
+Slices are managed in a particular way : a single placeholder is replaced with
+multiple ones. This allows code like :
+
+	count, err := db.SelectFrom("bar").Where("foo in (?)", fooSlice).Count()
 
 */
 package godb

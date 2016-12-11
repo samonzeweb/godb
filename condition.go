@@ -104,7 +104,7 @@ func Or(conditions ...*Condition) *Condition {
 	}
 }
 
-// Not negates a given condition surrounding it with 'NOT (' and ')'
+// Not negates a given condition surrounding it with 'NOT (' and ')'.
 func Not(condition *Condition) *Condition {
 	if condition.error != nil {
 		return condition
