@@ -187,5 +187,18 @@ this simply by simplementing a TableName method :
 		return "books"
 	}
 
+
+Conditions
+
+
+Statements and structs tools manage 'where' and 'group by' sql clauses. These
+conditionnal clauses are build either with raw sql code, or build with the
+Condition struct like this :
+
+	q := godb.Or(godb.Q("foo is null"), godb.Q("foo > ?", 123))
+	count, err := db.SelectFrom("bar").WhereQ(q).Count()
+
+
+
 */
 package godb
