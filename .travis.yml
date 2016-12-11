@@ -1,0 +1,17 @@
+language: go
+
+go:
+  - 1.7.x
+
+services:
+  - postgresql
+  - mysql
+
+env:
+  - GODB_POSTGRESQL="sslmode=disable user=postgres dbname=godb_test" GODB_MYSQL="travis:@/godb_test?parseTime=true"
+
+before_script:
+  - psql -c 'create database godb_test;' -U postgres
+  - mysql -e 'CREATE DATABASE godb_test;'
+
+script: go test -v ./...

@@ -1,10 +1,12 @@
 # godb - a simple Go ORM
 
+[![Build Status](https://travis-ci.org/samonzeweb/godb.svg?branch=master)](https://travis-ci.org/samonzeweb/godb) [![GoDoc](https://godoc.org/github.com/samonzeweb/godb?status.svg)](https://godoc.org/github.com/samonzeweb/godb)
+
 godb is a simple Go ORM. It contains a simple SQL query builder and manages mapping between SQL and structs.
 
 Initially godb was a learning project. The purpose was to improve my Go skills by doing real and usable stuff. But it could be useful for somebody else.
 
-There is no full documentation now, but the example (scroll down...) will show you the main features, and the tests will give you some more usages. Common tests (integration with DB) is a good ressouce.
+The documentation is as young as the code, but it exists ! You have an example (see below) showing you the main features, and more details in GoDoc : https://godoc.org/github.com/samonzeweb/godb
 
 WARNING : it is still a young project and the public API could change.
 
