@@ -18,6 +18,7 @@ Start with an adapter, and the Open method which returns a godb.DB pointer :
 	import (
 		"github.com/samonzeweb/godb"
 		"github.com/samonzeweb/godb/adapters/sqlite"
+	"crypto/aes"
 	)
 
 	func main() {
@@ -217,6 +218,7 @@ multiple ones. This allows code like :
 
 Consumed Time
 
+
 godb keep track of time consumed while executing queries. You can reset it and
 get the time consumed since Open or the previous reset :
 
@@ -235,6 +237,7 @@ logger :
 
 RETURNING Clause
 
+
 godb takes advantage of PostgreSQL RETURNING clause.
 
 With statements tools you have to add a RETURNING clause with the Suffix method
@@ -244,6 +247,23 @@ With StructInsert it's transparent, the RETURNING clause is added with all
 'auto' columns and it's managed for you. One of the big advantage is with
 BulkInsert : for others databases the rows are inserted but the new keys
 are unkonwns. With PostgreSQL the slice if updated for all inserted rows.
+
+
+Prepared statements cache
+
+
+godb has two prepared statements caches, one to use during transactions, and
+one to use outside of a transaction. Both use a LRU algorithm.
+
+The transaction cache is enabled by default, but not the other. A transaction
+(sql.Tx) isn't shared between goroutines, using prepared statement with it has a
+predictable behavious. But without transaction a prepared statement could have
+to be reprepared on a different connection if needed, leading to unpredictable
+performances in high concurrency scenario.
+
+Enabling the non transaction cache could improve performances with single
+goroutine batch. With multiple goroutines accessing the same database : it
+depends ! A benchmark would be wise.
 
 */
 package godb

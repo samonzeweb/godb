@@ -11,6 +11,9 @@ func StructsTests(db *godb.DB, t *testing.T) {
 	// Enable logger if needed
 	//db.SetLogger(log.New(os.Stderr, "", 0))
 
+	// Check experimental prepared statement cache for sql.DB
+	// db.StmtCacheDB().Enable()
+
 	structsInsertTest(db, t)
 	structsSelectTest(db, t)
 	structsUpdateTest(db, t)

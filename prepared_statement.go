@@ -1,6 +1,8 @@
 package godb
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 // queryable represents either a Tx, a DB, or a Stmt.
 type queryable interface {
@@ -30,53 +32,52 @@ func (q *queryWrapper) QueryRow(args ...interface{}) *sql.Row {
 	return q.db.QueryRow(q.sqlQuery, args...)
 }
 
-// EnableStmtCache enables prepared statement cache.
-// It is enabled by default.
-func (db *DB) EnableStmtCache() {
-	db.isPrepStmtEnabled = true
-}
-
-// DisableStmtCache disables prepared statement cache.
-func (db *DB) DisableStmtCache() {
-	db.isPrepStmtEnabled = false
-}
-
-// IsStmtCacheEnabled returns true if the cache of prepared
-// statements is enabled.
-func (db *DB) IsStmtCacheEnabled() bool {
-	return db.isPrepStmtEnabled
-}
-
 // getQueryable manages prepared statement, and its cache.
-func (db *DB) getQueryable(sql string) (queryable, error) {
-	// Prepared statements are managed only in a Tx, and when the
-	// cache is enabled.
-	if db.CurrentTx() == nil || db.isPrepStmtEnabled == false {
+func (db *DB) getQueryable(query string) (queryable, error) {
+	// One cache for sql.DB, and one for sql.Tx
+	var cache *StmtCache
+
+	if db.CurrentTx() == nil {
+		cache = db.stmtCacheDB
+	} else {
+		cache = db.stmtCacheTx
+	}
+
+	// If the cache is disabled, just return a wrapper to look like a
+	// prepared statement.
+	if !cache.IsEnabled() {
 		wrapper := queryWrapper{
 			db:       db.getTxElseDb(),
-			sqlQuery: sql,
+			sqlQuery: query,
 		}
 		return &wrapper, nil
 	}
 
 	// Already prepared ?
-	prepStmt, ok := db.preparedStmts[sql]
-	if ok {
+	stmt := cache.get(query)
+	if stmt != nil {
 		db.logPrintln("Use cached prepared statement")
-		return prepStmt, nil
+		return stmt, nil
 	}
 
 	// New prepared statement
 	db.logPrintln("Prepare statement and cache it")
-	prepStmt, err := db.CurrentTx().Prepare(sql)
+	stmt, err := db.getTxElseDb().Prepare(query)
 	if err != nil {
 		return nil, err
 	}
-	db.preparedStmts[sql] = prepStmt
-	return prepStmt, nil
+	cache.add(query, stmt)
+	return stmt, nil
 }
 
-// clearPreparedStatement clears the prepared statements cache.
-func (db *DB) resetPreparedStatementsCache() {
-	db.preparedStmts = make(map[string]*sql.Stmt)
+// StmtCacheDB returns the prepared statement cache for queries outside a
+// transaction (run with sql.DB).
+func (db *DB) StmtCacheDB() *StmtCache {
+	return db.stmtCacheDB
+}
+
+// StmtCacheTx returns the prepared statement cache for queries inside a
+// transaction (run with sql.Tx).
+func (db *DB) StmtCacheTx() *StmtCache {
+	return db.stmtCacheTx
 }

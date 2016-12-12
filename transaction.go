@@ -43,7 +43,7 @@ func (db *DB) Commit() error {
 		return fmt.Errorf("Commit was called without existing sql transaction")
 	}
 
-	db.resetPreparedStatementsCache()
+	db.stmtCacheTx.clearWithoutClosingStmt()
 	startTime := time.Now()
 	err := db.sqlTx.Commit()
 	condumedTime := timeElapsedSince(startTime)
@@ -61,7 +61,7 @@ func (db *DB) Rollback() error {
 		return fmt.Errorf("Rollback was called without existing sql transaction")
 	}
 
-	db.resetPreparedStatementsCache()
+	db.stmtCacheTx.clearWithoutClosingStmt()
 	startTime := time.Now()
 	err := db.sqlTx.Rollback()
 	condumedTime := timeElapsedSince(startTime)

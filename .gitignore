@@ -1,5 +1,6 @@
 # Editors
 *.swp
+.vscode
 
 # Databases
 *.db

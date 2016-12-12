@@ -18,22 +18,25 @@ type DB struct {
 	logger       *log.Logger
 	consumedTime time.Duration
 
-	// Prepared Statement cache
-	preparedStmts     map[string]*sql.Stmt
-	isPrepStmtEnabled bool
+	// Prepared Statement cache for DB and Tx
+	stmtCacheDB *StmtCache
+	stmtCacheTx *StmtCache
 }
 
-// Default placeholder, use it to build queries.
+// Placeholder is the placeholder string, use it to build queries.
 // Adapters could change it before queries are executed.
 const Placeholder string = "?"
 
 // Open creates a new DB struct and initialise a sql.DB connection.
 func Open(adapter adapters.Adapter, dataSourceName string) (*DB, error) {
-	db := DB{adapter: adapter}
+	db := DB{
+		adapter:     adapter,
+		stmtCacheDB: newStmtCache(),
+		stmtCacheTx: newStmtCache(),
+	}
 
-	// Prepared statements cache is enabled by default
-	db.EnableStmtCache()
-	db.resetPreparedStatementsCache()
+	// Prepared statements cache is disabled by default except for Tx
+	db.stmtCacheDB.Disable()
 
 	var err error
 	db.sqlDB, err = sql.Open(adapter.DriverName(), dataSourceName)
@@ -44,16 +47,31 @@ func Open(adapter adapters.Adapter, dataSourceName string) (*DB, error) {
 }
 
 // Clone creates a copy of an existing DB, without the current transaction.
-// The clone has no consumed time.
+// The clone has no consumed time, and new prepared statements caches with
+// the same characteristics.
 // Use it to create new DB object before starting a goroutine.
 func (db *DB) Clone() *DB {
-	return &DB{
+	clone := &DB{
 		adapter:      db.adapter,
 		sqlDB:        db.sqlDB,
 		sqlTx:        nil,
 		logger:       db.logger,
 		consumedTime: 0,
+		stmtCacheDB:  newStmtCache(),
+		stmtCacheTx:  newStmtCache(),
 	}
+
+	clone.stmtCacheDB.SetSize(db.stmtCacheDB.GetSize())
+	if !db.stmtCacheDB.IsEnabled() {
+		clone.stmtCacheDB.Disable()
+	}
+
+	clone.stmtCacheTx.SetSize(db.stmtCacheTx.GetSize())
+	if !db.stmtCacheTx.IsEnabled() {
+		clone.stmtCacheTx.Disable()
+	}
+
+	return clone
 }
 
 // Close closes an existing DB created by Open.
