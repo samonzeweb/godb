@@ -17,7 +17,7 @@ WARNING : it is still a young project and the public API could change.
 * Mapping with nested structs.
 * Execution of custom SELECT, INSERT, UPDATE and DELETE queries with structs and slices.
 * SQL queries and durations logs.
-* Prepared statements cache during transactions.
+* Two adjustable prepared statements caches (with/without transaction).
 * `RETURNING` support for PostgreSQL.
 * Could by used with
   * SQLite
