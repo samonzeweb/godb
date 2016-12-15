@@ -104,10 +104,10 @@ import (
   a 'books' table like this :
 
   create table books (
-  id 						integer not null primary key autoincrement,
-  title     		text not null,
-  author    	  text not null,
-  published			date not null);
+  	id        integer not null primary key autoincrement,
+  	title     text    not null,
+  	author    text    not null,
+  	published date    not null);
 */
 
 // Struct and its mapping

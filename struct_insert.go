@@ -30,7 +30,7 @@ func (db *DB) Insert(record interface{}) *StructInsert {
 	return si
 }
 
-// BuklInsert initializes an INSERT sql statement for a slice.
+// BulkInsert initializes an INSERT sql statement for a slice.
 //
 // Warning : not all databases are able to update the auto columns in the
 // case of insert with multiple rows. Only adapters implementing the
@@ -108,7 +108,7 @@ func (si *StructInsert) Do() error {
 
 	// Case for adapters not implenting InsertReturningSuffix(), we use the
 	// value given by LastInsertId() (through Do method)
-	insertedId, err := si.insertStatement.Do()
+	insertedID, err := si.insertStatement.Do()
 	if err != nil {
 		return err
 	}
@@ -120,35 +120,35 @@ func (si *StructInsert) Do() error {
 	}
 
 	// Get the Id
-	pointerToId, err := si.recordDescription.structMapping.GetAutoKeyPointer(si.recordDescription.record)
+	pointerToID, err := si.recordDescription.structMapping.GetAutoKeyPointer(si.recordDescription.record)
 	if err != nil {
 		return err
 	}
 
-	if pointerToId != nil {
-		switch t := pointerToId.(type) {
+	if pointerToID != nil {
+		switch t := pointerToID.(type) {
 		default:
-			return fmt.Errorf("Not implemented type for key : %T", pointerToId)
+			return fmt.Errorf("Not implemented type for key : %T", pointerToID)
 		case *int:
-			*t = int(insertedId)
+			*t = int(insertedID)
 		case *int8:
-			*t = int8(insertedId)
+			*t = int8(insertedID)
 		case *int16:
-			*t = int16(insertedId)
+			*t = int16(insertedID)
 		case *int32:
-			*t = int32(insertedId)
+			*t = int32(insertedID)
 		case *int64:
-			*t = int64(insertedId)
+			*t = int64(insertedID)
 		case *uint:
-			*t = uint(insertedId)
+			*t = uint(insertedID)
 		case *uint8:
-			*t = uint8(insertedId)
+			*t = uint8(insertedID)
 		case *uint16:
-			*t = uint16(insertedId)
+			*t = uint16(insertedID)
 		case *uint32:
-			*t = uint32(insertedId)
+			*t = uint32(insertedID)
 		case *uint64:
-			*t = uint64(insertedId)
+			*t = uint64(insertedID)
 		}
 	}
 

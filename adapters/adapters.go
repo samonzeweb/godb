@@ -1,5 +1,5 @@
-// The package adapters contains database specific code, mainly in
-// sub-packages
+// Package adapters contains database specific code, mainly in
+// sub-packages.
 package adapters
 
 // Adapter interface is the minimal implementation for an adapter.

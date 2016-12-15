@@ -7,11 +7,11 @@ import (
 )
 
 type typeToDescribe struct {
-	Id int `db:"id"`
+	ID int `db:"id"`
 }
 
 type otherTypeToDescribe struct {
-	Id int `db:"id"`
+	ID int `db:"id"`
 }
 
 func (*otherTypeToDescribe) TableName() string {
@@ -70,10 +70,10 @@ func TestFillRecord(t *testing.T) {
 		Convey("fillRecord call the given func with the instance pointer", func() {
 			recordDesc.fillRecord(func(record interface{}) error {
 				So(record, ShouldEqual, instancePtr)
-				record.(*typeToDescribe).Id = 123
+				record.(*typeToDescribe).ID = 123
 				return nil
 			})
-			So(instancePtr.Id, ShouldEqual, 123)
+			So(instancePtr.ID, ShouldEqual, 123)
 		})
 	})
 
@@ -84,12 +84,12 @@ func TestFillRecord(t *testing.T) {
 		Convey("fillRecord call the given func with a new instance pointer", func() {
 			recordDesc.fillRecord(func(record interface{}) error {
 				So(record, ShouldHaveSameTypeAs, &typeToDescribe{})
-				record.(*typeToDescribe).Id = 123
+				record.(*typeToDescribe).ID = 123
 				return nil
 			})
 			So(len(slice), ShouldEqual, 1)
 			So(slice[0], ShouldHaveSameTypeAs, typeToDescribe{})
-			So(slice[0].Id, ShouldEqual, 123)
+			So(slice[0].ID, ShouldEqual, 123)
 		})
 	})
 
@@ -100,12 +100,12 @@ func TestFillRecord(t *testing.T) {
 		Convey("fillRecord call the given func with a new instance pointer", func() {
 			recordDesc.fillRecord(func(record interface{}) error {
 				So(record, ShouldHaveSameTypeAs, &typeToDescribe{})
-				record.(*typeToDescribe).Id = 123
+				record.(*typeToDescribe).ID = 123
 				return nil
 			})
 			So(len(slice), ShouldEqual, 1)
 			So(slice[0], ShouldHaveSameTypeAs, &typeToDescribe{})
-			So((*slice[0]).Id, ShouldEqual, 123)
+			So((*slice[0]).ID, ShouldEqual, 123)
 		})
 	})
 }
@@ -161,22 +161,22 @@ func TestIndex(t *testing.T) {
 
 	Convey("Given a slice descriptor", t, func() {
 		slice := make([]typeToDescribe, 0, 0)
-		first := typeToDescribe{Id: 123}
-		second := typeToDescribe{Id: 456}
+		first := typeToDescribe{ID: 123}
+		second := typeToDescribe{ID: 456}
 		slice = append(slice, first, second)
 		recordDesc, _ := buildRecordDescription(&slice)
 		Convey("Index returns the pointer to the instance at the given index", func() {
-			So(recordDesc.index(0).(*typeToDescribe).Id, ShouldEqual, 123)
-			So(recordDesc.index(1).(*typeToDescribe).Id, ShouldEqual, 456)
-			recordDesc.index(0).(*typeToDescribe).Id = 1234
-			So(recordDesc.index(0).(*typeToDescribe).Id, ShouldEqual, 1234)
+			So(recordDesc.index(0).(*typeToDescribe).ID, ShouldEqual, 123)
+			So(recordDesc.index(1).(*typeToDescribe).ID, ShouldEqual, 456)
+			recordDesc.index(0).(*typeToDescribe).ID = 1234
+			So(recordDesc.index(0).(*typeToDescribe).ID, ShouldEqual, 1234)
 		})
 	})
 
 	Convey("Given a slice of pointers descriptor", t, func() {
 		slice := make([]*typeToDescribe, 0, 0)
-		first := typeToDescribe{Id: 123}
-		second := typeToDescribe{Id: 456}
+		first := typeToDescribe{ID: 123}
+		second := typeToDescribe{ID: 456}
 		slice = append(slice, &first, &second)
 		recordDesc, _ := buildRecordDescription(&slice)
 		Convey("Index returns the pointer to the instance at the given index", func() {

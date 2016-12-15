@@ -103,7 +103,7 @@ func (db *DB) ConsumedTime() time.Duration {
 	return db.consumedTime
 }
 
-// Reset the time consumed by SQL queries executions
+// ResetConsumedTime resets the time consumed by SQL queries executions
 func (db *DB) ResetConsumedTime() {
 	db.consumedTime = 0
 }

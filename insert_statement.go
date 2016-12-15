@@ -78,30 +78,30 @@ func (is *InsertStatement) ToSQL() (string, []interface{}, error) {
 
 // Do executes the builded INSERT statement and returns the creadted 'id' if
 // the adapter does not implement InsertReturningSuffixer.
-func (si *InsertStatement) Do() (int64, error) {
-	query, args, err := si.ToSQL()
+func (is *InsertStatement) Do() (int64, error) {
+	query, args, err := is.ToSQL()
 	if err != nil {
 		return 0, err
 	}
 
-	result, err := si.db.do(query, args)
+	result, err := is.db.do(query, args)
 	if err != nil {
 		return 0, err
 	}
 
 	// Return the created 'Id' (if available)
-	_, ok := si.db.adapter.(adapters.InsertReturningSuffixer)
+	_, ok := is.db.adapter.(adapters.InsertReturningSuffixer)
 	if ok {
 		// adapters with InsertSuffixer does not use LastInsertId()
 		return 0, nil
 	}
-	lastInsertId, err := result.LastInsertId()
-	return lastInsertId, err
+	lastInsertID, err := result.LastInsertId()
+	return lastInsertID, err
 }
 
 // DoWithReturning executes the statement and fills the fields according to
 // the columns in RETURNING clause.
-func (si *InsertStatement) DoWithReturning(record interface{}) error {
+func (is *InsertStatement) DoWithReturning(record interface{}) error {
 	recordDescription, err := buildRecordDescription(record)
 	if err != nil {
 		return err
@@ -113,16 +113,16 @@ func (si *InsertStatement) DoWithReturning(record interface{}) error {
 		return pointers, err
 	}
 
-	return si.doWithReturning(recordDescription, f)
+	return is.doWithReturning(recordDescription, f)
 }
 
 // DoWithReturning executes the statement and fills the fields according to
 // the columns in RETURNING clause.
-func (si *InsertStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
-	query, args, err := si.ToSQL()
+func (is *InsertStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
+	query, args, err := is.ToSQL()
 	if err != nil {
 		return err
 	}
 
-	return si.db.doWithReturning(query, args, recordDescription, pointersGetter)
+	return is.db.doWithReturning(query, args, recordDescription, pointersGetter)
 }

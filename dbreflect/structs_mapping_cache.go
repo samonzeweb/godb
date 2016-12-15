@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+// StructsMappingCache is a cache for StructMapping.
 type StructsMappingCache struct {
 	lock           *sync.RWMutex
 	structsMapping map[string]*StructMapping
