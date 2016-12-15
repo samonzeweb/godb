@@ -118,7 +118,7 @@ type Book struct {
 	Published time.Time `db:"published"`
 }
 
-// Optionnal, default if the struct name (Book)
+// Optional, default if the struct name (Book)
 func (*Book) TableName() string {
 	return "books"
 }
