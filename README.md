@@ -1,8 +1,8 @@
-# godb - a simple Go ORM
+# godb - a Go query builder and struct mapper
 
 [![Build Status](https://travis-ci.org/samonzeweb/godb.svg?branch=master)](https://travis-ci.org/samonzeweb/godb) [![GoDoc](https://godoc.org/github.com/samonzeweb/godb?status.svg)](https://godoc.org/github.com/samonzeweb/godb)
 
-godb is a simple Go ORM. It contains a simple SQL query builder and manages mapping between SQL and structs.
+godb is a simple Go query builder and struct mapper, not a full-featured ORM. godb does not manage relationships.
 
 Initially godb was a learning project. The purpose was to improve my Go skills by doing real and usable stuff. But it could be useful for somebody else.
 
@@ -25,8 +25,6 @@ WARNING : it is still a young project and the public API could change.
   * MySQL / MariaDB
   * MS SQL Server
   * other compatible database if you write an adapter.
-
-godb does not manage relationship.
 
 I made some tests of godb on Windows and Linux, ARM (Cortex A7) and Intel x64.
 

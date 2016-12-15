@@ -1,10 +1,9 @@
 /*
-Package godb is a simple ORM allowing go code to execute sql queries with go
-structs.
+Package godb is query builder and struct mapper.
 
 godb does not manage relationships like Active Record or Entity Framework, it's
-a lighter library. Its goal is to be more productive than manually doing mapping
-between Go structs and databases tables. godb also have a sql builder.
+not a full-featured ORM. Its goal is to be more productive than manually doing mapping
+between Go structs and databases tables.
 
 godb needs adapters to use databases, some are packaged with godb for :
 
