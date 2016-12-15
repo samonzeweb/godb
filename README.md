@@ -87,7 +87,7 @@ The example below illustrates the main features of godb.
 You can copy the code into an `example.go` file and run it. You need to create the database and the `books` table as explained in the code.
 
 
-```
+```go
 package main
 
 import (
