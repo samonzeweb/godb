@@ -215,6 +215,22 @@ multiple ones. This allows code like :
 	count, err := db.SelectFrom("bar").Where("foo in (?)", fooSlice).Count()
 
 
+Optimistic Locking
+
+Structs updates and deletes manage optimistic locking when a dedicated row
+is present. Simply tags it with `oplock` :
+
+	type KeyStruct struct {
+		...
+		Version    int    `db:"version,oplock"`
+		...
+	}
+
+When an update or delete operation fails, Do() returns the `ErrOpLock` error.
+
+For now, only integer rows are supported.
+
+
 Consumed Time
 
 

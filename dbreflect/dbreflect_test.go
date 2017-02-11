@@ -48,6 +48,18 @@ type StructWithScannableStruct struct {
 	Time time.Time `db:"a_day"`
 }
 
+type StructWithOptimiticLocking struct {
+	ID      int    `db:"id,key,auto"`
+	Text    string `db:"my_text,auto"`
+	Version int    `db:"version,oplock"`
+}
+
+type StructWithInvalidOptimiticLocking struct {
+	ID         int    `db:"id,key,auto"`
+	Text       string `db:"my_text,auto"`
+	BadVersion string `db:"version,oplock"`
+}
+
 func TestStructMapping(t *testing.T) {
 	Convey("NewStructMapping with a struct type", t, func() {
 		structMap, _ := NewStructMapping(reflect.TypeOf(SimpleStruct{}))
@@ -65,23 +77,24 @@ func TestStructMapping(t *testing.T) {
 
 	Convey("NewStructMapping with a complex struct type with sub-structs", t, func() {
 		structMap, _ := NewStructMapping(reflect.TypeOf(ComplexStruct{}))
-		So(len(structMap.subStructMapping), ShouldEqual, 2)
+		structMapDetails := structMap.structMapping
+		So(len(structMapDetails.subStructMapping), ShouldEqual, 2)
 
 		Convey("It store data about sub struct without prefix ", func() {
-			So(structMap.subStructMapping[0].prefix, ShouldEqual, "")
-			So(structMap.subStructMapping[0].structMapping.Name, ShouldEndWith, "SimpleStruct")
+			So(structMapDetails.subStructMapping[0].prefix, ShouldEqual, "")
+			So(structMapDetails.subStructMapping[0].structMapping.name, ShouldEndWith, "SimpleStruct")
 		})
 
 		Convey("It store data about sub struct with prefix ", func() {
-			So(structMap.subStructMapping[1].prefix, ShouldEqual, "nested_")
-			So(structMap.subStructMapping[1].structMapping.Name, ShouldEndWith, "SubStruct")
+			So(structMapDetails.subStructMapping[1].prefix, ShouldEqual, "nested_")
+			So(structMapDetails.subStructMapping[1].structMapping.name, ShouldEndWith, "SubStruct")
 		})
 	})
 
 }
 
 func TestScannableStructs(t *testing.T) {
-	Convey("Calling NewStructMapping without a struct ", t, func() {
+	Convey("Calling NewStructMapping with a struct ", t, func() {
 		structWithScannableStruct := StructWithScannableStruct{}
 		structMap, err := NewStructMapping(reflect.TypeOf(structWithScannableStruct))
 		So(err, ShouldBeNil)
@@ -300,5 +313,44 @@ func TestGetAutoFieldsPointers(t *testing.T) {
 			So(pointers[0], ShouldEqual, &(structInstance.ID))
 			So(pointers[1], ShouldEqual, &(structInstance.Text))
 		})
+	})
+}
+
+func TestOpLockFieldName(t *testing.T) {
+	Convey("Given a StructMapping with an optimistic locking field", t, func() {
+		structWithOpLockField := StructWithOptimiticLocking{}
+		structMap, err := NewStructMapping(reflect.TypeOf(structWithOpLockField))
+		So(err, ShouldBeNil)
+
+		Convey("NewStructMapping detects optimictic locking field", func() {
+			sqlFieldName := structMap.GetOpLockSQLFieldName()
+			So(sqlFieldName, ShouldEqual, "version")
+		})
+	})
+}
+
+func TestGetAndUpdateOpLockField(t *testing.T) {
+	Convey("Given a StructMapping with an optimistic locking field", t, func() {
+		structWithOpLockField := StructWithOptimiticLocking{}
+		structMap, err := NewStructMapping(reflect.TypeOf(structWithOpLockField))
+		So(err, ShouldBeNil)
+
+		Convey("NewStructMapping detects optimictic locking field", func() {
+			structWithOpLockField.Version = 123
+			currentValue, err := structMap.GetAndUpdateOpLockFieldValue(&structWithOpLockField)
+			So(err, ShouldBeNil)
+			So(currentValue, ShouldEqual, 123)
+			So(structWithOpLockField.Version, ShouldEqual, 124)
+		})
+	})
+}
+
+func TestInvalidOpLockFieldType(t *testing.T) {
+	Convey("Given a StructMapping with an invalid optimistic locking field", t, func() {
+		structWithInvalidOpLockField := StructWithInvalidOptimiticLocking{}
+		_, err := NewStructMapping(reflect.TypeOf(structWithInvalidOpLockField))
+		So(err, ShouldNotBeNil)
+		So(err.Error(), ShouldContainSubstring, "type")
+
 	})
 }

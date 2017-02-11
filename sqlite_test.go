@@ -24,7 +24,8 @@ func fixturesSetupSQLite(t *testing.T) *godb.DB {
 		id 						integer not null primary key autoincrement,
 		title     		text not null,
 		author    	  text not null,
-    published			date not null);
+        published			date not null,
+		version       int not null default 0);
 	`
 	_, err = db.CurrentDB().Exec(createTable)
 	if err != nil {

@@ -53,7 +53,22 @@ func (sd *StructDelete) Do() (int64, error) {
 		sd.deleteStatement = sd.deleteStatement.Where(quotedColumn+" = ?", keyValues[i])
 	}
 
+	// Optimistic Locking
+	opLockColumn := sd.recordDescription.structMapping.GetOpLockSQLFieldName()
+	if opLockColumn != "" {
+		opLockValue, err := sd.recordDescription.structMapping.GetAndUpdateOpLockFieldValue(sd.recordDescription.record)
+		if err != nil {
+			return 0, err
+		}
+		sd.deleteStatement = sd.deleteStatement.Where(opLockColumn+" = ?", opLockValue)
+	}
+
 	// Executes the query
 	rowsAffected, err := sd.deleteStatement.Do()
+
+	if opLockColumn != "" && rowsAffected == 0 {
+		err = ErrOpLock
+	}
+
 	return rowsAffected, err
 }

@@ -60,7 +60,22 @@ func (su *StructUpdate) Do() (int64, error) {
 		su.updateStatement = su.updateStatement.Where(quotedColumn+" = ?", keyValues[i])
 	}
 
+	// Optimistic Locking
+	opLockColumn := su.recordDescription.structMapping.GetOpLockSQLFieldName()
+	if opLockColumn != "" {
+		opLockValue, err := su.recordDescription.structMapping.GetAndUpdateOpLockFieldValue(su.recordDescription.record)
+		if err != nil {
+			return 0, err
+		}
+		su.updateStatement = su.updateStatement.Where(opLockColumn+" = ?", opLockValue)
+	}
+
 	// Executes the query
 	rowsAffected, err := su.updateStatement.Do()
+
+	if opLockColumn != "" && rowsAffected == 0 {
+		err = ErrOpLock
+	}
+
 	return rowsAffected, err
 }

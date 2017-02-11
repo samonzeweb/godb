@@ -16,6 +16,7 @@ WARNING : it is still a young project and the public API could change.
 * Mapping between structs and tables.
 * Mapping with nested structs.
 * Execution of custom SELECT, INSERT, UPDATE and DELETE queries with structs and slices.
+* Optimistic Locking
 * SQL queries and durations logs.
 * Two adjustable prepared statements caches (with/without transaction).
 * `RETURNING` support for PostgreSQL.

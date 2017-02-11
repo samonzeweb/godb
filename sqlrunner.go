@@ -16,7 +16,7 @@ func (db *DB) do(query string, arguments []interface{}) (sql.Result, error) {
 	query = db.replacePlaceholders(query)
 	db.logPrintln(query, arguments)
 
-	// Execute the UPDATE statement
+	// Execute the statement
 	startTime := time.Now()
 	queryable, err := db.getQueryable(query)
 	if err != nil {

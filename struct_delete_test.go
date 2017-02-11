@@ -27,5 +27,19 @@ func TestDeleteDo(t *testing.T) {
 				So(count, ShouldEqual, 1)
 			})
 		})
+
+		Convey("Delete returns error if optimistic locking fails", func() {
+			dummy := &Dummy{}
+			err := db.Select(dummy).Where("an_integer = ?", 11).Do()
+			So(err, ShouldBeNil)
+
+			// Simulate another update of the record.
+			_, err = db.UpdateTable("dummies").Set("version", 1).Where("id = ?", dummy.ID).Do()
+			So(err, ShouldBeNil)
+
+			count, err := db.Delete(dummy).Do()
+			So(count, ShouldEqual, 0)
+			So(err, ShouldEqual, ErrOpLock)
+		})
 	})
 }

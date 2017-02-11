@@ -39,6 +39,7 @@ type Dummy struct {
 	AnotherText     string         `db:"another_text"`
 	AnInteger       int            `db:"an_integer"`
 	ANullableString sql.NullString `db:"a_nullable_string"`
+	Version         int            `db:"version,oplock"`
 }
 
 func (*Dummy) TableName() string {
@@ -54,7 +55,8 @@ func fixturesSetup(t *testing.T) *DB {
 		a_text     				text not null,
 		another_text			text not null,
 		an_integer 				integer not null,
-		a_nullable_string	text);
+		a_nullable_string	text,
+		version           integet not null default(0));
 	`
 	_, err := db.sqlDB.Exec(createTable)
 	if err != nil {

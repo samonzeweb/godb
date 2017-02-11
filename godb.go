@@ -2,6 +2,7 @@ package godb
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"time"
 
@@ -26,6 +27,9 @@ type DB struct {
 // Placeholder is the placeholder string, use it to build queries.
 // Adapters could change it before queries are executed.
 const Placeholder string = "?"
+
+// ErrOpLock is an error returned when Optimistic Locking failure occurs
+var ErrOpLock = errors.New("Optimistic Locking Failure")
 
 // Open creates a new DB struct and initialise a sql.DB connection.
 func Open(adapter adapters.Adapter, dataSourceName string) (*DB, error) {

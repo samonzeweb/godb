@@ -7,6 +7,7 @@ type Book struct {
 	Title     string    `db:"title"`
 	Author    string    `db:"author"`
 	Published time.Time `db:"published"`
+	Version   int       `db:"version,oplock"`
 }
 
 func (*Book) TableName() string {

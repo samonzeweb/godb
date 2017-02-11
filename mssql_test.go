@@ -29,7 +29,8 @@ func fixturesSetupMSSQL(t *testing.T) (*godb.DB, func()) {
 		id 						int identity,
 		title     		nvarchar(128) not null,
 		author    	  nvarchar(128) not null,
-		published			datetime2 not null);
+		published			datetime2 not null,
+		version       int not null default 0);
 	`
 	_, err = db.CurrentDB().Exec(createTable)
 	if err != nil {
