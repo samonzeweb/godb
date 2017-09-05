@@ -15,5 +15,6 @@ env:
 before_script:
   - psql -c 'create database godb_test;' -U postgres
   - mysql -e 'CREATE DATABASE godb_test;'
+  - mysql -e 'GRANT ALL ON godb_test.* to travis@localhost;'
 
 script: go test -v ./...
