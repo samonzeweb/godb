@@ -197,8 +197,8 @@ func (sm *StructMapping) setOpLockField() error {
 				return true, fmt.Errorf("There is more than one optimistic locking field in %s", sm.Name)
 			}
 
-			if !isValidOpLockFieldType(fieldMapping) {
-				return true, fmt.Errorf("The field %s in the struct %s don't have a valid type for an oplock field", fieldMapping.name, sm.Name)
+			if !fieldMapping.isAuto && !isValidAutoOpLockFieldType(fieldMapping) {
+				return true, fmt.Errorf("The field %s in the struct %s don't have a valid type for an auto,oplock field", fieldMapping.name, sm.Name)
 			}
 
 			sm.opLockSQLName = fullName
@@ -210,9 +210,9 @@ func (sm *StructMapping) setOpLockField() error {
 	return err
 }
 
-// isValidOpLockFieldType check if a field type (Kind) is valid for an
+// isValidAutoOpLockFieldType check if a field type (Kind) is valid for an
 // optimistic locking field.
-func isValidOpLockFieldType(fieldMapping *fieldMapping) bool {
+func isValidAutoOpLockFieldType(fieldMapping *fieldMapping) bool {
 	switch fieldMapping.kind {
 	case reflect.Int,
 		reflect.Int8,
@@ -435,7 +435,8 @@ func (sm *StructMapping) GetOpLockSQLFieldName() string {
 }
 
 // GetAndUpdateOpLockFieldValue returns the current value of the optimistic
-// locking field, and update its value.
+// locking field, and update its value (unless it's an auto value updated by
+// the database itself).
 func (sm *StructMapping) GetAndUpdateOpLockFieldValue(s interface{}) (interface{}, error) {
 	if sm.opLockSQLName == "" {
 		return nil, fmt.Errorf("Struct %s can't update oplock field, there is no such field", sm.Name)
@@ -449,7 +450,9 @@ func (sm *StructMapping) GetAndUpdateOpLockFieldValue(s interface{}) (interface{
 	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		if fullName == sm.opLockSQLName {
 			currentFieldValue = value.Interface()
-			value.SetInt(value.Int() + 1)
+			if !fieldMapping.isAuto {
+				updateAutoOpLockField(value)
+			}
 			return true, nil
 		}
 		return false, nil
@@ -460,6 +463,12 @@ func (sm *StructMapping) GetAndUpdateOpLockFieldValue(s interface{}) (interface{
 	}
 
 	return currentFieldValue, nil
+}
+
+// updateAutoOpLockField updates the value of the optimistic locking field.
+// It manages only types accepted by isValidAutoOpLockFieldType.
+func updateAutoOpLockField(value *reflect.Value) {
+	value.SetInt(value.Int() + 1)
 }
 
 // treeExplorer is a callback function for traverseTree, see below

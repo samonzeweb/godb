@@ -35,17 +35,33 @@ func TestUpdateDo(t *testing.T) {
 		})
 
 		Convey("Update returns error if optimistic locking fails", func() {
-			dummy := &Dummy{}
-			err := db.Select(dummy).Where("an_integer = ?", 11).Do()
-			So(err, ShouldBeNil)
+			Convey("With non auto oplock field", func() {
+				dummy := &Dummy{}
+				err := db.Select(dummy).Where("an_integer = ?", 11).Do()
+				So(err, ShouldBeNil)
 
-			// Simulate another update of the record.
-			_, err = db.UpdateTable("dummies").Set("version", 1).Where("id = ?", dummy.ID).Do()
-			So(err, ShouldBeNil)
+				// Simulate another update of the record.
+				_, err = db.UpdateTable("dummies").Set("version", 1).Where("id = ?", dummy.ID).Do()
+				So(err, ShouldBeNil)
 
-			count, err := db.Update(dummy).Do()
-			So(count, ShouldEqual, 0)
-			So(err, ShouldEqual, ErrOpLock)
+				count, err := db.Update(dummy).Do()
+				So(count, ShouldEqual, 0)
+				So(err, ShouldEqual, ErrOpLock)
+			})
+
+			Convey("With auto oplock field", func() {
+				dummy := &DummyAutoOplock{}
+				err := db.Select(dummy).Where("an_integer = ?", 11).Do()
+				So(err, ShouldBeNil)
+
+				// Simulate another update of the record.
+				_, err = db.UpdateTable("dummiesautooplock").Set("version", 1).Where("id = ?", dummy.ID).Do()
+				So(err, ShouldBeNil)
+
+				count, err := db.Update(dummy).Do()
+				So(count, ShouldEqual, 0)
+				So(err, ShouldEqual, ErrOpLock)
+			})
 		})
 	})
 }
