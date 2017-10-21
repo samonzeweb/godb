@@ -63,7 +63,7 @@ func NullInt64From(v int64) NullInt64 {
 
 // NullTimeFrom creates a valid NullTime
 func NullTimeFrom(v time.Time) NullTime {
-	return NullTime{Time: v, Valid: true}}
+	return NullTime{Time: v, Valid: true}
 }
 
 // NullBoolFrom creates a valid NullBool
