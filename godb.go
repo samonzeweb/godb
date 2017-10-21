@@ -50,6 +50,23 @@ func Open(adapter adapters.Adapter, dataSourceName string) (*DB, error) {
 	return &db, nil
 }
 
+
+// Wrap creates a godb.DB by using provided and initialized sql.DB Helpful for
+// using custom configured sql.DB instance for godb. Can be used before
+// starting a goroutine.
+func Wrap(adapter adapters.Adapter, dbInst *sql.DB) *DB {
+	db := DB{
+		adapter:     adapter,
+		stmtCacheDB: newStmtCache(),
+		stmtCacheTx: newStmtCache(),
+	}
+
+	// Prepared statements cache is disabled by default except for Tx
+	db.stmtCacheDB.Disable()
+	db.sqlDB = dbInst
+	return &db
+}
+
 // Clone creates a copy of an existing DB, without the current transaction.
 // The clone has consumedTime set to zero, and new prepared statements caches with
 // the same characteristics.
@@ -58,33 +75,6 @@ func (db *DB) Clone() *DB {
 	clone := &DB{
 		adapter:      db.adapter,
 		sqlDB:        db.sqlDB,
-		sqlTx:        nil,
-		logger:       db.logger,
-		consumedTime: 0,
-		stmtCacheDB:  newStmtCache(),
-		stmtCacheTx:  newStmtCache(),
-	}
-
-	clone.stmtCacheDB.SetSize(db.stmtCacheDB.GetSize())
-	if !db.stmtCacheDB.IsEnabled() {
-		clone.stmtCacheDB.Disable()
-	}
-
-	clone.stmtCacheTx.SetSize(db.stmtCacheTx.GetSize())
-	if !db.stmtCacheTx.IsEnabled() {
-		clone.stmtCacheTx.Disable()
-	}
-
-	return clone
-}
-
-// Wrap creates a godb.DB by using provided and initialized sql.DB Helpful for
-// using custom configured sql.DB instance for godb. Can be used before
-// starting a goroutine.
-func (db *DB) Wrap(adapter adapters.Adapter, dbInst *sql.DB) *DB {
-	clone := &DB{
-		adapter:      adapter,
-		sqlDB:        dbInst,
 		sqlTx:        nil,
 		logger:       db.logger,
 		consumedTime: 0,
