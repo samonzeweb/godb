@@ -81,9 +81,9 @@ func (db *DB) Clone() *DB {
 // Wrap creates a godb.DB by using provided and initialized sql.DB Helpful for
 // using custom configured sql.DB instance for godb. Can be used before
 // starting a goroutine.
-func (db *DB) Wrap(dbInst *sql.DB) *DB {
+func (db *DB) Wrap(adapter adapters.Adapter, dbInst *sql.DB) *DB {
 	clone := &DB{
-		adapter:      db.adapter,
+		adapter:      adapter,
 		sqlDB:        dbInst,
 		sqlTx:        nil,
 		logger:       db.logger,
