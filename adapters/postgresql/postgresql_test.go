@@ -16,11 +16,11 @@ func TestReplacePlaceholders(t *testing.T) {
 	})
 }
 
-func TestInsertReturningSuffix(t *testing.T) {
+func TestReturningSuffix(t *testing.T) {
 	Convey("Given list of columns", t, func() {
 		columns := []string{"id", "other_stuff"}
 		Convey("InsertSuffix build a RETURNING clause with the given columns", func() {
-			suffix := Adapter.InsertReturningSuffix(columns)
+			suffix := Adapter.ReturningSuffix(columns)
 			So(suffix, ShouldEqual, "RETURNING \"id\",\"other_stuff\"")
 		})
 	})

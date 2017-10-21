@@ -3,6 +3,7 @@ package godb_test
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/samonzeweb/godb"
 	"github.com/samonzeweb/godb/adapters/postgresql"
@@ -66,6 +67,50 @@ func TestStructsPostgreSQL(t *testing.T) {
 
 		Convey("The common tests must pass", func() {
 			common.StructsTests(db, t)
+		})
+	})
+}
+
+type bookWithXmin struct {
+	Id        int       `db:"id,key,auto"`
+	Title     string    `db:"title"`
+	Author    string    `db:"author"`
+	Published time.Time `db:"published"`
+	Version   int       `db:"version"`
+	Xmin      int       `db:"xmin,auto"`
+}
+
+func (bookWithXmin) TableName() string {
+	return "books"
+}
+func TestReturningClause(t *testing.T) {
+	Convey("A DB for a PostgreSQL database", t, func() {
+		db, teardown := fixturesSetupPostgreSQL(t)
+		defer teardown()
+
+		Convey("The auto columns are set after a struct insert", func() {
+			book := bookWithXmin{
+				Title:     "The Hobbit",
+				Author:    "Tolkien",
+				Published: time.Date(1937, 9, 21, 0, 0, 0, 0, time.UTC),
+				Version:   1,
+			}
+			db.Insert(&book).Do()
+			So(book.Id, ShouldBeGreaterThan, 0)
+			So(book.Xmin, ShouldBeGreaterThan, 0)
+		})
+
+		Convey("The auto columns are updates after a struct update", func() {
+			book := bookWithXmin{
+				Title:     "The Hobbit",
+				Author:    "Tolkien",
+				Published: time.Date(1937, 9, 21, 0, 0, 0, 0, time.UTC),
+				Version:   1,
+			}
+			db.Insert(&book).Do()
+			previousXmin := book.Xmin
+			db.Update(&book).Do()
+			So(book.Xmin, ShouldBeGreaterThan, previousXmin)
 		})
 	})
 }

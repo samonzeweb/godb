@@ -90,9 +90,9 @@ func (is *InsertStatement) Do() (int64, error) {
 	}
 
 	// Return the created 'Id' (if available)
-	_, ok := is.db.adapter.(adapters.InsertReturningSuffixer)
+	_, ok := is.db.adapter.(adapters.ReturningSuffixer)
 	if ok {
-		// adapters with InsertSuffixer does not use LastInsertId()
+		// adapters with ReturningSuffixer does not use LastInsertId()
 		return 0, nil
 	}
 	lastInsertID, err := result.LastInsertId()
@@ -101,10 +101,10 @@ func (is *InsertStatement) Do() (int64, error) {
 
 // DoWithReturning executes the statement and fills the fields according to
 // the columns in RETURNING clause.
-func (is *InsertStatement) DoWithReturning(record interface{}) error {
+func (is *InsertStatement) DoWithReturning(record interface{}) (int64, error) {
 	recordDescription, err := buildRecordDescription(record)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// the function which will return the pointers according to the given columns
@@ -117,11 +117,11 @@ func (is *InsertStatement) DoWithReturning(record interface{}) error {
 }
 
 // DoWithReturning executes the statement and fills the fields according to
-// the columns in RETURNING clause.
-func (is *InsertStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
+// the columns in RETURNING clause. It returns the count of rows returned.
+func (is *InsertStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) (int64, error) {
 	query, args, err := is.ToSQL()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	return is.db.doWithReturning(query, args, recordDescription, pointersGetter)

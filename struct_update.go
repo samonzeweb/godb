@@ -1,6 +1,10 @@
 package godb
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/samonzeweb/godb/adapters"
+)
 
 // StructUpdate builds an UPDATE statement for the given object.
 //
@@ -70,8 +74,31 @@ func (su *StructUpdate) Do() (int64, error) {
 		su.updateStatement = su.updateStatement.Where(opLockColumn+" = ?", opLockValue)
 	}
 
-	// Executes the query
-	rowsAffected, err := su.updateStatement.Do()
+	// Specifig suffix needed ?
+	suffixer, ok := su.updateStatement.db.adapter.(adapters.ReturningSuffixer)
+	if ok {
+		autoColumns := su.recordDescription.structMapping.GetAutoColumnsNames()
+		su.updateStatement.Suffix(suffixer.ReturningSuffix(autoColumns))
+	}
+
+	var rowsAffected int64
+	var err error
+
+	if suffixer != nil {
+		// the function which will return the pointers according to the given columns
+		f := func(record interface{}, columns []string) ([]interface{}, error) {
+			pointers, err := su.recordDescription.structMapping.GetAutoFieldsPointers(record)
+			return pointers, err
+		}
+		// Case for adapters implenting ReturningSuffix()
+		rowsAffected, err = su.updateStatement.doWithReturning(su.recordDescription, f)
+	} else {
+		// Case for adapters not implenting ReturningSuffix()
+		rowsAffected, err = su.updateStatement.Do()
+		if err != nil {
+			return 0, err
+		}
+	}
 
 	if opLockColumn != "" && rowsAffected == 0 {
 		err = ErrOpLock

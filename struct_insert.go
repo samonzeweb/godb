@@ -89,10 +89,10 @@ func (si *StructInsert) Do() error {
 	}
 
 	// Specifig suffix needed ?
-	suffixer, ok := si.insertStatement.db.adapter.(adapters.InsertReturningSuffixer)
+	suffixer, ok := si.insertStatement.db.adapter.(adapters.ReturningSuffixer)
 	if ok {
 		autoColumns := si.recordDescription.structMapping.GetAutoColumnsNames()
-		si.insertStatement.Suffix(suffixer.InsertReturningSuffix(autoColumns))
+		si.insertStatement.Suffix(suffixer.ReturningSuffix(autoColumns))
 	}
 
 	// Run
@@ -102,11 +102,11 @@ func (si *StructInsert) Do() error {
 			pointers, err := si.recordDescription.structMapping.GetAutoFieldsPointers(record)
 			return pointers, err
 		}
-		err := si.insertStatement.doWithReturning(si.recordDescription, f)
+		_, err := si.insertStatement.doWithReturning(si.recordDescription, f)
 		return err
 	}
 
-	// Case for adapters not implenting InsertReturningSuffix(), we use the
+	// Case for adapters not implenting ReturningSuffix(), we use the
 	// value given by LastInsertId() (through Do method)
 	insertedID, err := si.insertStatement.Do()
 	if err != nil {

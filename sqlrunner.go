@@ -35,15 +35,16 @@ func (db *DB) do(query string, arguments []interface{}) (sql.Result, error) {
 }
 
 // doWithReturning executes the statement and fills the auto fields.
-// It is called when the adapter implements InsertReturningSuffixer.
-func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescription *recordDescription, pointersGetter pointersGetter) error {
+// It returns the count of rows returned.
+// It is called when the adapter implements ReturningSuffixer.
+func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescription *recordDescription, pointersGetter pointersGetter) (int64, error) {
 	query = db.replacePlaceholders(query)
 	db.logPrintln(query, arguments)
 
 	startTime := time.Now()
 	queryable, err := db.getQueryable(query)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	rows, err := queryable.Query(arguments...)
 	condumedTime := timeElapsedSince(startTime)
@@ -51,14 +52,14 @@ func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescr
 	db.logDuration(condumedTime)
 	if err != nil {
 		db.logPrintln("ERROR : ", err)
-		return err
+		return 0, err
 	}
 	defer rows.Close()
 
 	columns, err := rows.Columns()
 	if err != nil {
 		db.logPrintln("ERROR : ", err)
-		return err
+		return 0, err
 	}
 
 	// If the given slice is empty, the slice grows as the rows are read.
@@ -66,50 +67,51 @@ func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescr
 	// slice length have to be equals.
 	// If it's a single instance, it's juste filled, and the result must have
 	// only one row.
+	var rowsCount int
 	if recordDescription.len() > 0 {
-		err = db.fillWithValues(recordDescription, pointersGetter, columns, rows)
+		rowsCount, err = db.fillWithValues(recordDescription, pointersGetter, columns, rows)
 	} else {
-		_, err = db.growAndFillWithValues(recordDescription, pointersGetter, columns, rows)
+		rowsCount, err = db.growAndFillWithValues(recordDescription, pointersGetter, columns, rows)
 	}
 	if err != nil {
 		db.logPrintln("ERROR : ", err)
-		return err
+		return 0, err
 	}
 
 	err = rows.Err()
 	if err != nil {
 		db.logPrintln("ERROR : ", err)
 	}
-	return err
+	return int64(rowsCount), err
 }
 
 // fillWithReturningValues fill the record with rows, the record size must has
 // the same size has the rows count.
-func (db *DB) fillWithValues(recordDescription *recordDescription, pointersGetter pointersGetter, columns []string, rows *sql.Rows) error {
+func (db *DB) fillWithValues(recordDescription *recordDescription, pointersGetter pointersGetter, columns []string, rows *sql.Rows) (int, error) {
 	rowsCount := 0
 	recordLength := recordDescription.len()
 	for rows.Next() {
 		rowsCount++
 		if rowsCount > recordLength {
-			return fmt.Errorf("There are more rows returned than the target size : %v", recordLength)
+			return 0, fmt.Errorf("There are more rows returned than the target size : %v", recordLength)
 		}
 		instancePtr := recordDescription.index(rowsCount - 1)
 
 		pointers, err := pointersGetter(instancePtr, columns)
 		if err != nil {
-			return err
+			return 0, err
 		}
 		err = rows.Scan(pointers...)
 		if err != nil {
-			return err
+			return 0, err
 		}
 	}
 
 	if rowsCount < recordLength {
-		return fmt.Errorf("There are less rows returned than the target size, rows count : %v", rowsCount)
+		return 0, fmt.Errorf("There are less rows returned than the target size, rows count : %v", rowsCount)
 	}
 
-	return nil
+	return rowsCount, nil
 }
 
 // growAndFillWithReturningValues fill the record with rows, and make it growing.

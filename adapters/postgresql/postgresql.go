@@ -38,7 +38,7 @@ func (PostgreSQL) ReplacePlaceholders(originalPlaceholder string, sql string) st
 	return sqlBuffer.String()
 }
 
-func (p PostgreSQL) InsertReturningSuffix(autoColumns []string) string {
+func (p PostgreSQL) ReturningSuffix(autoColumns []string) string {
 	suffixBuffer := bytes.NewBuffer(make([]byte, 0, 16*len(autoColumns)+1))
 	suffixBuffer.WriteString("RETURNING ")
 	for i, columns := range autoColumns {

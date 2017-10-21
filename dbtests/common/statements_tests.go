@@ -61,7 +61,7 @@ func statementInsertTest(db *godb.DB, t *testing.T) {
 		for _, book := range booksToInsert {
 			query.Values(book.Title, book.Author, book.Published)
 		}
-		err = query.DoWithReturning(&booksToInsert)
+		_, err = query.DoWithReturning(&booksToInsert)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -186,7 +186,7 @@ func statementUpdateTest(db *godb.DB, t *testing.T) {
 		// returned by the database.
 		updatedBooks := make([]Book, 0, 0)
 		hari := "Hari Seldon"
-		err = db.UpdateTable("books").
+		_, err = db.UpdateTable("books").
 			Set("author", hari).
 			Where("author = ?", authorAssimov).
 			Suffix("RETURNING id, title, author, published").
@@ -225,7 +225,7 @@ func statementDeleteTest(db *godb.DB, t *testing.T) {
 
 	if hasReturning(db) {
 		deletedBooks := make([]Book, 0, 0)
-		err = db.DeleteFrom("books").
+		_, err = db.DeleteFrom("books").
 			Where("author = ?", authorAssimov).
 			Suffix("RETURNING id, title, author, published").
 			DoWithReturning(&deletedBooks)

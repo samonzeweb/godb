@@ -88,10 +88,10 @@ func (ds *DeleteStatement) Do() (int64, error) {
 
 // DoWithReturning executes the statement and fills the fields according to
 // the columns in RETURNING clause.
-func (ds *DeleteStatement) DoWithReturning(record interface{}) error {
+func (ds *DeleteStatement) DoWithReturning(record interface{}) (int64, error) {
 	recordDescription, err := buildRecordDescription(record)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// the function which will return the pointers according to the given columns
@@ -105,10 +105,10 @@ func (ds *DeleteStatement) DoWithReturning(record interface{}) error {
 
 // DoWithReturning executes the statement and fills the fields according to
 // the columns in RETURNING clause.
-func (ds *DeleteStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
+func (ds *DeleteStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) (int64, error) {
 	query, args, err := ds.ToSQL()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	return ds.db.doWithReturning(query, args, recordDescription, pointersGetter)

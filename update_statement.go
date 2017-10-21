@@ -148,10 +148,10 @@ func (us *UpdateStatement) Do() (int64, error) {
 
 // DoWithReturning executes the statement and fills the fields according to
 // the columns in RETURNING clause.
-func (us *UpdateStatement) DoWithReturning(record interface{}) error {
+func (us *UpdateStatement) DoWithReturning(record interface{}) (int64, error) {
 	recordDescription, err := buildRecordDescription(record)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// the function which will return the pointers according to the given columns
@@ -164,11 +164,11 @@ func (us *UpdateStatement) DoWithReturning(record interface{}) error {
 }
 
 // DoWithReturning executes the statement and fills the fields according to
-// the columns in RETURNING clause.
-func (us *UpdateStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) error {
+// the columns in RETURNING clause. It returns the count of rows returned.
+func (us *UpdateStatement) doWithReturning(recordDescription *recordDescription, pointersGetter pointersGetter) (int64, error) {
 	query, args, err := us.ToSQL()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	return us.db.doWithReturning(query, args, recordDescription, pointersGetter)

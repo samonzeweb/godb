@@ -20,16 +20,18 @@ type PlaceholdersReplacer interface {
 	ReplacePlaceholders(string, string) string
 }
 
-// InsertReturningSuffixer is an interface wrapping the optional
-// InsertReturningSuffix method.
+// ReturningSuffixer is an interface wrapping the optional
+// ReturningSuffix method.
 //
-// InsertReturningSuffix get a list of columns and returns a suffix to be
+// ReturningSuffixer get a list of columns and returns a suffix to be
 // added to the sql statement by the caller, allowing it to retrieve the values
-// of those columns. It is intended to replace the use of LastInsertId()
+// of those columns.
+//
+// It is intended to replace the use of LastInsertId()
 // when the driver does not support it, or if there are more 'automatic' fields
-// initialized by the database.
-type InsertReturningSuffixer interface {
-	InsertReturningSuffix([]string) string
+// initialized or updated by the database.
+type ReturningSuffixer interface {
+	ReturningSuffix([]string) string
 }
 
 // SQLPart is a struct containing a custom part of SQL query builded by an
