@@ -29,7 +29,7 @@ type DB struct {
 const Placeholder string = "?"
 
 // ErrOpLock is an error returned when Optimistic Locking failure occurs
-var ErrOpLock = errors.New("Optimistic Locking Failure")
+var ErrOpLock = errors.New("optimistic locking failure")
 
 // Open creates a new DB struct and initialise a sql.DB connection.
 func Open(adapter adapters.Adapter, dataSourceName string) (*DB, error) {
@@ -50,8 +50,25 @@ func Open(adapter adapters.Adapter, dataSourceName string) (*DB, error) {
 	return &db, nil
 }
 
+
+// Wrap creates a godb.DB by using provided and initialized sql.DB Helpful for
+// using custom configured sql.DB instance for godb. Can be used before
+// starting a goroutine.
+func Wrap(adapter adapters.Adapter, dbInst *sql.DB) *DB {
+	db := DB{
+		adapter:     adapter,
+		stmtCacheDB: newStmtCache(),
+		stmtCacheTx: newStmtCache(),
+	}
+
+	// Prepared statements cache is disabled by default except for Tx
+	db.stmtCacheDB.Disable()
+	db.sqlDB = dbInst
+	return &db
+}
+
 // Clone creates a copy of an existing DB, without the current transaction.
-// The clone has no consumed time, and new prepared statements caches with
+// The clone has consumedTime set to zero, and new prepared statements caches with
 // the same characteristics.
 // Use it to create new DB object before starting a goroutine.
 func (db *DB) Clone() *DB {
@@ -79,7 +96,7 @@ func (db *DB) Clone() *DB {
 }
 
 // Close closes an existing DB created by Open.
-// Dont't close a cloned DB still used by others goroutines as the sql.DB
+// Don't close a cloned DB still used by others goroutines as the sql.DB
 // is shared !
 // Don't use a DB anymore after a call to Close.
 func (db *DB) Close() error {
@@ -132,7 +149,7 @@ func (db *DB) quoteAll(identifiers []string) []string {
 	return quotedIdentifiers
 }
 
-// replacePlaceholders uses the adapter to change placehodlers according to
+// replacePlaceholders uses the adapter to change placeholders according to
 // the database used.
 func (db *DB) replacePlaceholders(sql string) string {
 	placeholderReplacer, ok := (db.adapter).(adapters.PlaceholdersReplacer)
