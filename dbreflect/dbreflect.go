@@ -197,8 +197,8 @@ func (sm *StructMapping) setOpLockField() error {
 				return true, fmt.Errorf("There is more than one optimistic locking field in %s", sm.Name)
 			}
 
-			if !fieldMapping.isAuto && !isValidAutoOpLockFieldType(fieldMapping) {
-				return true, fmt.Errorf("The field %s in the struct %s don't have a valid type for an auto,oplock field", fieldMapping.name, sm.Name)
+			if !fieldMapping.isAuto && !isValidNonAutoOpLockFieldType(fieldMapping) {
+				return true, fmt.Errorf("The field %s in the struct %s don't have a valid type for an non auto oplock field", fieldMapping.name, sm.Name)
 			}
 
 			sm.opLockSQLName = fullName
@@ -210,9 +210,9 @@ func (sm *StructMapping) setOpLockField() error {
 	return err
 }
 
-// isValidAutoOpLockFieldType check if a field type (Kind) is valid for an
-// optimistic locking field.
-func isValidAutoOpLockFieldType(fieldMapping *fieldMapping) bool {
+// isValidNonAutoOpLockFieldType check if a field type (Kind) is valid for an
+// optimistic locking field, non automatic.
+func isValidNonAutoOpLockFieldType(fieldMapping *fieldMapping) bool {
 	switch fieldMapping.kind {
 	case reflect.Int,
 		reflect.Int8,
@@ -451,7 +451,7 @@ func (sm *StructMapping) GetAndUpdateOpLockFieldValue(s interface{}) (interface{
 		if fullName == sm.opLockSQLName {
 			currentFieldValue = value.Interface()
 			if !fieldMapping.isAuto {
-				updateAutoOpLockField(value)
+				updateNonAutoOpLockField(value)
 			}
 			return true, nil
 		}
@@ -465,9 +465,10 @@ func (sm *StructMapping) GetAndUpdateOpLockFieldValue(s interface{}) (interface{
 	return currentFieldValue, nil
 }
 
-// updateAutoOpLockField updates the value of the optimistic locking field.
-// It manages only types accepted by isValidAutoOpLockFieldType.
-func updateAutoOpLockField(value *reflect.Value) {
+// updateNonAutoOpLockField updates the value of the optimistic locking field.
+// It manages only types accepted by isValidNonAutoOpLockFieldType, and of
+// course only non-auto oplock fields.
+func updateNonAutoOpLockField(value *reflect.Value) {
 	value.SetInt(value.Int() + 1)
 }
 
