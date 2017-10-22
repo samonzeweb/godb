@@ -85,8 +85,10 @@ func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescr
 	return int64(rowsCount), err
 }
 
-// fillWithReturningValues fill the record with rows, the record size must has
-// the same size has the rows count.
+// fillWithReturningValues fill the record with rows, the record size must have
+// at least the same size has the rows count.
+// There could be less rows than awaited, it must be checked by the caller. It's
+// not managed here because is could be specific case like optimistic locking failure.
 func (db *DB) fillWithValues(recordDescription *recordDescription, pointersGetter pointersGetter, columns []string, rows *sql.Rows) (int, error) {
 	rowsCount := 0
 	recordLength := recordDescription.len()
@@ -105,10 +107,6 @@ func (db *DB) fillWithValues(recordDescription *recordDescription, pointersGette
 		if err != nil {
 			return 0, err
 		}
-	}
-
-	if rowsCount < recordLength {
-		return 0, fmt.Errorf("There are less rows returned than the target size, rows count : %v", rowsCount)
 	}
 
 	return rowsCount, nil

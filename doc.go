@@ -217,7 +217,7 @@ multiple ones. This allows code like :
 
 Optimistic Locking
 
-Structs updates and deletes manage optimistic locking when a dedicated row
+Structs updates and deletes manage optimistic locking when a dedicated integer row
 is present. Simply tags it with `oplock` :
 
 	type KeyStruct struct {
@@ -228,7 +228,19 @@ is present. Simply tags it with `oplock` :
 
 When an update or delete operation fails, Do() returns the `ErrOpLock` error.
 
-For now, only integer rows are supported.
+With PostgreSQL only (for the moment), godb manages optimistic locking with automatic row.
+You can use the `xmin` system column. Just add a field in the struct and tag it
+with `auto,oplock` like this :
+
+
+	type KeyStruct struct {
+		...
+		Version    int    `db:"xmin,auto,oplock"`
+		...
+	}
+
+For more informations about `xmin` see
+https://www.postgresql.org/docs/10/static/ddl-system-columns.html
 
 
 Consumed Time

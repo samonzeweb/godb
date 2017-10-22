@@ -77,7 +77,7 @@ type bookWithXmin struct {
 	Author    string    `db:"author"`
 	Published time.Time `db:"published"`
 	Version   int       `db:"version"`
-	Xmin      int       `db:"xmin,auto"`
+	Xmin      int       `db:"xmin,auto,oplock"`
 }
 
 func (bookWithXmin) TableName() string {
@@ -112,5 +112,39 @@ func TestReturningClause(t *testing.T) {
 			db.Update(&book).Do()
 			So(book.Xmin, ShouldBeGreaterThan, previousXmin)
 		})
+	})
+}
+
+func TestAutomaticOptimisticLocking(t *testing.T) {
+	Convey("A DB for a PostgreSQL database", t, func() {
+		db, teardown := fixturesSetupPostgreSQL(t)
+		defer teardown()
+
+		Convey("A row inserted in database", func() {
+			book := bookWithXmin{
+				Title:     "The Hobbit",
+				Author:    "Tolkien",
+				Published: time.Date(1937, 9, 21, 0, 0, 0, 0, time.UTC),
+				Version:   1,
+			}
+			db.Insert(&book).Do()
+
+			Convey("Another player read the row", func() {
+				var sameBook bookWithXmin
+				db.Select(&sameBook).Where("id = ? ", book.Id).Do()
+
+				Convey("Both instances has same value for the oplock field", func() {
+					So(book.Xmin, ShouldEqual, sameBook.Xmin)
+
+					Convey("Both players update the row, but the second fails because oplock", func() {
+						err := db.Update(&book).Do()
+						So(err, ShouldBeNil)
+						err = db.Update(&sameBook).Do()
+						So(err, ShouldEqual, godb.ErrOpLock)
+					})
+				})
+			})
+		})
+
 	})
 }

@@ -40,9 +40,9 @@ func (db *DB) Update(record interface{}) *StructUpdate {
 }
 
 // Do executes the UPDATE statement for the struct given to the Update method.
-func (su *StructUpdate) Do() (int64, error) {
+func (su *StructUpdate) Do() error {
 	if su.error != nil {
-		return 0, su.error
+		return su.error
 	}
 
 	// Which columns to update ?
@@ -57,7 +57,7 @@ func (su *StructUpdate) Do() (int64, error) {
 	keyColumns := su.recordDescription.structMapping.GetKeyColumnsNames()
 	keyValues := su.recordDescription.structMapping.GetKeyFieldsValues(su.recordDescription.record)
 	if len(keyColumns) == 0 {
-		return 0, fmt.Errorf("The object of type %T has no key : ", su.recordDescription.record)
+		return fmt.Errorf("The object of type %T has no key : ", su.recordDescription.record)
 	}
 	for i, column := range keyColumns {
 		quotedColumn := su.updateStatement.db.adapter.Quote(column)
@@ -69,7 +69,7 @@ func (su *StructUpdate) Do() (int64, error) {
 	if opLockColumn != "" {
 		opLockValue, err := su.recordDescription.structMapping.GetAndUpdateOpLockFieldValue(su.recordDescription.record)
 		if err != nil {
-			return 0, err
+			return err
 		}
 		su.updateStatement = su.updateStatement.Where(opLockColumn+" = ?", opLockValue)
 	}
@@ -96,7 +96,7 @@ func (su *StructUpdate) Do() (int64, error) {
 		// Case for adapters not implenting ReturningSuffix()
 		rowsAffected, err = su.updateStatement.Do()
 		if err != nil {
-			return 0, err
+			return err
 		}
 	}
 
@@ -104,5 +104,5 @@ func (su *StructUpdate) Do() (int64, error) {
 		err = ErrOpLock
 	}
 
-	return rowsAffected, err
+	return err
 }

@@ -135,14 +135,10 @@ func structsUpdateTest(db *godb.DB, t *testing.T) {
 
 	gandalf := "Gandalf the White"
 	for _, book := range booksToUpdate {
-		var count int64
 		book.Author = gandalf
-		count, err = db.Update(book).Do()
+		err = db.Update(book).Do()
 		if err != nil {
 			t.Fatal(err)
-		}
-		if count != 1 {
-			t.Fatalf("Wrong count of updated books : %v (book %v)", count, book)
 		}
 	}
 

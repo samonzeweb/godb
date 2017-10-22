@@ -17,7 +17,7 @@ func TestUpdateDo(t *testing.T) {
 			dummy.AText = "New text"
 			dummy.AnotherText = "Replacement text"
 			dummy.AnInteger = 123
-			count, err := db.Update(dummy).Do()
+			err = db.Update(dummy).Do()
 			So(err, ShouldBeNil)
 
 			Convey("The data are in the database", func() {
@@ -27,10 +27,6 @@ func TestUpdateDo(t *testing.T) {
 				So(retrieveddummy.AText, ShouldEqual, dummy.AText)
 				So(retrieveddummy.AnotherText, ShouldEqual, dummy.AnotherText)
 				So(retrieveddummy.AnInteger, ShouldEqual, dummy.AnInteger)
-			})
-
-			Convey("Update returns the count of affected rows", func() {
-				So(count, ShouldEqual, 1)
 			})
 		})
 
@@ -44,8 +40,7 @@ func TestUpdateDo(t *testing.T) {
 				_, err = db.UpdateTable("dummies").Set("version", 1).Where("id = ?", dummy.ID).Do()
 				So(err, ShouldBeNil)
 
-				count, err := db.Update(dummy).Do()
-				So(count, ShouldEqual, 0)
+				err = db.Update(dummy).Do()
 				So(err, ShouldEqual, ErrOpLock)
 			})
 
@@ -58,8 +53,7 @@ func TestUpdateDo(t *testing.T) {
 				_, err = db.UpdateTable("dummiesautooplock").Set("version", 1).Where("id = ?", dummy.ID).Do()
 				So(err, ShouldBeNil)
 
-				count, err := db.Update(dummy).Do()
-				So(count, ShouldEqual, 0)
+				err = db.Update(dummy).Do()
 				So(err, ShouldEqual, ErrOpLock)
 			})
 		})
