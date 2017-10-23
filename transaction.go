@@ -86,22 +86,3 @@ func (db *DB) getTxElseDb() preparableAndQueryable {
 
 	return db.sqlDB
 }
-
-
-// AutoCommit, commits and dismisses if Tx is rollbacked or committed before
-func (db *DB) AutoCommit() error {
-	err := db.Commit()
-	if err == sql.ErrTxDone {
-		// ok
-	}
-	return err
-}
-
-// AutoRollback, rollbacks and dismisses if Tx is rollbacked or committed before
-func (db *DB) AutoRollback() error {
-	err := db.Rollback()
-	if err == sql.ErrTxDone {
-		// ok
-	}
-	return err
-}
