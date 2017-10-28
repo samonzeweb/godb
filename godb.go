@@ -33,37 +33,32 @@ var ErrOpLock = errors.New("optimistic locking failure")
 
 // Open creates a new DB struct and initialise a sql.DB connection.
 func Open(adapter adapters.Adapter, dataSourceName string) (*DB, error) {
-	db := DB{
-		adapter:     adapter,
-		stmtCacheDB: newStmtCache(),
-		stmtCacheTx: newStmtCache(),
-	}
-
-	// Prepared statements cache is disabled by default except for Tx
-	db.stmtCacheDB.Disable()
-
-	var err error
-	db.sqlDB, err = sql.Open(adapter.DriverName(), dataSourceName)
+	dbInst, err := sql.Open(adapter.DriverName(), dataSourceName)
 	if err != nil {
 		return nil, err
 	}
-	return &db, nil
+	return initialize(adapter, dbInst), nil
 }
-
 
 // Wrap creates a godb.DB by using provided and initialized sql.DB Helpful for
 // using custom configured sql.DB instance for godb. Can be used before
 // starting a goroutine.
 func Wrap(adapter adapters.Adapter, dbInst *sql.DB) *DB {
+	return initialize(adapter, dbInst)
+}
+
+// initialize a new godb.DB struct
+func initialize(adapter adapters.Adapter, dbInst *sql.DB) *DB {
 	db := DB{
 		adapter:     adapter,
+		sqlDB:       dbInst,
 		stmtCacheDB: newStmtCache(),
 		stmtCacheTx: newStmtCache(),
 	}
 
 	// Prepared statements cache is disabled by default except for Tx
 	db.stmtCacheDB.Disable()
-	db.sqlDB = dbInst
+
 	return &db
 }
 
