@@ -37,7 +37,7 @@ go get github.com/samonzeweb/godb
 
 Install the required driver (see tests). You cas use multiple databases if needed.
 
-## Tests
+## Running Tests
 
 godb tests use GoConvey and at least SQLite :
 
@@ -52,7 +52,7 @@ SQLite tests are done with in memory database, it's fast. You can run tests with
 
 With the exception of SQLite, all drivers are *pure Go* code, and does not require external dependencies.
 
-### Tests with PostgreSQL
+### Test with PostgreSQL
 
 Install the driver and set the `GODB_POSTGRESQL` environment variable with the PostgreSQL connection string.
 
@@ -61,7 +61,7 @@ go get github.com/lib/pq
 GODB_POSTGRESQL="your connection string" go test ./...
 ```
 
-### Tests with MySQL / MariaDB
+### Test with MySQL / MariaDB
 
 Install the driver and set the `GODB_MYSQL` environment variable with the MySQL connection string.
 
@@ -70,13 +70,25 @@ go get github.com/go-sql-driver/mysql
 GODB_MYSQL="your connection string" go test ./...
 ```
 
-### Tests with MS SQL Server
+### Test with MS SQL Server
 
 Install the driver and set the `GODB_MSSQL` environment variable with the SQL Server connection string.
 
 ```
 go get github.com/denisenkom/go-mssqldb
 GODB_MSSQL="your connection string" go test ./...
+```
+
+### Test all with Docker
+
+With Docker you can test with SQLite, PostgreSQL, MariaDB and SQL Server with the `testallwithdocker.sh` shell script.
+
+SQL Server is greedy, on OSX allow at least 4Go to Docker.
+
+If the containers are slow to start, the script could wait before accessing them. Simply add the time to wait in seconds as arguments :
+
+```
+./testallwithdocker.sh 15
 ```
 
 ## Example
