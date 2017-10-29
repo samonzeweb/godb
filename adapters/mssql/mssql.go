@@ -3,9 +3,16 @@ package mssql
 import (
 	"bytes"
 
-	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/samonzeweb/godb/adapters"
+	"github.com/samonzeweb/godb/dbreflect"
+
+	_ "github.com/denisenkom/go-mssqldb"
 )
+
+// init registers types of mssql package corresponding to fields values
+func init() {
+	dbreflect.RegisterScannableStruct(Rowversion{})
+}
 
 type MSSQL struct{}
 

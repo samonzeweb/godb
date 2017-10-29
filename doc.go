@@ -217,7 +217,7 @@ multiple ones. This allows code like :
 
 Optimistic Locking
 
-Structs updates and deletes manage optimistic locking when a dedicated integer row
+For all databases, structs updates and deletes manage optimistic locking when a dedicated integer row
 is present. Simply tags it with `oplock` :
 
 	type KeyStruct struct {
@@ -228,9 +228,10 @@ is present. Simply tags it with `oplock` :
 
 When an update or delete operation fails, Do() returns the `ErrOpLock` error.
 
-With PostgreSQL only (for the moment), godb manages optimistic locking with automatic row.
-You can use the `xmin` system column. Just add a field in the struct and tag it
-with `auto,oplock` like this :
+With PostgreSQL and SQL Server, godb manages optimistic locking with automatic fields.
+Just add a dedicated field in the struct and tag it with `auto,oplock`.
+
+With PostgreSQL you can use the `xmin` system column like this :
 
 
 	type KeyStruct struct {
@@ -241,6 +242,18 @@ with `auto,oplock` like this :
 
 For more informations about `xmin` see
 https://www.postgresql.org/docs/10/static/ddl-system-columns.html
+
+With SQL Server you can use a `rowversion` field with the `mssql.Rowversion` type like this :
+
+
+	type KeyStruct struct {
+		...
+		Version   mssql.Rowversion `db:"version,auto,oplock"`
+		...
+	}
+
+For more informations about the `rowversion` data type see
+https://docs.microsoft.com/en-us/sql/t-sql/data-types/rowversion-transact-sql
 
 
 Consumed Time
@@ -262,18 +275,21 @@ logger :
 	db.SetLogger(log.New(os.Stderr, "", 0))
 
 
-RETURNING Clause
+RETURNING and OUTPUT Clauses
 
 
-godb takes advantage of PostgreSQL RETURNING clause.
+godb takes advantage of PostgreSQL RETURNING clause, and SQL Server OUTPUT clause.
 
 With statements tools you have to add a RETURNING clause with the Suffix method
 and call DoWithReturning method instead of Do(). It's optionnal.
 
-With StructInsert it's transparent, the RETURNING clause is added with all
-'auto' columns and it's managed for you. One of the big advantage is with
-BulkInsert : for others databases the rows are inserted but the new keys
-are unkonwns. With PostgreSQL the slice if updated for all inserted rows.
+With StructInsert it's transparent, the RETURNING or OUTPUT clause is added
+for all 'auto' columns and it's managed for you. One of the big advantage is
+with BulkInsert : for others databases the rows are inserted but the new keys
+are unkonwns. With PostgreSQL and SQL Server the slice is updated for all inserted
+rows.
+
+It also enables optimistic locking with *automatic* columns.
 
 
 Prepared statements cache

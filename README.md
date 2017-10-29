@@ -20,6 +20,7 @@ WARNING : it is still a young project and the public API could change.
 * SQL queries and durations logs.
 * Two adjustable prepared statements caches (with/without transaction).
 * `RETURNING` support for PostgreSQL.
+* `OUTPUT` support for SQL Server.
 * Could by used with
   * SQLite
   * PostgreSQL

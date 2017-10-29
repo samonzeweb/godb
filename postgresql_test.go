@@ -83,7 +83,7 @@ type bookWithXmin struct {
 func (bookWithXmin) TableName() string {
 	return "books"
 }
-func TestReturningClause(t *testing.T) {
+func TestReturningClausePostgreSQL(t *testing.T) {
 	Convey("A DB for a PostgreSQL database", t, func() {
 		db, teardown := fixturesSetupPostgreSQL(t)
 		defer teardown()
@@ -115,7 +115,7 @@ func TestReturningClause(t *testing.T) {
 	})
 }
 
-func TestAutomaticOptimisticLocking(t *testing.T) {
+func TestAutomaticOptimisticLockingPostgreSQL(t *testing.T) {
 	Convey("A DB for a PostgreSQL database", t, func() {
 		db, teardown := fixturesSetupPostgreSQL(t)
 		defer teardown()
