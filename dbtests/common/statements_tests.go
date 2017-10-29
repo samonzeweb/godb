@@ -230,10 +230,17 @@ func statementDeleteTest(db *godb.DB, t *testing.T) {
 	db.Rollback()
 
 	if returningBuilder != nil {
+		// A little hack as SQL Server need a prefix
+		var returningColumns []string
+		if db.Adapter().DriverName() == "mssql" {
+			returningColumns = []string{"deleted.id", "deleted.title", "deleted.author", "deleted.published"}
+		} else {
+			returningColumns = []string{"id", "title", "author", "published"}
+		}
 		deletedBooks := make([]Book, 0, 0)
 		_, err = db.DeleteFrom("books").
 			Where("author = ?", authorAssimov).
-			Returning(returningBuilder.FormatForNewValues([]string{"id", "title", "author", "published"})...).
+			Returning(returningColumns...).
 			DoWithReturning(&deletedBooks)
 		if err != nil {
 			t.Fatal(err)
@@ -247,6 +254,7 @@ func statementDeleteTest(db *godb.DB, t *testing.T) {
 		if count != 4 {
 			t.Fatalf("Wrong books count : %v", count)
 		}
+
 		db.Rollback()
 	}
 }

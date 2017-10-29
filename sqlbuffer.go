@@ -209,6 +209,7 @@ func (b *sqlBuffer) writeReturningForPosition(columns []string, position adapter
 	}
 
 	if returningBuilder.GetReturningPosition() == position {
+		b.write(" ")
 		b.write(returningBuilder.ReturningBuild(columns))
 		b.write(" ")
 	}

@@ -1,7 +1,6 @@
 package godb_test
 
 import (
-	"log"
 	"os"
 	"testing"
 	"time"
@@ -24,7 +23,7 @@ func fixturesSetupPostgreSQL(t *testing.T) (*godb.DB, func()) {
 	}
 
 	// Enable logger if needed
-	db.SetLogger(log.New(os.Stderr, "", 0))
+	//db.SetLogger(log.New(os.Stderr, "", 0))
 
 	createTable :=
 		`create temporary table if not exists books (

@@ -21,7 +21,7 @@ func TestReturningBuild(t *testing.T) {
 		columns := []string{"id", "other_stuff"}
 		Convey("ReturningBuild build a RETURNING clause with the given columns", func() {
 			returningClause := Adapter.ReturningBuild(columns)
-			So(returningClause, ShouldEqual, "RETURNING \"id\",\"other_stuff\"")
+			So(returningClause, ShouldEqual, "RETURNING id, other_stuff")
 		})
 	})
 }
@@ -29,11 +29,11 @@ func TestReturningBuild(t *testing.T) {
 func TestFormatForNewValues(t *testing.T) {
 	Convey("Given list of columns", t, func() {
 		columns := []string{"id", "other_stuff"}
-		Convey("FormatForNewValues returns a copy of the columns list (without change)", func() {
+		Convey("FormatForNewValues returns a list of all given columns quoted ", func() {
 			formatedColumns := Adapter.FormatForNewValues(columns)
 			So(len(formatedColumns), ShouldEqual, len(columns))
 			for i, column := range columns {
-				So(formatedColumns[i], ShouldEqual, column)
+				So(formatedColumns[i], ShouldEqual, "\""+column+"\"")
 			}
 		})
 	})

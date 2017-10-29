@@ -1,6 +1,8 @@
 package mssql
 
 import (
+	"bytes"
+
 	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/samonzeweb/godb/adapters"
 )
@@ -15,6 +17,30 @@ func (MSSQL) DriverName() string {
 
 func (MSSQL) Quote(identifier string) string {
 	return "[" + identifier + "]"
+}
+
+func (m MSSQL) ReturningBuild(columns []string) string {
+	suffixBuffer := bytes.NewBuffer(make([]byte, 0, 16*len(columns)+1))
+	suffixBuffer.WriteString("OUTPUT ")
+	for i, column := range columns {
+		if i > 0 {
+			suffixBuffer.WriteString(", ")
+		}
+		suffixBuffer.WriteString(column)
+	}
+	return suffixBuffer.String()
+}
+
+func (m MSSQL) FormatForNewValues(columns []string) []string {
+	formatedColumns := make([]string, 0, len(columns))
+	for _, column := range columns {
+		formatedColumns = append(formatedColumns, "INSERTED."+m.Quote(column))
+	}
+	return formatedColumns
+}
+
+func (m MSSQL) GetReturningPosition() adapters.ReturningPosition {
+	return adapters.ReturningSQLServer
 }
 
 func (MSSQL) BuildLimit(limit int) *adapters.SQLPart {
