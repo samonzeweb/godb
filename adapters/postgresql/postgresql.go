@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	_ "github.com/lib/pq"
+	"github.com/samonzeweb/godb/adapters"
 )
 
 type PostgreSQL struct{}
@@ -38,14 +39,22 @@ func (PostgreSQL) ReplacePlaceholders(originalPlaceholder string, sql string) st
 	return sqlBuffer.String()
 }
 
-func (p PostgreSQL) ReturningSuffix(autoColumns []string) string {
-	suffixBuffer := bytes.NewBuffer(make([]byte, 0, 16*len(autoColumns)+1))
+func (p PostgreSQL) ReturningBuild(colums []string) string {
+	suffixBuffer := bytes.NewBuffer(make([]byte, 0, 16*len(colums)+1))
 	suffixBuffer.WriteString("RETURNING ")
-	for i, columns := range autoColumns {
+	for i, column := range colums {
 		if i > 0 {
 			suffixBuffer.WriteString(",")
 		}
-		suffixBuffer.WriteString(p.Quote(columns))
+		suffixBuffer.WriteString(p.Quote(column))
 	}
 	return suffixBuffer.String()
+}
+
+func (p PostgreSQL) FormatForNewValues(colums []string) []string {
+	return colums[:]
+}
+
+func (p PostgreSQL) GetReturningPosition() adapters.ReturningPosition {
+	return adapters.ReturningPostgreSQL
 }

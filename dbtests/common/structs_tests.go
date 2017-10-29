@@ -37,7 +37,7 @@ func structsInsertTest(db *godb.DB, t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if hasReturning(db) {
+	if getReturningBuilder(db) != nil {
 		for _, book := range booksToInsert {
 			if book.Id == 0 {
 				t.Fatalf("Id was not set for the book %v", book)
@@ -57,7 +57,7 @@ func structsInsertTest(db *godb.DB, t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if hasReturning(db) {
+	if getReturningBuilder(db) != nil {
 		for _, book := range booksToBulkInsert {
 			if book.Id == 0 {
 				t.Fatalf("Id was not set for the book %v", book)

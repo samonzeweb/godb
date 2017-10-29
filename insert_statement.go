@@ -14,10 +14,11 @@ import "github.com/samonzeweb/godb/adapters"
 type InsertStatement struct {
 	db *DB
 
-	columns   []string
-	intoTable string
-	values    [][]interface{}
-	suffixes  []string
+	columns          []string
+	intoTable        string
+	values           [][]interface{}
+	returningColumns []string
+	suffixes         []string
 }
 
 // InsertInto initializes a INSERT statement builder
@@ -39,8 +40,14 @@ func (is *InsertStatement) Values(values ...interface{}) *InsertStatement {
 	return is
 }
 
-// Suffix adds an expression to suffix the statement. Use it to add a
-// RETURNING clause with PostgreSQL (or whatever you need).
+// Returning adds a RETURNING or OUPUT clause to the statement. Use it with
+// PostgreSQL and SQL Server.
+func (is *InsertStatement) Returning(columns ...string) *InsertStatement {
+	is.returningColumns = append(is.returningColumns, columns...)
+	return is
+}
+
+// Suffix adds an expression to suffix the statement.
 func (is *InsertStatement) Suffix(suffix string) *InsertStatement {
 	is.suffixes = append(is.suffixes, suffix)
 	return is
@@ -49,7 +56,6 @@ func (is *InsertStatement) Suffix(suffix string) *InsertStatement {
 // ToSQL returns a string with the SQL statement (containing placeholders),
 // the arguments slices, and an error.
 func (is *InsertStatement) ToSQL() (string, []interface{}, error) {
-
 	// TODO : estimate the buffer size.
 	sqlBuffer := newSQLBuffer(is.db.adapter, 256, 16)
 
@@ -63,9 +69,19 @@ func (is *InsertStatement) ToSQL() (string, []interface{}, error) {
 	if err := sqlBuffer.writeColumns(is.columns); err != nil {
 		return "", nil, err
 	}
-	sqlBuffer.write(") VALUES ")
+	sqlBuffer.write(") ")
+
+	if err := sqlBuffer.writeReturningForPosition(is.returningColumns, adapters.ReturningSQLServer); err != nil {
+		return "", nil, err
+	}
+
+	sqlBuffer.write("VALUES ")
 
 	if err := sqlBuffer.writeInsertValues(is.values, len(is.columns)); err != nil {
+		return "", nil, err
+	}
+
+	if err := sqlBuffer.writeReturningForPosition(is.returningColumns, adapters.ReturningPostgreSQL); err != nil {
 		return "", nil, err
 	}
 
@@ -90,7 +106,7 @@ func (is *InsertStatement) Do() (int64, error) {
 	}
 
 	// Return the created 'Id' (if available)
-	_, ok := is.db.adapter.(adapters.ReturningSuffixer)
+	_, ok := is.db.adapter.(adapters.ReturningBuilder)
 	if ok {
 		// adapters with ReturningSuffixer does not use LastInsertId()
 		return 0, nil

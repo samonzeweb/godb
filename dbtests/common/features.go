@@ -1,7 +1,11 @@
 package common
 
-import "github.com/samonzeweb/godb"
+import (
+	"github.com/samonzeweb/godb"
+	"github.com/samonzeweb/godb/adapters"
+)
 
-func hasReturning(db *godb.DB) bool {
-	return db.Adapter().DriverName() == "postgres"
+func getReturningBuilder(db *godb.DB) adapters.ReturningBuilder {
+	returningBuilder, _ := db.Adapter().(adapters.ReturningBuilder)
+	return returningBuilder
 }

@@ -16,12 +16,25 @@ func TestReplacePlaceholders(t *testing.T) {
 	})
 }
 
-func TestReturningSuffix(t *testing.T) {
+func TestReturningBuild(t *testing.T) {
 	Convey("Given list of columns", t, func() {
 		columns := []string{"id", "other_stuff"}
-		Convey("InsertSuffix build a RETURNING clause with the given columns", func() {
-			suffix := Adapter.ReturningSuffix(columns)
-			So(suffix, ShouldEqual, "RETURNING \"id\",\"other_stuff\"")
+		Convey("ReturningBuild build a RETURNING clause with the given columns", func() {
+			returningClause := Adapter.ReturningBuild(columns)
+			So(returningClause, ShouldEqual, "RETURNING \"id\",\"other_stuff\"")
+		})
+	})
+}
+
+func TestFormatForNewValues(t *testing.T) {
+	Convey("Given list of columns", t, func() {
+		columns := []string{"id", "other_stuff"}
+		Convey("FormatForNewValues returns a copy of the columns list (without change)", func() {
+			formatedColumns := Adapter.FormatForNewValues(columns)
+			So(len(formatedColumns), ShouldEqual, len(columns))
+			for i, column := range columns {
+				So(formatedColumns[i], ShouldEqual, column)
+			}
 		})
 	})
 }

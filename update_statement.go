@@ -1,5 +1,7 @@
 package godb
 
+import "github.com/samonzeweb/godb/adapters"
+
 // UpdateStatement will contains all parts needed to build an UPDATE statement.
 // Initialize it with the UpdateTable method.
 //
@@ -11,10 +13,11 @@ package godb
 type UpdateStatement struct {
 	db *DB
 
-	updateTable string
-	sets        []*setPart
-	where       []*Condition
-	suffixes    []string
+	updateTable      string
+	sets             []*setPart
+	where            []*Condition
+	returningColumns []string
+	suffixes         []string
 }
 
 // setPart contains elements for a single SET clause.
@@ -63,6 +66,13 @@ func (us *UpdateStatement) Where(sql string, args ...interface{}) *UpdateStateme
 // confunctions.
 func (us *UpdateStatement) WhereQ(condition *Condition) *UpdateStatement {
 	us.where = append(us.where, condition)
+	return us
+}
+
+// Returning adds a RETURNING or OUPUT clause to the statement. Use it with
+// PostgreSQL and SQL Server.
+func (us *UpdateStatement) Returning(columns ...string) *UpdateStatement {
+	us.returningColumns = append(us.returningColumns, columns...)
 	return us
 }
 
@@ -119,7 +129,15 @@ func (us *UpdateStatement) ToSQL() (string, []interface{}, error) {
 		return "", nil, err
 	}
 
+	if err := sqlBuffer.writeReturningForPosition(us.returningColumns, adapters.ReturningSQLServer); err != nil {
+		return "", nil, err
+	}
+
 	if err := sqlBuffer.writeWhere(us.where); err != nil {
+		return "", nil, err
+	}
+
+	if err := sqlBuffer.writeReturningForPosition(us.returningColumns, adapters.ReturningPostgreSQL); err != nil {
 		return "", nil, err
 	}
 

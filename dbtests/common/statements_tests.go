@@ -21,6 +21,8 @@ func StatementsTests(db *godb.DB, t *testing.T) {
 }
 
 func statementInsertTest(db *godb.DB, t *testing.T) {
+	returningBuilder := getReturningBuilder(db)
+
 	// Simple insert
 	query := db.InsertInto("books").
 		Columns("title", "author", "published").
@@ -30,13 +32,13 @@ func statementInsertTest(db *godb.DB, t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if id == 0 && !hasReturning(db) {
+	if id == 0 && returningBuilder == nil {
 		t.Fatal("Id was not returned.")
 	}
 
 	// Multiple insert (without returning clause)
 	booksToInsert := setTheLordOfTheRing[:]
-	if !hasReturning(db) {
+	if returningBuilder == nil {
 		booksToInsert = append(booksToInsert, setFoundation...)
 	}
 	query = db.InsertInto("books").
@@ -52,12 +54,12 @@ func statementInsertTest(db *godb.DB, t *testing.T) {
 	// Multiple insert with returning clause (if implemented)
 	// As the given slice isn't empty, it is filled with the values returned
 	// by the database. Of course order of values and slice content must match !
-	if hasReturning(db) {
+	if returningBuilder != nil {
 		booksToInsert = setFoundation[:]
 
 		query = db.InsertInto("books").
 			Columns("title", "author", "published").
-			Suffix("RETURNING id")
+			Returning(returningBuilder.FormatForNewValues([]string{"id"})...)
 		for _, book := range booksToInsert {
 			query.Values(book.Title, book.Author, book.Published)
 		}
@@ -149,6 +151,8 @@ func statementSelectTest(db *godb.DB, t *testing.T) {
 }
 
 func statementUpdateTest(db *godb.DB, t *testing.T) {
+	returningBuilder := getReturningBuilder(db)
+
 	db.Begin()
 
 	// Update books
@@ -179,7 +183,7 @@ func statementUpdateTest(db *godb.DB, t *testing.T) {
 
 	db.Rollback()
 
-	if hasReturning(db) {
+	if returningBuilder != nil {
 		db.Begin()
 		// Update books and get back all updated books
 		// As the given slice is empty, it will add instances filled by the values
@@ -189,7 +193,7 @@ func statementUpdateTest(db *godb.DB, t *testing.T) {
 		_, err = db.UpdateTable("books").
 			Set("author", hari).
 			Where("author = ?", authorAssimov).
-			Suffix("RETURNING id, title, author, published").
+			Returning(returningBuilder.FormatForNewValues([]string{"id", "title", "author", "published"})...).
 			DoWithReturning(&updatedBooks)
 		if err != nil {
 			t.Fatal(err)
@@ -204,6 +208,8 @@ func statementUpdateTest(db *godb.DB, t *testing.T) {
 }
 
 func statementDeleteTest(db *godb.DB, t *testing.T) {
+	returningBuilder := getReturningBuilder(db)
+
 	db.Begin()
 
 	deleted, err := db.DeleteFrom("books").
@@ -223,11 +229,11 @@ func statementDeleteTest(db *godb.DB, t *testing.T) {
 
 	db.Rollback()
 
-	if hasReturning(db) {
+	if returningBuilder != nil {
 		deletedBooks := make([]Book, 0, 0)
 		_, err = db.DeleteFrom("books").
 			Where("author = ?", authorAssimov).
-			Suffix("RETURNING id, title, author, published").
+			Returning(returningBuilder.FormatForNewValues([]string{"id", "title", "author", "published"})...).
 			DoWithReturning(&deletedBooks)
 		if err != nil {
 			t.Fatal(err)

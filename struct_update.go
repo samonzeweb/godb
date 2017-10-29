@@ -74,17 +74,17 @@ func (su *StructUpdate) Do() error {
 		su.updateStatement = su.updateStatement.Where(opLockColumn+" = ?", opLockValue)
 	}
 
-	// Specifig suffix needed ?
-	suffixer, ok := su.updateStatement.db.adapter.(adapters.ReturningSuffixer)
+	// Use a RETURNING (or similar) clause ?
+	returningBuilder, ok := su.updateStatement.db.adapter.(adapters.ReturningBuilder)
 	if ok {
 		autoColumns := su.recordDescription.structMapping.GetAutoColumnsNames()
-		su.updateStatement.Suffix(suffixer.ReturningSuffix(autoColumns))
+		su.updateStatement.Returning(returningBuilder.FormatForNewValues(autoColumns)...)
 	}
 
 	var rowsAffected int64
 	var err error
 
-	if suffixer != nil {
+	if returningBuilder != nil {
 		// the function which will return the pointers according to the given columns
 		f := func(record interface{}, columns []string) ([]interface{}, error) {
 			pointers, err := su.recordDescription.structMapping.GetAutoFieldsPointers(record)

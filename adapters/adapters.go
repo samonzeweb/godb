@@ -20,19 +20,41 @@ type PlaceholdersReplacer interface {
 	ReplacePlaceholders(string, string) string
 }
 
-// ReturningSuffixer is an interface wrapping the optional
-// ReturningSuffix method.
+// ReturningBuilder is an interface wrapping the optional ReturningBuild
+// and ReturningNewValues method.
 //
-// ReturningSuffixer get a list of columns and returns a suffix to be
-// added to the sql statement by the caller, allowing it to retrieve the values
-// of those columns.
+// ReturningBuild gets a list of expressions and returns a clause to be added
+// to the sql statement by the caller, allowing it to retrieve the values
+// of those expressions.
 //
-// It is intended to replace the use of LastInsertId()
-// when the driver does not support it, or if there are more 'automatic' fields
-// initialized or updated by the database.
-type ReturningSuffixer interface {
-	ReturningSuffix([]string) string
+// It is intended to either replace the use of LastInsertId() when the driver
+// does not support it, or to fetch all fields initialized or updated by the
+// database itself. PostgreSQL and SQL Server are concerned with the RETURNING
+// and OUTPUT clauses.
+//
+// FormatForNewValues get a list of columns and format all of them to
+// have expressions returning new values. The purpose is to always get new
+// values when the database could either return the old or new values
+// (before/after execution of the sql statement).
+type ReturningBuilder interface {
+	ReturningBuild([]string) string
+	FormatForNewValues([]string) []string
+	GetReturningPosition() ReturningPosition
 }
+
+// ReturningPosition specify the position of the returning clause if the sql
+// statement.
+//
+// It's not abstract enough, some things are too coupled. Changing that will
+// need a huge rewrite of godb, then now it does the trick.
+type ReturningPosition int
+
+const (
+	// ReturningPostgreSQL for PostgreSQL
+	ReturningPostgreSQL ReturningPosition = 1
+	// ReturningSQLServer for SQL Server
+	ReturningSQLServer = 2
+)
 
 // SQLPart is a struct containing a custom part of SQL query builded by an
 // adapter.

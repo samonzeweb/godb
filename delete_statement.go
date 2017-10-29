@@ -1,5 +1,7 @@
 package godb
 
+import "github.com/samonzeweb/godb/adapters"
+
 // DeleteStatement is a DELETE sql statement builder.
 // Initialize it with the DeleteFrom method.
 //
@@ -8,9 +10,10 @@ package godb
 type DeleteStatement struct {
 	db *DB
 
-	fromTable string
-	where     []*Condition
-	suffixes  []string
+	fromTable        string
+	where            []*Condition
+	returningColumns []string
+	suffixes         []string
 }
 
 // DeleteFrom initializes a DELETE statement builder.
@@ -29,6 +32,13 @@ func (ds *DeleteStatement) Where(sql string, args ...interface{}) *DeleteStateme
 // confunctions.
 func (ds *DeleteStatement) WhereQ(condition *Condition) *DeleteStatement {
 	ds.where = append(ds.where, condition)
+	return ds
+}
+
+// Returning adds a RETURNING or OUPUT clause to the statement. Use it with
+// PostgreSQL and SQL Server.
+func (ds *DeleteStatement) Returning(columns ...string) *DeleteStatement {
+	ds.returningColumns = append(ds.returningColumns, columns...)
 	return ds
 }
 
@@ -59,7 +69,15 @@ func (ds *DeleteStatement) ToSQL() (string, []interface{}, error) {
 		return "", nil, err
 	}
 
+	if err := sqlBuffer.writeReturningForPosition(ds.returningColumns, adapters.ReturningSQLServer); err != nil {
+		return "", nil, err
+	}
+
 	if err := sqlBuffer.writeWhere(ds.where); err != nil {
+		return "", nil, err
+	}
+
+	if err := sqlBuffer.writeReturningForPosition(ds.returningColumns, adapters.ReturningPostgreSQL); err != nil {
 		return "", nil, err
 	}
 

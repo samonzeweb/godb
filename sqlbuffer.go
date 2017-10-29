@@ -191,6 +191,31 @@ func (b *sqlBuffer) writeInto(intoTable string) error {
 	return nil
 }
 
+// writeReturning writes RETURNING clause into the buffer if the given position
+// is the one used by the adapter.
+//
+// If the columns list is empty, it always returns without error.
+// If the columns list isn't empty, the adapter have to implements the
+// ReturningBuilder interface.
+func (b *sqlBuffer) writeReturningForPosition(columns []string, position adapters.ReturningPosition) error {
+
+	if len(columns) == 0 {
+		return nil
+	}
+
+	returningBuilder, ok := b.adapter.(adapters.ReturningBuilder)
+	if !ok {
+		return fmt.Errorf("The adapter does not manage RETUNING-like clause")
+	}
+
+	if returningBuilder.GetReturningPosition() == position {
+		b.write(returningBuilder.ReturningBuild(columns))
+		b.write(" ")
+	}
+
+	return nil
+}
+
 // writeInsertValues writes all the values to insert to the database into
 // the buffer.
 func (b *sqlBuffer) writeInsertValues(args [][]interface{}, columnsCount int) error {

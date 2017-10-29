@@ -29,13 +29,26 @@ func TestInsertColumns(t *testing.T) {
 	})
 }
 
+func TestInsertReturning(t *testing.T) {
+	Convey("Given an insert statement", t, func() {
+		db := &DB{}
+		q := db.InsertInto("dummies")
+
+		Convey("Calling Returning will add the given string to the returning list", func() {
+			q.Returning("id")
+			So(len(q.returningColumns), ShouldEqual, 1)
+			So(q.returningColumns[0], ShouldEqual, "id")
+		})
+	})
+}
+
 func TestInsertSuffix(t *testing.T) {
 	Convey("Given an insert statement", t, func() {
 		db := &DB{}
 		q := db.InsertInto("dummies")
 
 		Convey("Calling Suffix will add the given string to the suffixes list", func() {
-			suffix := "RETURNING id"
+			suffix := "ON CONFLICT DO UPDATE"
 			q.Suffix(suffix)
 			So(len(q.suffixes), ShouldEqual, 1)
 			So(q.suffixes[0], ShouldEqual, suffix)

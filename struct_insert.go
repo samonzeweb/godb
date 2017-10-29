@@ -88,15 +88,15 @@ func (si *StructInsert) Do() error {
 		si.insertStatement.Values(values...)
 	}
 
-	// Specifig suffix needed ?
-	suffixer, ok := si.insertStatement.db.adapter.(adapters.ReturningSuffixer)
+	// Use a RETURNING (or similar) clause ?
+	returningBuilder, ok := si.insertStatement.db.adapter.(adapters.ReturningBuilder)
 	if ok {
 		autoColumns := si.recordDescription.structMapping.GetAutoColumnsNames()
-		si.insertStatement.Suffix(suffixer.ReturningSuffix(autoColumns))
+		si.insertStatement.Returning(returningBuilder.FormatForNewValues(autoColumns)...)
 	}
 
 	// Run
-	if suffixer != nil {
+	if returningBuilder != nil {
 		// the function which will return the pointers according to the given columns
 		f := func(record interface{}, columns []string) ([]interface{}, error) {
 			pointers, err := si.recordDescription.structMapping.GetAutoFieldsPointers(record)
