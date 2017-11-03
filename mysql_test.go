@@ -43,7 +43,10 @@ func fixturesSetupMySQL(t *testing.T) (*godb.DB, func()) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		db.Close()
+		err = db.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	return db, fixturesTeardown

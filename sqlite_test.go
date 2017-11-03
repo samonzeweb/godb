@@ -10,7 +10,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func fixturesSetupSQLite(t *testing.T) *godb.DB {
+func fixturesSetupSQLite(t *testing.T) (*godb.DB, func()) {
 	db, err := godb.Open(sqlite.Adapter, ":memory:")
 	if err != nil {
 		t.Fatal(err)
@@ -32,13 +32,25 @@ func fixturesSetupSQLite(t *testing.T) *godb.DB {
 		t.Fatal(err)
 	}
 
-	return db
+	fixturesTeardown := func() {
+		dropTable := "drop table if exists books"
+		_, err := db.CurrentDB().Exec(dropTable)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = db.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	return db, fixturesTeardown
 }
 
 func TestStatementsSQLite(t *testing.T) {
 	Convey("A DB for a SQLite database", t, func() {
-		db := fixturesSetupSQLite(t)
-		defer db.Close()
+		db, teardown := fixturesSetupSQLite(t)
+		defer teardown()
 
 		Convey("The common tests must pass", func() {
 			common.StatementsTests(db, t)
@@ -48,8 +60,8 @@ func TestStatementsSQLite(t *testing.T) {
 
 func TestStructsSQLite(t *testing.T) {
 	Convey("A DB for a SQLite database", t, func() {
-		db := fixturesSetupSQLite(t)
-		defer db.Close()
+		db, teardown := fixturesSetupSQLite(t)
+		defer teardown()
 
 		Convey("The common tests must pass", func() {
 			common.StructsTests(db, t)
