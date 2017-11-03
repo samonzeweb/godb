@@ -9,6 +9,7 @@ import (
 func TestSelectDoWithStruct(t *testing.T) {
 	Convey("Given a test database", t, func() {
 		db := fixturesSetup(t)
+		defer db.Close()
 
 		Convey("Do execute the query and fills a given instance", func() {
 			singleDummy := Dummy{}
@@ -61,6 +62,7 @@ func TestSelectDoWithStruct(t *testing.T) {
 func TestCountWithStruct(t *testing.T) {
 	Convey("Given a test database", t, func() {
 		db := fixturesSetup(t)
+		defer db.Close()
 
 		Convey("Count returns the count of row mathing the request", func() {
 			selectStmt := db.Select(&Dummy{})

@@ -10,6 +10,8 @@ import (
 func TestGetQueryable(t *testing.T) {
 	Convey("Given a connection to a database", t, func() {
 		db := fixturesSetup(t)
+		defer db.Close()
+
 		sqlQuery := "SELECT * FROM dummies"
 
 		testCache := func(cache *StmtCache) {

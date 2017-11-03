@@ -125,6 +125,7 @@ func TestInsertToSQLErrors(t *testing.T) {
 func TestDoInsert(t *testing.T) {
 	Convey("Given a test database", t, func() {
 		db := fixturesSetup(t)
+		defer db.Close()
 
 		Convey("Do execute the query and return the Id", func() {
 			lastID, err := db.InsertInto("dummies").

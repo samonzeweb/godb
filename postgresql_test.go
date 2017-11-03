@@ -44,6 +44,7 @@ func fixturesSetupPostgreSQL(t *testing.T) (*godb.DB, func()) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		db.Close()
 	}
 
 	return db, fixturesTeardown

@@ -9,6 +9,7 @@ import (
 func TestDeleteDo(t *testing.T) {
 	Convey("Given a test database", t, func() {
 		db := fixturesSetup(t)
+		defer db.Close()
 
 		Convey("Delete delete a record", func() {
 			dummy := &Dummy{}

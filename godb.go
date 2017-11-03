@@ -66,6 +66,7 @@ func initialize(adapter adapters.Adapter, dbInst *sql.DB) *DB {
 // The clone has consumedTime set to zero, and new prepared statements caches with
 // the same characteristics.
 // Use it to create new DB object before starting a goroutine.
+// Use Clear when a clone is not longer useful to free ressources.
 func (db *DB) Clone() *DB {
 	clone := &DB{
 		adapter:      db.adapter,
@@ -90,15 +91,28 @@ func (db *DB) Clone() *DB {
 	return clone
 }
 
+// Clear closes current transaction (rollback) and frees statements caches.
+// It does not close de underlying database connection.
+// Use Clear when a clone of godb is not longer useful, or when
+// you don't use anymore godb but want to keep the underlying database
+// connection open.
+func (db *DB) Clear() error {
+	if db.sqlTx != nil {
+		db.logPrintln("Warning, there is a current transaction")
+		if err := db.sqlTx.Rollback(); err != nil {
+			return err
+		}
+	}
+	return db.stmtCacheDB.Clear()
+}
+
 // Close closes an existing DB created by Open.
 // Don't close a cloned DB still used by others goroutines as the sql.DB
 // is shared !
 // Don't use a DB anymore after a call to Close.
 func (db *DB) Close() error {
 	db.logPrintln("CLOSE DB")
-	if db.sqlTx != nil {
-		db.logPrintln("Warning, there is a current transaction")
-	}
+	db.Clear()
 	return db.sqlDB.Close()
 }
 

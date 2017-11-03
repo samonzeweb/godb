@@ -9,6 +9,7 @@ import (
 func TestUpdateDo(t *testing.T) {
 	Convey("Given a test database", t, func() {
 		db := fixturesSetup(t)
+		defer db.Close()
 
 		Convey("Update update a record", func() {
 			dummy := &Dummy{}

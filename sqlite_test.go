@@ -38,6 +38,7 @@ func fixturesSetupSQLite(t *testing.T) *godb.DB {
 func TestStatementsSQLite(t *testing.T) {
 	Convey("A DB for a SQLite database", t, func() {
 		db := fixturesSetupSQLite(t)
+		defer db.Close()
 
 		Convey("The common tests must pass", func() {
 			common.StatementsTests(db, t)
@@ -48,6 +49,7 @@ func TestStatementsSQLite(t *testing.T) {
 func TestStructsSQLite(t *testing.T) {
 	Convey("A DB for a SQLite database", t, func() {
 		db := fixturesSetupSQLite(t)
+		defer db.Close()
 
 		Convey("The common tests must pass", func() {
 			common.StructsTests(db, t)

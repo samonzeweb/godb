@@ -142,6 +142,7 @@ func TestUpdateToSQLErrors(t *testing.T) {
 func TestDoUpdate(t *testing.T) {
 	Convey("Given a test database", t, func() {
 		db := fixturesSetup(t)
+		defer db.Close()
 
 		Convey("Do execute the query and return the count of affected rows", func() {
 			rowsAffected, err := db.UpdateTable("dummies").

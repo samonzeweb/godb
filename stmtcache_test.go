@@ -58,6 +58,8 @@ func TestSize(t *testing.T) {
 
 		Convey("SetSize reduces the cache size and close statements if needed", func() {
 			db := fixturesSetup(t)
+			defer db.Close()
+
 			c.SetSize(4)
 			query := "select * from dummies where id="
 			for i := 0; i < 4; i++ {
@@ -79,6 +81,7 @@ func TestAdd(t *testing.T) {
 	Convey("Given a cache", t, func() {
 		c := newStmtCache()
 		db := fixturesSetup(t)
+		defer db.Close()
 
 		Convey("add adds a stmt into the cache", func() {
 			query := "select * from dummies"
@@ -104,6 +107,7 @@ func TestRemoveLeastRecentlyUsed(t *testing.T) {
 	Convey("Given a cache", t, func() {
 		c := newStmtCache()
 		db := fixturesSetup(t)
+		defer db.Close()
 
 		Convey("removeLeastRecentlyUsed remove the least recently used item from the cache", func() {
 			query := "select * from dummies where id="
@@ -133,6 +137,7 @@ func TestGet(t *testing.T) {
 	Convey("Given a cache", t, func() {
 		c := newStmtCache()
 		db := fixturesSetup(t)
+		defer db.Close()
 
 		Convey("get returns the stmt from the cache corresponding to the given query", func() {
 			query := "select * from dummies"
@@ -152,6 +157,7 @@ func TestClear(t *testing.T) {
 	Convey("Given a cache", t, func() {
 		c := newStmtCache()
 		db := fixturesSetup(t)
+		defer db.Close()
 
 		Convey("Clears close the stmt and remove all entries from the cache", func() {
 			query := "select * from dummies"
@@ -169,6 +175,7 @@ func TestClearWithoutClosingStmt(t *testing.T) {
 	Convey("Given a cache", t, func() {
 		c := newStmtCache()
 		db := fixturesSetup(t)
+		defer db.Close()
 
 		Convey("Clears remove all entries from the cache but does not close stmt", func() {
 			query := "select * from dummies"
