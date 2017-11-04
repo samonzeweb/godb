@@ -140,5 +140,5 @@ func (is *InsertStatement) doWithReturning(recordDescription *recordDescription,
 		return 0, err
 	}
 
-	return is.db.doWithReturning(query, args, recordDescription, pointersGetter)
+	return is.db.doSelectOrWithReturning(query, args, recordDescription, pointersGetter)
 }

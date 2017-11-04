@@ -34,31 +34,13 @@ func (db *DB) do(query string, arguments []interface{}) (sql.Result, error) {
 	return result, err
 }
 
-// doWithReturning executes the statement and fills the auto fields.
+// doSelectOrWithReturning executes the statement and fills the auto fields.
 // It returns the count of rows returned.
 // It is called when the adapter implements ReturningSuffixer.
-func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescription *recordDescription, pointersGetter pointersGetter) (int64, error) {
-	query = db.replacePlaceholders(query)
-	db.logPrintln(query, arguments)
-
-	startTime := time.Now()
-	queryable, err := db.getQueryable(query)
-	if err != nil {
-		return 0, err
-	}
-	rows, err := queryable.Query(arguments...)
-	condumedTime := timeElapsedSince(startTime)
-	db.addConsumedTime(condumedTime)
-	db.logDuration(condumedTime)
-	if err != nil {
-		db.logPrintln("ERROR : ", err)
-		return 0, err
-	}
+func (db *DB) doSelectOrWithReturning(query string, arguments []interface{}, recordDescription *recordDescription, pointersGetter pointersGetter) (int64, error) {
+	rows, columns, err := db.executeQuery(query, arguments, false, false)
 	defer rows.Close()
-
-	columns, err := rows.Columns()
 	if err != nil {
-		db.logPrintln("ERROR : ", err)
 		return 0, err
 	}
 
@@ -83,6 +65,36 @@ func (db *DB) doWithReturning(query string, arguments []interface{}, recordDescr
 		db.logPrintln("ERROR : ", err)
 	}
 	return int64(rowsCount), err
+}
+
+// executeQuery executes the given query with its arguments and returns the
+// resulting *sql.Rows, the list of columns names, and an error.
+func (db *DB) executeQuery(query string, arguments []interface{}, noTx, noStmtCache bool) (*sql.Rows, []string, error) {
+	query = db.replacePlaceholders(query)
+	db.logPrintln(query, arguments)
+
+	startTime := time.Now()
+	queryable, err := db.getQueryableWithOptions(query, noTx, noStmtCache)
+	if err != nil {
+		return nil, nil, err
+	}
+	rows, err := queryable.Query(arguments...)
+	condumedTime := timeElapsedSince(startTime)
+	db.addConsumedTime(condumedTime)
+	db.logDuration(condumedTime)
+	if err != nil {
+		db.logPrintln("ERROR : ", err)
+		return nil, nil, err
+	}
+
+	columns, err := rows.Columns()
+	if err != nil {
+		db.logPrintln("ERROR : ", err)
+		rows.Close()
+		return nil, nil, err
+	}
+
+	return rows, columns, nil
 }
 
 // fillWithReturningValues fill the record with rows, the record size must have
@@ -140,4 +152,23 @@ func (db *DB) growAndFillWithValues(recordDescription *recordDescription, pointe
 	}
 
 	return rowsCount, nil
+}
+
+// doWithIterator executes the given query (with its arguments) and returns
+// an Iterator.
+func (db *DB) doWithIterator(query string, arguments []interface{}) (Iterator, error) {
+	rows, columns, err := db.executeQuery(query, arguments, true, true)
+	if err != nil {
+		if rows != nil {
+			rows.Close()
+		}
+		return nil, err
+	}
+
+	iterator := iteratorInternals{
+		rows:    rows,
+		columns: columns,
+	}
+
+	return &iterator, nil
 }

@@ -129,5 +129,5 @@ func (ds *DeleteStatement) doWithReturning(recordDescription *recordDescription,
 		return 0, err
 	}
 
-	return ds.db.doWithReturning(query, args, recordDescription, pointersGetter)
+	return ds.db.doSelectOrWithReturning(query, args, recordDescription, pointersGetter)
 }

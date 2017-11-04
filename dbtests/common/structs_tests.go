@@ -119,6 +119,34 @@ func structsSelectTest(db *godb.DB, t *testing.T) {
 		}
 	}
 	db.Commit()
+
+	// Select with an iterator
+	iter, err := db.Select(&Book{}).Where("author = ?", authorTolkien).DoWithIterator()
+	if err != nil {
+		t.Fatal(err)
+	}
+	count = 0
+	for iter.Next() {
+		count++
+		singleBook := Book{}
+		err := iter.Scan(&singleBook)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if singleBook.Author != authorTolkien {
+			t.Fatalf("Wrong book found : %v", singleBook)
+		}
+	}
+	if iter.Err() != nil {
+		t.Fatal(err)
+	}
+	err = iter.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Fatalf("Wrong book count using iterator : %v", count)
+	}
 }
 
 func structsUpdateTest(db *godb.DB, t *testing.T) {

@@ -76,13 +76,3 @@ func (db *DB) Rollback() error {
 func (db *DB) CurrentTx() *sql.Tx {
 	return db.sqlTx
 }
-
-// getTxElseDb return either the current Tx, or the DB, throught
-// the Queryable interface.
-func (db *DB) getTxElseDb() preparableAndQueryable {
-	if db.sqlTx != nil {
-		return db.sqlTx
-	}
-
-	return db.sqlDB
-}

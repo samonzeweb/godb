@@ -148,6 +148,83 @@ func statementSelectTest(db *godb.DB, t *testing.T) {
 	if len(twoBooks) != 2 {
 		t.Fatalf("Wrong result, books count : %v", len(twoBooks))
 	}
+
+	// Select with an iterator
+	iter, err := db.SelectFrom("books").
+		Columns("id", "title", "author", "published").
+		OrderBy("author").OrderBy("title").
+		DoWithIterator()
+	if err != nil {
+		t.Fatal(err)
+	}
+	count = 0
+	for iter.Next() {
+		count++
+		book := Book{}
+		if err := iter.Scan(&book); err != nil {
+			t.Fatal(err)
+		}
+		if count == 1 {
+			if book.Author != bookFoundation.Author {
+				t.Fatalf("Book isn't filled with iterator")
+			}
+			if book.Title != bookFoundation.Title {
+				t.Fatalf("Book isn't filled with iterator")
+			}
+		}
+	}
+	if iter.Err() != nil {
+		t.Fatal(err)
+	}
+	if iter.Close() != nil {
+		t.Fatal(err)
+	}
+	if count != 7 {
+		t.Fatalf("Wrong books count found with an iterator : %v", count)
+	}
+
+	// Select with transaction and nested iterators.
+	// Some drivers will cause troubles with nested queries during a
+	// transaction. This test ensures that DoWithIterator() does not use
+	// a current transaction to avoid troubles.
+	db.Begin()
+	// Should not have effect on the next two select statement
+	db.DeleteFrom("books").Do()
+
+	iter, err = db.SelectFrom("books").
+		Columns("id", "title", "author", "published").
+		OrderBy("author").OrderBy("title").
+		DoWithIterator()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer iter.Close()
+
+	iter2, err := db.SelectFrom("books").
+		Columns("id", "title", "author", "published").
+		DoWithIterator()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer iter2.Close()
+
+	count = 0
+	for iter.Next() {
+		count++
+	}
+	if count != 7 {
+		t.Fatalf("Wrong books count found with an iterator : %v", count)
+	}
+
+	count = 0
+	for iter2.Next() {
+		count++
+	}
+	if count != 7 {
+		t.Fatalf("Wrong books count found with an iterator : %v", count)
+	}
+
+	db.Rollback()
 }
 
 func statementUpdateTest(db *godb.DB, t *testing.T) {

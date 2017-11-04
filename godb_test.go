@@ -1,8 +1,6 @@
 package godb
 
 import (
-	"log"
-	"os"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -14,7 +12,6 @@ func TestClone(t *testing.T) {
 		defer db.Close()
 
 		Convey("Clone create a DB copy of an existing one", func() {
-			db.SetLogger(log.New(os.Stderr, "", 0))
 			clone := db.Clone()
 
 			So(clone.adapter, ShouldHaveSameTypeAs, db.adapter)

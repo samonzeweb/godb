@@ -75,19 +75,3 @@ func TestCurrentTx(t *testing.T) {
 		})
 	})
 }
-
-func TestGetTxElseDb(t *testing.T) {
-	Convey("Given an existing connexion", t, func() {
-		db := createInMemoryConnection(t)
-		defer db.Close()
-
-		Convey("getTxElseDb returns DB if there is no current transaction", func() {
-			So(db.getTxElseDb(), ShouldEqual, db.sqlDB)
-		})
-
-		Convey("getTxElseDb returns Tx if there is a current transaction", func() {
-			db.Begin()
-			So(db.getTxElseDb(), ShouldEqual, db.sqlTx)
-		})
-	})
-}

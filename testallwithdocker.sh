@@ -32,9 +32,11 @@ export GODB_POSTGRESQL="postgres://postgres:NotSoStr0ngPassword@localhost/postgr
 docker exec -i sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P NotSoStr0ngP@ssword <<-EOF
   create database godb;
   go
+  alter database godb set READ_COMMITTED_SNAPSHOT ON;
+  go
   exit
 EOF
-export GODB_MSSQL="Server=localhost;Database=godb;User Id=sa;Password=NotSoStr0ngP@ssword; MultipleActiveResultSets=true"
+export GODB_MSSQL="Server=localhost;Database=godb;User Id=sa;Password=NotSoStr0ngP@ssword"
 
 # Let's test !
 go test -v ./...

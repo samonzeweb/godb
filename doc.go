@@ -308,5 +308,43 @@ Enabling the non transaction cache could improve performances with single
 goroutine batch. With multiple goroutines accessing the same database : it
 depends ! A benchmark would be wise.
 
+
+Iterator
+
+
+With select statements and structs tools you can get an iterator instead of filling a slice
+of struct instances. This could be useful if the request's result is big and you don't
+want to allocate too much memory. On the other side you will write almost as much code
+as with the `sql` package, but with an automatic struct mapping, and a request
+builder.
+
+To get an interator simply use the `DoWithIterator` method instead of `Do`. The iterator
+usage is similar to the standard `sql.Rows` type. Don't forget to check that there are
+no errors with the `Err` method, and don't forget to call `Close` when the iterator is no
+longer useful, especialy if you don't scan all the resultset.
+
+	iter, err := db.SelectFrom("books").
+		Columns("id", "title", "author", "published").
+		OrderBy("author").OrderBy("title").
+		DoWithIterator()
+	if err != nil {
+		...
+	}
+	defer iter.Close()
+
+	for iter.Next() {
+		book := Book{}
+		if err := iter.Scan(&book); err != nil {
+			...
+		}
+		// do something with the book
+		...
+		}
+	}
+
+	if iter.Err() != nil {
+		t.Fatal(err)
+	}
+
 */
 package godb

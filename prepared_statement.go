@@ -34,20 +34,30 @@ func (q *queryWrapper) QueryRow(args ...interface{}) *sql.Row {
 
 // getQueryable manages prepared statement, and its cache.
 func (db *DB) getQueryable(query string) (queryable, error) {
+	return db.getQueryableWithOptions(query, false, false)
+}
+
+// getQueryableWithOptions manages prepared statement, and its cache.
+// It returns a queryable interface, ignoring a possible transaction if noTx is
+// true, and ignoring prepared statement cache is noStmtCache is true.
+func (db *DB) getQueryableWithOptions(query string, noTx, noStmtCache bool) (queryable, error) {
 	// One cache for sql.DB, and one for sql.Tx
 	var cache *StmtCache
+	var dbOrTx preparableAndQueryable
 
-	if db.CurrentTx() == nil {
+	if db.CurrentTx() == nil || noTx {
+		dbOrTx = db.sqlDB
 		cache = db.stmtCacheDB
 	} else {
+		dbOrTx = db.sqlTx
 		cache = db.stmtCacheTx
 	}
 
-	// If the cache is disabled, just return a wrapper to look like a
-	// prepared statement.
-	if !cache.IsEnabled() {
+	// If the cache is disabled, or it has not to be used, just return a wrapper
+	// wich look like a prepared statement.
+	if !cache.IsEnabled() || noStmtCache {
 		wrapper := queryWrapper{
-			db:       db.getTxElseDb(),
+			db:       dbOrTx,
 			sqlQuery: query,
 		}
 		return &wrapper, nil
@@ -62,7 +72,7 @@ func (db *DB) getQueryable(query string) (queryable, error) {
 
 	// New prepared statement
 	db.logPrintln("Prepare statement and cache it")
-	stmt, err := db.getTxElseDb().Prepare(query)
+	stmt, err := dbOrTx.Prepare(query)
 	if err != nil {
 		return nil, err
 	}

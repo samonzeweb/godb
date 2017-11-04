@@ -26,7 +26,7 @@ func fixturesSetupPostgreSQL(t *testing.T) (*godb.DB, func()) {
 	//db.SetLogger(log.New(os.Stderr, "", 0))
 
 	createTable :=
-		`create temporary table if not exists books (
+		`create table if not exists books (
 		id 						serial primary key,
 		title     		varchar(128) not null,
 		author    	  varchar(128) not null,

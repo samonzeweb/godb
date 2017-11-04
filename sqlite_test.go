@@ -1,6 +1,7 @@
 package godb_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/samonzeweb/godb"
@@ -10,8 +11,11 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+const sqlite3testdb = "sqlite3-test.db"
+
 func fixturesSetupSQLite(t *testing.T) (*godb.DB, func()) {
-	db, err := godb.Open(sqlite.Adapter, ":memory:")
+	removeDBIfExists(t)
+	db, err := godb.Open(sqlite.Adapter, sqlite3testdb)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,9 +46,26 @@ func fixturesSetupSQLite(t *testing.T) (*godb.DB, func()) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		removeDBIfExists(t)
 	}
 
 	return db, fixturesTeardown
+}
+
+func removeDBIfExists(t *testing.T) {
+	_, err := os.Stat(sqlite3testdb)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			t.Fatal(err)
+		}
+		// no db file
+		return
+	}
+
+	err = os.Remove(sqlite3testdb)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestStatementsSQLite(t *testing.T) {

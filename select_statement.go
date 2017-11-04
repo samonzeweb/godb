@@ -257,38 +257,9 @@ func (ss *SelectStatement) do(recordInfo *recordDescription, pointersGetter poin
 	if err != nil {
 		return err
 	}
-	sqlQuery = ss.db.replacePlaceholders(sqlQuery)
-	ss.db.logPrintln("SELECT : ", sqlQuery, args)
 
-	startTime := time.Now()
-	queryable, err := ss.db.getQueryable(sqlQuery)
+	rowsCount, err := ss.db.doSelectOrWithReturning(sqlQuery, args, recordInfo, pointersGetter)
 	if err != nil {
-		return err
-	}
-	rows, err := queryable.Query(args...)
-	condumedTime := timeElapsedSince(startTime)
-	ss.db.addConsumedTime(condumedTime)
-	ss.db.logDuration(condumedTime)
-	if err != nil {
-		ss.db.logPrintln("ERROR : ", err)
-		return err
-	}
-	defer rows.Close()
-
-	columns, err := rows.Columns()
-	if err != nil {
-		ss.db.logPrintln("ERROR : ", err)
-		return err
-	}
-
-	rowsCount, err := ss.db.growAndFillWithValues(recordInfo, pointersGetter, columns, rows)
-	if err != nil {
-		ss.db.logPrintln("ERROR : ", err)
-		return err
-	}
-	err = rows.Err()
-	if err != nil {
-		ss.db.logPrintln("ERROR : ", err)
 		return err
 	}
 
@@ -330,4 +301,17 @@ func (ss *SelectStatement) Count() (int64, error) {
 	}
 
 	return count, nil
+}
+
+// DoWithIterator executes the select query and returns an Iterator allowing
+// the caller to fetch rows one at a time.
+// Warning : it does not use an existing transation to avoid some pitfalls with
+// drivers, nor the prepared statement.
+func (ss *SelectStatement) DoWithIterator() (Iterator, error) {
+	sqlQuery, args, err := ss.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	return ss.db.doWithIterator(sqlQuery, args)
 }

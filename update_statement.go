@@ -189,5 +189,5 @@ func (us *UpdateStatement) doWithReturning(recordDescription *recordDescription,
 		return 0, err
 	}
 
-	return us.db.doWithReturning(query, args, recordDescription, pointersGetter)
+	return us.db.doSelectOrWithReturning(query, args, recordDescription, pointersGetter)
 }

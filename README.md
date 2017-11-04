@@ -16,6 +16,7 @@ WARNING : it is still a young project and the public API could change.
 * Mapping between structs and tables.
 * Mapping with nested structs.
 * Execution of custom SELECT, INSERT, UPDATE and DELETE queries with structs and slices.
+* Optional execution of SELECT queries with an iterator to limit memory consumption if needed (e.g. batches).
 * Optimistic Locking
 * SQL queries and durations logs.
 * Two adjustable prepared statements caches (with/without transaction).
@@ -184,7 +185,7 @@ func main() {
 	panicIfErr(err)
 
 	// Multiple insert
-	// Warning : BulkInsert only update ids with PostgreSQL !
+	// Warning : BulkInsert only update ids with PostgreSQL and SQL Server!
 	err = db.BulkInsert(&setTheLordOfTheRing).Do()
 	panicIfErr(err)
 
@@ -220,6 +221,20 @@ func main() {
 	panicIfErr(err)
 	fmt.Println("Books found : ", len(multipleBooks))
 
+	// Iterator
+	iter, err := db.SelectFrom("books").
+		Columns("id", "title", "author", "published").
+		DoWithIterator()
+	panicIfErr(err)
+	for iter.Next() {
+		book := Book{}
+		err := iter.Scan(&book)
+		panicIfErr(err)
+		fmt.Println(book)
+	}
+	panicIfErr(iter.Err())
+	panicIfErr(iter.Close())
+
 	// Update and transactions
 	err = db.Begin()
 	panicIfErr(err)
@@ -229,7 +244,7 @@ func main() {
 	fmt.Println("Books updated : ", updated)
 
 	bookTheHobbit.Author = "Tolkien"
-	updated, err = db.Update(&bookTheHobbit).Do()
+	err = db.Update(&bookTheHobbit).Do()
 	panicIfErr(err)
 	fmt.Println("Books updated : ", updated)
 

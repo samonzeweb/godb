@@ -102,3 +102,23 @@ func (ss *StructSelect) Count() (int64, error) {
 
 	return ss.selectStatement.Count()
 }
+
+// DoWithIterator executes the select query and returns an Iterator allowing
+// the caller to fetch rows one at a time.
+// Warning : it does not use an existing transation to avoid some pitfalls with
+// drivers, nor the prepared statement.
+func (ss *StructSelect) DoWithIterator() (Iterator, error) {
+	if ss.error != nil {
+		return nil, ss.error
+	}
+
+	allColumns := ss.recordDescription.structMapping.GetAllColumnsNames()
+	ss.selectStatement = ss.selectStatement.Columns(ss.selectStatement.db.quoteAll(allColumns)...)
+
+	sqlQuery, args, err := ss.selectStatement.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	return ss.selectStatement.db.doWithIterator(sqlQuery, args)
+}

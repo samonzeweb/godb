@@ -81,3 +81,38 @@ func TestCountWithStruct(t *testing.T) {
 		})
 	})
 }
+
+func TestSelectDoWithIteratorWithStruct(t *testing.T) {
+	Convey("Given a test database", t, func() {
+		db := fixturesSetup(t)
+		defer db.Close()
+
+		Convey("DoWithIterator executes the query and returns an iterator", func() {
+
+			iter, err := db.Select(&Dummy{}).
+				OrderBy("an_integer").
+				DoWithIterator()
+
+			So(err, ShouldBeNil)
+			defer iter.Close()
+
+			count := 0
+			for iter.Next() {
+				count++
+				singleDummy := Dummy{}
+				err := iter.Scan(&singleDummy)
+				So(err, ShouldBeNil)
+
+				if count == 1 {
+					So(singleDummy.ID, ShouldBeGreaterThan, 0)
+					So(singleDummy.AText, ShouldEqual, "First")
+					So(singleDummy.AnotherText, ShouldEqual, "Premier")
+					So(singleDummy.AnInteger, ShouldEqual, 11)
+				}
+
+			}
+			So(count, ShouldEqual, 3)
+			So(iter.Err(), ShouldBeNil)
+		})
+	})
+}
