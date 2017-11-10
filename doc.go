@@ -17,7 +17,6 @@ Start with an adapter, and the Open method which returns a godb.DB pointer :
 	import (
 		"github.com/samonzeweb/godb"
 		"github.com/samonzeweb/godb/adapters/sqlite"
-	"crypto/aes"
 	)
 
 	func main() {
