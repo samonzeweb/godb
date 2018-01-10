@@ -18,7 +18,7 @@ type ComplexStruct struct {
 	// without prefix, empty string is mandatory as it is a key,value
 	// (see https://golang.org/pkg/reflect/#StructTag)
 	SimpleStruct `db:""`
-	// without prefix
+	// with prefix
 	Foobar SubStruct `db:"nested_"`
 	// ignored
 	Ignored SubStruct
@@ -60,6 +60,13 @@ type StructWithInvalidOptimiticLocking struct {
 	BadVersion string `db:"version,oplock"`
 }
 
+type ComplexStructsWithRelations struct {
+	// no prefix but a relation
+	SimpleStruct `db:",rel=firsttable"`
+	// prefix and relation
+	Foobar SubStruct `db:"nested_,rel=secondtable"`		
+}
+
 func TestStructMapping(t *testing.T) {
 	Convey("NewStructMapping with a struct type", t, func() {
 		structMap, _ := NewStructMapping(reflect.TypeOf(SimpleStruct{}))
@@ -91,6 +98,21 @@ func TestStructMapping(t *testing.T) {
 		})
 	})
 
+	Convey("NewStructMapping with nested structs and relations", t, func() {
+		structMap, _ := NewStructMapping(reflect.TypeOf(ComplexStructsWithRelations{}))
+		structMapDetails := structMap.structMapping
+		So(len(structMapDetails.subStructMapping), ShouldEqual, 2)
+
+		Convey("It store data about sub struct without prefix ", func() {
+			So(structMapDetails.subStructMapping[0].prefix, ShouldEqual, "")
+			So(structMapDetails.subStructMapping[0].relation, ShouldEndWith, "firsttable")
+		})
+
+		Convey("It store data about sub struct with prefix ", func() {
+			So(structMapDetails.subStructMapping[1].prefix, ShouldEqual, "nested_")
+			So(structMapDetails.subStructMapping[1].relation, ShouldEndWith, "secondtable")
+		})
+	})	
 }
 
 func TestScannableStructs(t *testing.T) {
@@ -143,6 +165,20 @@ func TestGetAllColumnsNames(t *testing.T) {
 			So(columns[4], ShouldEqual, "nested_bar")
 		})
 	})
+
+	Convey("Given a StructMapping and nested structs with relations", t, func() {
+		structInstance := ComplexStructsWithRelations{}
+		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
+
+		Convey("GetAllColumnsNames return all columns names with relations", func() {
+			columns := structMap.GetAllColumnsNames()
+			So(len(columns), ShouldEqual, 4)
+			So(columns[0], ShouldEqual, "firsttable.id")
+			So(columns[1], ShouldEqual, "firsttable.my_text")
+			So(columns[2], ShouldEqual, "secondtable.nested_foo")
+			So(columns[3], ShouldEqual, "secondtable.nested_bar")
+		})
+	})	
 }
 
 func TestGetNonAutoColumnsNames(t *testing.T) {
