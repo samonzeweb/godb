@@ -2,6 +2,7 @@ package godb
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/samonzeweb/godb/adapters"
@@ -16,19 +17,21 @@ import (
 // 		Where("foo > 2").
 // 		Do(&target)
 type SelectStatement struct {
-	db *DB
+	db    *DB
+	error error
 
-	distinct   bool
-	columns    []string
-	fromTables []string
-	joins      []*joinPart
-	where      []*Condition
-	groupBy    []string
-	having     []*Condition
-	orderBy    []string
-	limit      *int
-	offset     *int
-	suffixes   []string
+	distinct             bool
+	columns              []string
+	areColumnsFromStruct bool
+	fromTables           []string
+	joins                []*joinPart
+	where                []*Condition
+	groupBy              []string
+	having               []*Condition
+	orderBy              []string
+	limit                *int
+	offset               *int
+	suffixes             []string
 }
 
 // joinPart describes a sql JOIN clause.
@@ -40,20 +43,45 @@ type joinPart struct {
 }
 
 // SelectFrom initializes a SELECT statement builder.
-func (db *DB) SelectFrom(tableName string) *SelectStatement {
+func (db *DB) SelectFrom(tableNames ...string) *SelectStatement {
 	ss := &SelectStatement{db: db}
-	return ss.From(tableName)
+	return ss.From(tableNames...)
 }
 
 // From adds table to the select statement. It can be called multiple times.
-func (ss *SelectStatement) From(tableName string) *SelectStatement {
-	ss.fromTables = append(ss.fromTables, tableName)
+func (ss *SelectStatement) From(tableNames ...string) *SelectStatement {
+	ss.fromTables = append(ss.fromTables, tableNames...)
 	return ss
 }
 
 // Columns adds columns to select. Multple calls of columns are allowed.
 func (ss *SelectStatement) Columns(columns ...string) *SelectStatement {
+	if ss.areColumnsFromStruct {
+		ss.error = fmt.Errorf("You can't mix Columns and ColumnsFromStruct to build a select query")
+		return ss
+	}
+
 	ss.columns = append(ss.columns, columns...)
+	return ss
+}
+
+// ColumnsFromStruct adds columns to select, extrating them from the
+// given struct.
+func (ss *SelectStatement) ColumnsFromStruct(record interface{}) *SelectStatement {
+	if len(ss.columns) > 0 {
+		ss.error = fmt.Errorf("You can't mix Columns and ColumnsFromStruct to build a select query")
+		return ss
+	}
+	ss.areColumnsFromStruct = true
+
+	recordInfo, err := buildRecordDescription(record)
+	if err != nil {
+		ss.error = err
+	} else {
+		columns := ss.db.quoteAll(recordInfo.structMapping.GetAllColumnsNames())
+		ss.columns = append(ss.columns, columns...)
+	}
+
 	return ss
 }
 
@@ -63,11 +91,22 @@ func (ss *SelectStatement) Distinct() *SelectStatement {
 	return ss
 }
 
+// InnerJoin adds as INNER JOIN clause, wich will be inserted between FROM and WHERE
+// clauses.
+func (ss *SelectStatement) InnerJoin(tableName string, as string, on *Condition) *SelectStatement {
+	return ss.addJoin("INNER JOIN", tableName, as, on)
+}
+
 // LeftJoin adds a LEFT JOIN clause, wich will be inserted between FROM and WHERE
 // clauses.
 func (ss *SelectStatement) LeftJoin(tableName string, as string, on *Condition) *SelectStatement {
+	return ss.addJoin("LEFT JOIN", tableName, as, on)
+}
+
+// addJoin adds a join clause.
+func (ss *SelectStatement) addJoin(joinType string, tableName string, as string, on *Condition) *SelectStatement {
 	join := &joinPart{
-		joinType:  "LEFT JOIN",
+		joinType:  joinType,
 		tableName: tableName,
 		as:        as,
 		on:        on,
@@ -137,6 +176,10 @@ func (ss *SelectStatement) Suffix(suffix string) *SelectStatement {
 // ToSQL returns a string with the SQL request (containing placeholders),
 // the arguments slices, and an error.
 func (ss *SelectStatement) ToSQL() (string, []interface{}, error) {
+	if ss.error != nil {
+		return "", nil, ss.error
+	}
+
 	sqlWhereLength, argsWhereLength, err := sumOfConditionsLengths(ss.where)
 	if err != nil {
 		return "", nil, err
@@ -219,6 +262,10 @@ func (ss *SelectStatement) ToSQL() (string, []interface{}, error) {
 // If the argument is not a slice, a row is expected, and Do returns
 // sql.ErrNoRows is none where found.
 func (ss *SelectStatement) Do(record interface{}) error {
+	if ss.error != nil {
+		return ss.error
+	}
+
 	recordInfo, err := buildRecordDescription(record)
 	if err != nil {
 		return err
@@ -226,7 +273,13 @@ func (ss *SelectStatement) Do(record interface{}) error {
 
 	// the function which will return the pointers according to the given columns
 	f := func(record interface{}, columns []string) ([]interface{}, error) {
-		pointers, err := recordInfo.structMapping.GetPointersForColumns(record, columns...)
+		var pointers []interface{}
+		var err error
+		if ss.areColumnsFromStruct {
+			pointers = recordInfo.structMapping.GetAllFieldsPointers(record)
+		} else {
+			pointers, err = recordInfo.structMapping.GetPointersForColumns(record, columns...)
+		}
 		return pointers, err
 	}
 

@@ -4,8 +4,14 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/samonzeweb/godb/adapters/sqlite"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+type structWithColumns struct {
+	Foo int    `db:"foo"`
+	Bar string `db:"bar"`
+}
 
 func TestNewSelectStatement(t *testing.T) {
 	Convey("Create a select statement", t, func() {
@@ -31,6 +37,35 @@ func TestSelectColumns(t *testing.T) {
 			So(len(q.columns), ShouldEqual, 3)
 			So(q.columns[0], ShouldEqual, "foo")
 			So(q.columns[1], ShouldEqual, "bar")
+		})
+
+		Convey("You can't use Columns after ColumnsFromStruct", func() {
+			_, _, err := q.Columns("baz").
+				ColumnsFromStruct(&structWithColumns{}).
+				ToSQL()
+			So(err, ShouldNotBeNil)
+		})
+
+	})
+}
+
+func TestSelectColumnsFromStruct(t *testing.T) {
+	Convey("Given a select statement", t, func() {
+		db := &DB{adapter: sqlite.Adapter}
+		q := db.SelectFrom("dummies")
+
+		Convey("ColumnsFromStruct add columns", func() {
+			q.ColumnsFromStruct(&structWithColumns{})
+			So(len(q.columns), ShouldEqual, 2)
+			So(q.columns[0], ShouldEqual, "\"foo\"")
+			So(q.columns[1], ShouldEqual, "\"bar\"")
+		})
+
+		Convey("You can't use ColumnsFromStruct after Columns", func() {
+			_, _, err := q.ColumnsFromStruct(&structWithColumns{}).
+				Columns("baz").
+				ToSQL()
+			So(err, ShouldNotBeNil)
 		})
 
 	})
@@ -59,6 +94,19 @@ func TestSelectLeftJoin(t *testing.T) {
 
 		Convey("Calling LeftJoin will add the given string to the joins list", func() {
 			q.LeftJoin("others", "othersalias", Q("othersalias.id = dummies.other_id"))
+			So(len(q.joins), ShouldEqual, 1)
+		})
+	})
+}
+
+func TestSelectInnerJoin(t *testing.T) {
+	Convey("Given a select query", t, func() {
+		db := &DB{}
+		q := db.SelectFrom("dummies").
+			Columns("foo", "bar", "baz")
+
+		Convey("Calling LeftJoin will add the given string to the joins list", func() {
+			q.InnerJoin("others", "othersalias", Q("othersalias.id = dummies.other_id"))
 			So(len(q.joins), ShouldEqual, 1)
 		})
 	})
@@ -442,5 +490,28 @@ func TestSelectDoWithIterator(t *testing.T) {
 			So(count, ShouldEqual, 3)
 			So(iter.Err(), ShouldBeNil)
 		})
+	})
+}
+
+func TestSelectDoUsingStructForColumns(t *testing.T) {
+	Convey("Given a test database", t, func() {
+		db := fixturesSetup(t)
+		defer db.Close()
+
+		Convey("Do execute the query with two tables and fills a given instance", func() {
+			fromTwoTables := make([]FromTwoTables, 0, 0)
+
+			selectStmt := db.SelectFrom("dummies").
+				ColumnsFromStruct(&FromTwoTables{}).
+				LeftJoin("relatedtodummies", "relatedtodummies", Q("relatedtodummies.dummies_id = dummies.id")).
+				OrderBy("dummies.id")
+
+			err := selectStmt.Do(&fromTwoTables)
+			So(err, ShouldBeNil)
+			So(len(fromTwoTables), ShouldEqual, 3)
+			So(fromTwoTables[0].Dummy.AText, ShouldEqual, "First")
+			So(fromTwoTables[0].RelatedToDummy.AText, ShouldEqual, "REL_First")
+		})
+
 	})
 }

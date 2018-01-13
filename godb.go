@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/samonzeweb/godb/adapters"
@@ -153,7 +154,16 @@ func timeElapsedSince(startTime time.Time) time.Duration {
 func (db *DB) quoteAll(identifiers []string) []string {
 	quotedIdentifiers := make([]string, 0, len(identifiers))
 	for _, identifier := range identifiers {
-		quotedIdentifiers = append(quotedIdentifiers, db.adapter.Quote(identifier))
+		var quotedIdentifier string
+		parts := strings.Split(identifier, ".")
+		if len(parts) == 1 {
+			// just column
+			quotedIdentifier = db.adapter.Quote(identifier)
+		} else {
+			// table.column
+			quotedIdentifier = db.adapter.Quote(parts[0]) + "." + db.adapter.Quote(parts[1])
+		}
+		quotedIdentifiers = append(quotedIdentifiers, quotedIdentifier)
 	}
 	return quotedIdentifiers
 }

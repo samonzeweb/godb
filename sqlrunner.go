@@ -39,10 +39,10 @@ func (db *DB) do(query string, arguments []interface{}) (sql.Result, error) {
 // It is called when the adapter implements ReturningSuffixer.
 func (db *DB) doSelectOrWithReturning(query string, arguments []interface{}, recordDescription *recordDescription, pointersGetter pointersGetter) (int64, error) {
 	rows, columns, err := db.executeQuery(query, arguments, false, false)
-	defer rows.Close()
 	if err != nil {
 		return 0, err
 	}
+	defer rows.Close()
 
 	// If the given slice is empty, the slice grows as the rows are read.
 	// If the given slice isn't empty it's filled with rows, and both rows and
