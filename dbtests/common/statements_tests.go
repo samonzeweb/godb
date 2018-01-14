@@ -1,6 +1,8 @@
 package common
 
 import (
+	"log"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -10,7 +12,7 @@ import (
 
 func StatementsTests(db *godb.DB, t *testing.T) {
 	// Enable logger if needed
-	//db.SetLogger(log.New(os.Stderr, "", 0))
+	db.SetLogger(log.New(os.Stderr, "", 0))
 
 	// Check experimental prepared statement cache for sql.DB
 	// db.StmtCacheDB().Enable()
@@ -152,15 +154,16 @@ func statementSelectTest(db *godb.DB, t *testing.T) {
 
 	// Select using a struct to build columns names
 	// Add more fixtures : inventories for Tolkien's books
+	tolkiensBooks := make([]Book, 0, 0)
 	err = db.SelectFrom("books").
 		Columns("id", "title", "author", "published").
 		Where("author = ?", authorTolkien).
 		OrderBy("published").
-		Do(&allBooks)
+		Do(&tolkiensBooks)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, book := range allBooks {
+	for _, book := range tolkiensBooks {
 		inventory := Inventory{
 			BookId:        book.Id,
 			LastInventory: time.Date(2018, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -175,13 +178,13 @@ func statementSelectTest(db *godb.DB, t *testing.T) {
 	booksWithInventories := make([]BooksWithInventories, 0, 0)
 	err = db.SelectFrom("books").
 		ColumnsFromStruct(&booksWithInventories).
-		InnerJoin("inventories", "inventories", godb.Q("inventories.book_id = books.id")).
+		LeftJoin("inventories", "inventories", godb.Q("inventories.book_id = books.id")).
 		Do(&booksWithInventories)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(booksWithInventories) != len(allBooks) {
-		t.Fatalf("Wrong books+inventories count")
+		t.Fatalf("Wrong books+inventories count : %v", len(booksWithInventories))
 	}
 	for _, bookWithIventory := range booksWithInventories {
 		switch bookWithIventory.Author {
