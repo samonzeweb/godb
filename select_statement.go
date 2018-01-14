@@ -66,7 +66,8 @@ func (ss *SelectStatement) Columns(columns ...string) *SelectStatement {
 }
 
 // ColumnsFromStruct adds columns to select, extrating them from the
-// given struct.
+// given struct (or slice of struct). Always use a pointer as argument.
+// You can't mix the use of ColumnsFromStruct and Columns methods.
 func (ss *SelectStatement) ColumnsFromStruct(record interface{}) *SelectStatement {
 	if len(ss.columns) > 0 {
 		ss.error = fmt.Errorf("You can't mix Columns and ColumnsFromStruct to build a select query")

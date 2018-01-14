@@ -54,6 +54,7 @@ Example :
 	count, err := db.SelectFrom("books").Count()
 	…
 
+	countByAuthor := make([]CountByAuthor, 0, 0)
 	err = db.SelectFrom("books").
 		Columns("author", "count(*) as count").
 		GroupBy("author").
@@ -66,6 +67,35 @@ Example :
 		.Values(1, 2, 3)
 		.Do()
 	…
+
+The SelectStatement type could also build a query using columns from a structs. It facilitates the build of queries returning values from multiple table (or views). See struct mapping explanations, in particular the `rel` part.
+
+Example :
+
+	type Book struct {
+		Id        int       `db:"id,key,auto"`
+		Title     string    `db:"title"`
+		Author    string    `db:"author"`
+		Published time.Time `db:"published"`
+		Version   int       `db:"version,oplock"`
+	}
+
+	type InventoryPart struct {
+		Id       sql.NullInt64 `db:"id"`
+		Counting sql.NullInt64 `db:"counting"`
+	}
+
+	type BooksWithInventories struct {
+		Book          `db:",rel=books"`
+		InventoryPart `db:",rel=inventories"`
+	}
+	…
+
+	booksWithInventories := make([]BooksWithInventories, 0, 0)
+	err = db.SelectFrom("books").
+		ColumnsFromStruct(&booksWithInventories).
+		LeftJoin("inventories", "inventories", godb.Q("inventories.book_id = books.id")).
+		Do(&booksWithInventories)
 
 
 Structs tools
@@ -143,11 +173,11 @@ query only returns one value : the last inserted id : https://golang.org/pkg/dat
 
 With PostgreSQL you cas have multiple fields with 'key' and 'auto' options.
 
-Structs could be nested. A nested struct is mapped only if has the 'db' tag.
-The tag value is a columns prefix applied to all fields columns of the struct.
-The prefix is not mandatory, a blank string is allowed (no prefix).
+Structs could be nested. A nested struct is mapped only if has the 'db' tag. The tag value is a columns prefix applied to all fields columns of the struct. The prefix is not mandatory, a blank string is allowed (no prefix).
 
-Exemple
+A nested struct could also have an optionnal `rel` attribute of the form `rel=relationname`. It's useful to build a select query using multiples relations (table, view, ...). See the example using the BooksWithInventories type.
+
+Example
 
 	type KeyStruct struct {
 		ID    int    `db:"id,key,auto"`
