@@ -31,15 +31,33 @@ func fixturesSetupMySQL(t *testing.T) (*godb.DB, func()) {
 		author    	  varchar(128) not null,
 		published			date not null,
 		version       int not null default 0);
-	`
+		`
+
+	_, err = db.CurrentDB().Exec(createTable)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	createTable = `create table if not exists inventories (
+		id             int auto_increment primary key,
+		book_id			   int not null,
+		last_inventory date not null,
+		counting       int not null default 0);
+		`
+
 	_, err = db.CurrentDB().Exec(createTable)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	fixturesTeardown := func() {
-		dropTable := "drop table if exists books"
+		dropTable := "drop table if exists books;"
 		_, err := db.CurrentDB().Exec(dropTable)
+		if err != nil {
+			t.Fatal(err)
+		}
+		dropTable = "drop table if exists inventories;"
+		_, err = db.CurrentDB().Exec(dropTable)
 		if err != nil {
 			t.Fatal(err)
 		}

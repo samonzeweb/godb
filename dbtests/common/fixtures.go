@@ -1,6 +1,9 @@
 package common
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 type Book struct {
 	Id        int       `db:"id,key,auto"`
@@ -12,6 +15,27 @@ type Book struct {
 
 func (*Book) TableName() string {
 	return "books"
+}
+
+type Inventory struct {
+	Id            int       `db:"id,key,auto"`
+	BookId        int       `db:"book_id"`
+	LastInventory time.Time `db:"last_inventory"`
+	Counting      int       `db:"counting"`
+}
+
+func (*Inventory) TableName() string {
+	return "inventories"
+}
+
+type InventoryPart struct {
+	Id       sql.NullInt64 `db:"id"`
+	Counting sql.NullInt64 `db:"counting"`
+}
+
+type BooksWithInventories struct {
+	Book          `db:",rel=books"`
+	InventoryPart `db:",rel=inventories"`
 }
 
 type CountByAuthor struct {

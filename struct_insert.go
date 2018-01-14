@@ -1,6 +1,7 @@
 package godb
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/samonzeweb/godb/adapters"
@@ -149,6 +150,8 @@ func (si *StructInsert) Do() error {
 			*t = uint32(insertedID)
 		case *uint64:
 			*t = uint64(insertedID)
+		case *sql.NullInt64:
+			*t = sql.NullInt64{Int64: insertedID, Valid: true}
 		}
 	}
 

@@ -3,6 +3,7 @@ package common
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/samonzeweb/godb"
 )
@@ -147,6 +148,56 @@ func statementSelectTest(db *godb.DB, t *testing.T) {
 	}
 	if len(twoBooks) != 2 {
 		t.Fatalf("Wrong result, books count : %v", len(twoBooks))
+	}
+
+	// Select using a struct to build columns names
+	// Add more fixtures : inventories for Tolkien's books
+	err = db.SelectFrom("books").
+		Columns("id", "title", "author", "published").
+		Where("author = ?", authorTolkien).
+		OrderBy("published").
+		Do(&allBooks)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, book := range allBooks {
+		inventory := Inventory{
+			BookId:        book.Id,
+			LastInventory: time.Date(2018, 1, 1, 0, 0, 0, 0, time.UTC),
+			Counting:      book.Published.Year(), // easy to test later
+		}
+		err := db.Insert(&inventory).Do()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	// Find all books with their inventories (not all books have one)
+	booksWithInventories := make([]BooksWithInventories, 0, 0)
+	err = db.SelectFrom("books").
+		ColumnsFromStruct(&booksWithInventories).
+		InnerJoin("inventories", "inventories", godb.Q("inventories.book_id = books.id")).
+		Do(&booksWithInventories)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(booksWithInventories) != len(allBooks) {
+		t.Fatalf("Wrong books+inventories count")
+	}
+	for _, bookWithIventory := range booksWithInventories {
+		switch bookWithIventory.Author {
+		case authorTolkien:
+			if !bookWithIventory.Counting.Valid ||
+				bookWithIventory.Counting.Int64 != int64(bookWithIventory.Published.Year()) {
+				t.Fatalf("Wrong counting %v for book %v", bookWithIventory.Counting, bookWithIventory.Title)
+			}
+		case authorAssimov:
+			// no inventory
+			if bookWithIventory.Counting.Valid {
+				t.Fatalf("Wrong counting %v for book %v", bookWithIventory.Counting, bookWithIventory.Title)
+			}
+		default:
+			t.Fatalf("Wrong author in inventory %v", bookWithIventory.Author)
+		}
 	}
 
 	// Select with an iterator

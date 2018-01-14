@@ -34,6 +34,12 @@ func fixturesSetupMSSQL(t *testing.T) (*godb.DB, func()) {
 		published			datetime2 not null,
 		version       int not null default 0);
 
+		create table inventories (
+		id             int identity,
+		book_id			   int not null,
+		last_inventory datetime2 not null,
+		counting       int not null default 0);
+
 		create table bookswithrowversion (
 			id 						int identity,
 			title     		nvarchar(128) not null,
@@ -47,7 +53,7 @@ func fixturesSetupMSSQL(t *testing.T) (*godb.DB, func()) {
 	}
 
 	fixturesTeardown := func() {
-		dropTable := "drop table books; drop table bookswithrowversion;"
+		dropTable := "drop table books; drop table inventories; drop table bookswithrowversion;"
 		_, err := db.CurrentDB().Exec(dropTable)
 		if err != nil {
 			t.Fatal(err)

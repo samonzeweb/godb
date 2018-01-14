@@ -28,8 +28,14 @@ func fixturesSetupSQLite(t *testing.T) (*godb.DB, func()) {
 		id 						integer not null primary key autoincrement,
 		title     		text not null,
 		author    	  text not null,
-        published			date not null,
+    published			date not null,
 		version       int not null default 0);
+
+		create table inventories (
+		id             integer not null primary key autoincrement,
+		book_id			   int not null,
+		last_inventory date not null,
+		counting       int not null default 0);
 	`
 	_, err = db.CurrentDB().Exec(createTable)
 	if err != nil {
@@ -37,7 +43,7 @@ func fixturesSetupSQLite(t *testing.T) (*godb.DB, func()) {
 	}
 
 	fixturesTeardown := func() {
-		dropTable := "drop table if exists books"
+		dropTable := "drop table if exists books; drop table if exists inventories;"
 		_, err := db.CurrentDB().Exec(dropTable)
 		if err != nil {
 			t.Fatal(err)

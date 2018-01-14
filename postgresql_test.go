@@ -32,6 +32,12 @@ func fixturesSetupPostgreSQL(t *testing.T) (*godb.DB, func()) {
 		author    	  varchar(128) not null,
 		published			date not null,
 		version       int not null default 0);
+
+		create table if not exists inventories (
+		id             serial primary key,
+		book_id			   int not null,
+		last_inventory date,
+		counting       int not null default 0);
 	`
 	_, err = db.CurrentDB().Exec(createTable)
 	if err != nil {
@@ -39,7 +45,7 @@ func fixturesSetupPostgreSQL(t *testing.T) (*godb.DB, func()) {
 	}
 
 	fixturesTeardown := func() {
-		dropTable := "drop table if exists books"
+		dropTable := "drop table if exists books; drop table if exists inventories;"
 		_, err := db.CurrentDB().Exec(dropTable)
 		if err != nil {
 			t.Fatal(err)
