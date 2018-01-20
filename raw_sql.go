@@ -3,6 +3,10 @@ package godb
 import "database/sql"
 
 // RawSQL allows the execution of a custom SQL query.
+//
+// WARNING : the arguments will be used 'as is' by the Go sql package, then it
+// will not duplicate the placeholders if you use a slice.
+//
 // Note : the API to run a custom query could have been build without an
 // intermediaite struct. But this produce a mode homogeneous API, and allows
 // later evolutions without breaking the API.
