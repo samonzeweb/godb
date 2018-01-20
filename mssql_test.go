@@ -72,7 +72,7 @@ func TestStatementsMSSQL(t *testing.T) {
 		db, teardown := fixturesSetupMSSQL(t)
 		defer teardown()
 
-		Convey("The common tests must pass", func() {
+		Convey("The common statements tests must pass", func() {
 			common.StatementsTests(db, t)
 		})
 	})
@@ -83,8 +83,19 @@ func TestStructsMSSQL(t *testing.T) {
 		db, teardown := fixturesSetupMSSQL(t)
 		defer teardown()
 
-		Convey("The common tests must pass", func() {
+		Convey("The common structs tests must pass", func() {
 			common.StructsTests(db, t)
+		})
+	})
+}
+
+func TestRawMSSQL(t *testing.T) {
+	Convey("A DB for a SQLite database", t, func() {
+		db, teardown := fixturesSetupMSSQL(t)
+		defer teardown()
+
+		Convey("The common raw tests must pass", func() {
+			common.RawSQLTests(db, t)
 		})
 	})
 }

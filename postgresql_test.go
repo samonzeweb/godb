@@ -64,7 +64,7 @@ func TestStatementsPostgreSQL(t *testing.T) {
 		db, teardown := fixturesSetupPostgreSQL(t)
 		defer teardown()
 
-		Convey("The common tests must pass", func() {
+		Convey("The common statements tests must pass", func() {
 			common.StatementsTests(db, t)
 		})
 	})
@@ -75,8 +75,19 @@ func TestStructsPostgreSQL(t *testing.T) {
 		db, teardown := fixturesSetupPostgreSQL(t)
 		defer teardown()
 
-		Convey("The common tests must pass", func() {
+		Convey("The common structs tests must pass", func() {
 			common.StructsTests(db, t)
+		})
+	})
+}
+
+func TestRawPowtgreSQL(t *testing.T) {
+	Convey("A DB for a SQLite database", t, func() {
+		db, teardown := fixturesSetupPostgreSQL(t)
+		defer teardown()
+
+		Convey("The common raw tests must pass", func() {
+			common.RawSQLTests(db, t)
 		})
 	})
 }

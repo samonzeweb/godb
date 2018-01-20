@@ -103,3 +103,13 @@ var setFoundation = []Book{
 	bookFoundationAndEmpire,
 	bookSecondFoundation,
 }
+
+var setAllBooks = []Book{
+	bookTheHobbit,
+	bookTheFellowshipOfTheRing,
+	bookTheTwoTowers,
+	bookTheReturnOfTheKing,
+	bookFoundation,
+	bookFoundationAndEmpire,
+	bookSecondFoundation,
+}
