@@ -1,8 +1,6 @@
 package common
 
 import (
-	"log"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -12,7 +10,7 @@ import (
 
 func StatementsTests(db *godb.DB, t *testing.T) {
 	// Enable logger if needed
-	db.SetLogger(log.New(os.Stderr, "", 0))
+	//db.SetLogger(log.New(os.Stderr, "", 0))
 
 	// Check experimental prepared statement cache for sql.DB
 	// db.StmtCacheDB().Enable()

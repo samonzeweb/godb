@@ -31,19 +31,30 @@ func Q(sql string, args ...interface{}) *Condition {
 	remainingSQL := sql[:]
 	// Search slice args to manage case like "WHERE id IN (?)"
 	for _, arg := range args {
+		if arg == nil {
+			c.error = fmt.Errorf("Using nil as argument in condition %s", sql)
+			return &c
+		}
+
 		placeholderPos = strings.Index(remainingSQL, Placeholder)
 		buffer.WriteString(remainingSQL[:placeholderPos])
 		remainingSQL = remainingSQL[placeholderPos+1:]
 		t := reflect.TypeOf(arg)
 		// t could be nil if arguments are not given (nil) to prepare a sql statement
 		if t != nil && t.Kind() == reflect.Slice {
+			// Slices. They can't be empty.
 			v := reflect.ValueOf(arg)
 			length := reflect.ValueOf(arg).Len()
+			if length == 0 {
+				c.error = fmt.Errorf("Empty slice used as argument in condition %s", sql)
+				return &c
+			}
 			for i := 0; i < length; i++ {
 				c.args = append(c.args, v.Index(i).Interface())
 			}
 			buffer.WriteString(Placeholder + strings.Repeat(","+Placeholder, length-1))
 		} else {
+			// Not a slice
 			buffer.WriteString(Placeholder)
 			c.args = append(c.args, arg)
 		}

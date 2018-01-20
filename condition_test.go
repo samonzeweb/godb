@@ -32,10 +32,20 @@ func TestQ(t *testing.T) {
 		})
 	})
 
-	Convey("Q set error field if arguments and placeholders count does not math", t, func() {
-		Convey("A simple condition with one placeholder and one argument", func() {
+	Convey("Q set error field ...", t, func() {
+		Convey("Error is set if arguments and placeholders count does not math", func() {
 			sql := "id = ?"
 			q := Q(sql, 123, 456)
+			So(q.error, ShouldNotBeNil)
+		})
+
+		Convey("Error is set if a given slice is empty", func() {
+			q := Q("id IN (?)", []int{})
+			So(q.error, ShouldNotBeNil)
+		})
+
+		Convey("Error is set if a given slice is nil", func() {
+			q := Q("id IN (?)", nil)
 			So(q.error, ShouldNotBeNil)
 		})
 	})
