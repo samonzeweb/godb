@@ -60,34 +60,17 @@ func (is *InsertStatement) ToSQL() (string, []interface{}, error) {
 	sqlBuffer := newSQLBuffer(is.db.adapter, 256, 16)
 
 	sqlBuffer.Write("INSERT ")
-
-	if err := sqlBuffer.writeInto(is.intoTable); err != nil {
-		return "", nil, err
-	}
-
+	sqlBuffer.writeInto(is.intoTable)
 	sqlBuffer.Write(" (")
-	if err := sqlBuffer.writeColumns(is.columns); err != nil {
-		return "", nil, err
-	}
+	sqlBuffer.writeColumns(is.columns)
 	sqlBuffer.Write(") ")
-
-	if err := sqlBuffer.writeReturningForPosition(is.returningColumns, adapters.ReturningSQLServer); err != nil {
-		return "", nil, err
-	}
-
+	sqlBuffer.writeReturningForPosition(is.returningColumns, adapters.ReturningSQLServer)
 	sqlBuffer.Write("VALUES ")
-
-	if err := sqlBuffer.writeInsertValues(is.values, len(is.columns)); err != nil {
-		return "", nil, err
-	}
-
-	if err := sqlBuffer.writeReturningForPosition(is.returningColumns, adapters.ReturningPostgreSQL); err != nil {
-		return "", nil, err
-	}
-
+	sqlBuffer.writeInsertValues(is.values, len(is.columns))
+	sqlBuffer.writeReturningForPosition(is.returningColumns, adapters.ReturningPostgreSQL)
 	sqlBuffer.writeStringsWithSpaces(is.suffixes)
 
-	return sqlBuffer.SQL(), sqlBuffer.Arguments(), nil
+	return sqlBuffer.SQL(), sqlBuffer.Arguments(), sqlBuffer.Err()
 }
 
 // Do executes the builded INSERT statement and returns the creadted 'id' if

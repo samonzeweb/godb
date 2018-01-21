@@ -203,29 +203,12 @@ func (ss *SelectStatement) ToSQL() (string, []interface{}, error) {
 		sqlBuffer.Write("DISTINCT ")
 	}
 
-	if err := sqlBuffer.writeColumns(ss.columns); err != nil {
-		return "", nil, err
-	}
-
-	if err := sqlBuffer.writeFrom(ss.fromTables...); err != nil {
-		return "", nil, err
-	}
-
-	if err := sqlBuffer.writeJoins(ss.joins); err != nil {
-		return "", nil, err
-	}
-
-	if err := sqlBuffer.writeWhere(ss.where); err != nil {
-		return "", nil, err
-	}
-
-	if err := sqlBuffer.writeGroupByAndHaving(ss.groupBy, ss.having); err != nil {
-		return "", nil, err
-	}
-
-	if err := sqlBuffer.writeOrderBy(ss.orderBy); err != nil {
-		return "", nil, err
-	}
+	sqlBuffer.writeColumns(ss.columns).
+		writeFrom(ss.fromTables...).
+		writeJoins(ss.joins).
+		writeWhere(ss.where).
+		writeGroupByAndHaving(ss.groupBy, ss.having).
+		writeOrderBy(ss.orderBy)
 
 	offsetFirst := false
 	if limitOffsetOrderer, ok := ss.db.adapter.(adapters.LimitOffsetOrderer); ok {
@@ -233,27 +216,17 @@ func (ss *SelectStatement) ToSQL() (string, []interface{}, error) {
 	}
 	if offsetFirst {
 		// Offset is before limit
-		if err := sqlBuffer.writeOffset(ss.offset); err != nil {
-			return "", nil, err
-		}
-
-		if err := sqlBuffer.writeLimit(ss.limit); err != nil {
-			return "", nil, err
-		}
+		sqlBuffer.writeOffset(ss.offset).
+			writeLimit(ss.limit)
 	} else {
 		// Limit is before offset (default case)
-		if err := sqlBuffer.writeLimit(ss.limit); err != nil {
-			return "", nil, err
-		}
-
-		if err := sqlBuffer.writeOffset(ss.offset); err != nil {
-			return "", nil, err
-		}
+		sqlBuffer.writeLimit(ss.limit).
+			writeOffset(ss.offset)
 	}
 
 	sqlBuffer.writeStringsWithSpaces(ss.suffixes)
 
-	return sqlBuffer.SQL(), sqlBuffer.Arguments(), nil
+	return sqlBuffer.SQL(), sqlBuffer.Arguments(), sqlBuffer.Err()
 }
 
 // Do executes the select statement.

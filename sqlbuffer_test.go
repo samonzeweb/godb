@@ -36,6 +36,14 @@ func TestSQLBufferArguments(t *testing.T) {
 	})
 }
 
+func TestSQLBufferErr(t *testing.T) {
+	Convey("Err returns the error", t, func() {
+		b := NewSQLBuffer(16, 4)
+		b.WriteCondition(Q("Bad Condition", 123))
+		So(b.Err(), ShouldNotBeNil)
+	})
+}
+
 func TestSQLBufferSQLLen(t *testing.T) {
 	Convey("SQLLen returns the len of the sql buffer", t, func() {
 		b := NewSQLBuffer(16, 4)

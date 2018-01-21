@@ -120,28 +120,14 @@ func (us *UpdateStatement) ToSQL() (string, []interface{}, error) {
 	)
 
 	sqlBuffer.Write("UPDATE ")
-
 	sqlBuffer.Write(us.updateTable)
+	sqlBuffer.writeSets(us.sets).
+		writeReturningForPosition(us.returningColumns, adapters.ReturningSQLServer).
+		writeWhere(us.where).
+		writeReturningForPosition(us.returningColumns, adapters.ReturningPostgreSQL).
+		writeStringsWithSpaces(us.suffixes)
 
-	if err := sqlBuffer.writeSets(us.sets); err != nil {
-		return "", nil, err
-	}
-
-	if err := sqlBuffer.writeReturningForPosition(us.returningColumns, adapters.ReturningSQLServer); err != nil {
-		return "", nil, err
-	}
-
-	if err := sqlBuffer.writeWhere(us.where); err != nil {
-		return "", nil, err
-	}
-
-	if err := sqlBuffer.writeReturningForPosition(us.returningColumns, adapters.ReturningPostgreSQL); err != nil {
-		return "", nil, err
-	}
-
-	sqlBuffer.writeStringsWithSpaces(us.suffixes)
-
-	return sqlBuffer.SQL(), sqlBuffer.Arguments(), nil
+	return sqlBuffer.SQL(), sqlBuffer.Arguments(), sqlBuffer.Err()
 }
 
 // Do executes the builded query, and return RowsAffected()

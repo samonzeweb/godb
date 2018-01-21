@@ -36,18 +36,25 @@ func TestQ(t *testing.T) {
 		Convey("Error is set if arguments and placeholders count does not math", func() {
 			sql := "id = ?"
 			q := Q(sql, 123, 456)
-			So(q.error, ShouldNotBeNil)
+			So(q.err, ShouldNotBeNil)
 		})
 
 		Convey("Error is set if a given slice is empty", func() {
 			q := Q("id IN (?)", []int{})
-			So(q.error, ShouldNotBeNil)
+			So(q.err, ShouldNotBeNil)
 		})
 
 		Convey("Error is set if a given slice is nil", func() {
 			q := Q("id IN (?)", nil)
-			So(q.error, ShouldNotBeNil)
+			So(q.err, ShouldNotBeNil)
 		})
+	})
+}
+
+func TestErr(t *testing.T) {
+	Convey("Err returns the condition error", t, func() {
+		q := Q("?", 123, 456)
+		So(q.Err(), ShouldNotBeNil)
 	})
 }
 
@@ -76,10 +83,10 @@ func TestAND(t *testing.T) {
 	})
 
 	Convey("Given conditions with at least one error", t, func() {
-		c := &Condition{error: fmt.Errorf("A mysterious error has occurred")}
+		c := &Condition{err: fmt.Errorf("A mysterious error has occurred")}
 
 		Convey("And return a condition with an error", func() {
-			So(And(c).error, ShouldNotBeNil)
+			So(And(c).err, ShouldNotBeNil)
 		})
 	})
 }
@@ -109,10 +116,10 @@ func TestOR(t *testing.T) {
 	})
 
 	Convey("Given conditions with at least one error", t, func() {
-		c := &Condition{error: fmt.Errorf("A mysterious error has occurred")}
+		c := &Condition{err: fmt.Errorf("A mysterious error has occurred")}
 
 		Convey("Or return a condition with an error", func() {
-			So(Or(c).error, ShouldNotBeNil)
+			So(Or(c).err, ShouldNotBeNil)
 		})
 	})
 }
@@ -131,10 +138,10 @@ func TestNOT(t *testing.T) {
 	})
 
 	Convey("Given a condition with an error", t, func() {
-		c := &Condition{error: fmt.Errorf("A mysterious error has occurred")}
+		c := &Condition{err: fmt.Errorf("A mysterious error has occurred")}
 
 		Convey("Not return a condition with an error", func() {
-			So(Not(c).error, ShouldNotBeNil)
+			So(Not(c).err, ShouldNotBeNil)
 		})
 	})
 }

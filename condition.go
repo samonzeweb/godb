@@ -10,9 +10,14 @@ import (
 // Condition is a struct allowing complex condition building, composing
 // SQL predicates, and managing associated arguments.
 type Condition struct {
-	error error
-	sql   string
-	args  []interface{}
+	err  error
+	sql  string
+	args []interface{}
+}
+
+// Err returns the error of the given condition.
+func (c *Condition) Err() error {
+	return c.err
 }
 
 // Q builds a simple condition, managing slices in a particular way : it
@@ -22,7 +27,7 @@ func Q(sql string, args ...interface{}) *Condition {
 	c := Condition{}
 
 	if strings.Count(sql, Placeholder) != len(args) {
-		c.error = fmt.Errorf("Wrong number of arguments in condition %s", sql)
+		c.err = fmt.Errorf("Wrong number of arguments in condition %s", sql)
 		return &c
 	}
 
@@ -32,7 +37,7 @@ func Q(sql string, args ...interface{}) *Condition {
 	// Search slice args to manage case like "WHERE id IN (?)"
 	for _, arg := range args {
 		if arg == nil {
-			c.error = fmt.Errorf("Using nil as argument in condition %s", sql)
+			c.err = fmt.Errorf("Using nil as argument in condition %s", sql)
 			return &c
 		}
 
@@ -46,7 +51,7 @@ func Q(sql string, args ...interface{}) *Condition {
 			v := reflect.ValueOf(arg)
 			length := reflect.ValueOf(arg).Len()
 			if length == 0 {
-				c.error = fmt.Errorf("Empty slice used as argument in condition %s", sql)
+				c.err = fmt.Errorf("Empty slice used as argument in condition %s", sql)
 				return &c
 			}
 			for i := 0; i < length; i++ {
@@ -74,7 +79,7 @@ func And(conditions ...*Condition) *Condition {
 
 	sqlLength, argsLength, err := sumOfConditionsLengths(conditions)
 	if err != nil {
-		return &Condition{error: err}
+		return &Condition{err: err}
 	}
 
 	// because len(" AND ") == 5
@@ -97,7 +102,7 @@ func Or(conditions ...*Condition) *Condition {
 
 	sqlLength, argsLength, err := sumOfConditionsLengths(conditions)
 	if err != nil {
-		return &Condition{error: err}
+		return &Condition{err: err}
 	}
 
 	// len(" OR ") == 4 , plus parentheses
@@ -117,7 +122,7 @@ func Or(conditions ...*Condition) *Condition {
 
 // Not negates a given condition surrounding it with 'NOT (' and ')'.
 func Not(condition *Condition) *Condition {
-	if condition.error != nil {
+	if condition.err != nil {
 		return condition
 	}
 
@@ -140,8 +145,8 @@ func sumOfConditionsLengths(conditions []*Condition) (int, int, error) {
 	sqlLength := 0
 	argsLength := 0
 	for _, c := range conditions {
-		if c.error != nil {
-			return 0, 0, c.error
+		if c.err != nil {
+			return 0, 0, c.err
 		}
 		sqlLength += len(c.sql)
 		argsLength += len(c.args)

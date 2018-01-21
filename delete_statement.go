@@ -64,26 +64,13 @@ func (ds *DeleteStatement) ToSQL() (string, []interface{}, error) {
 	)
 
 	sqlBuffer.Write("DELETE")
+	sqlBuffer.writeFrom(ds.fromTable).
+		writeReturningForPosition(ds.returningColumns, adapters.ReturningSQLServer).
+		writeWhere(ds.where).
+		writeReturningForPosition(ds.returningColumns, adapters.ReturningPostgreSQL).
+		writeStringsWithSpaces(ds.suffixes)
 
-	if err := sqlBuffer.writeFrom(ds.fromTable); err != nil {
-		return "", nil, err
-	}
-
-	if err := sqlBuffer.writeReturningForPosition(ds.returningColumns, adapters.ReturningSQLServer); err != nil {
-		return "", nil, err
-	}
-
-	if err := sqlBuffer.writeWhere(ds.where); err != nil {
-		return "", nil, err
-	}
-
-	if err := sqlBuffer.writeReturningForPosition(ds.returningColumns, adapters.ReturningPostgreSQL); err != nil {
-		return "", nil, err
-	}
-
-	sqlBuffer.writeStringsWithSpaces(ds.suffixes)
-
-	return sqlBuffer.SQL(), sqlBuffer.Arguments(), nil
+	return sqlBuffer.SQL(), sqlBuffer.Arguments(), sqlBuffer.Err()
 }
 
 // Do executes the builded query, and return thr rows affected count.
