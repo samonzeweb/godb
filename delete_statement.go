@@ -63,7 +63,7 @@ func (ds *DeleteStatement) ToSQL() (string, []interface{}, error) {
 		argsWhereLength,
 	)
 
-	sqlBuffer.write("DELETE")
+	sqlBuffer.Write("DELETE")
 
 	if err := sqlBuffer.writeFrom(ds.fromTable); err != nil {
 		return "", nil, err
@@ -81,11 +81,9 @@ func (ds *DeleteStatement) ToSQL() (string, []interface{}, error) {
 		return "", nil, err
 	}
 
-	if err := sqlBuffer.writeStrings(ds.suffixes); err != nil {
-		return "", nil, err
-	}
+	sqlBuffer.writeStringsWithSpaces(ds.suffixes)
 
-	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
+	return sqlBuffer.SQL(), sqlBuffer.Arguments(), nil
 }
 
 // Do executes the builded query, and return thr rows affected count.

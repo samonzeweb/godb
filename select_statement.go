@@ -197,10 +197,10 @@ func (ss *SelectStatement) ToSQL() (string, []interface{}, error) {
 		argsWhereLength+argsHavingLength+4,
 	)
 
-	sqlBuffer.write("SELECT ")
+	sqlBuffer.Write("SELECT ")
 
 	if ss.distinct == true {
-		sqlBuffer.write("DISTINCT ")
+		sqlBuffer.Write("DISTINCT ")
 	}
 
 	if err := sqlBuffer.writeColumns(ss.columns); err != nil {
@@ -251,11 +251,9 @@ func (ss *SelectStatement) ToSQL() (string, []interface{}, error) {
 		}
 	}
 
-	if err := sqlBuffer.writeStrings(ss.suffixes); err != nil {
-		return "", nil, err
-	}
+	sqlBuffer.writeStringsWithSpaces(ss.suffixes)
 
-	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
+	return sqlBuffer.SQL(), sqlBuffer.Arguments(), nil
 }
 
 // Do executes the select statement.

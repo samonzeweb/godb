@@ -59,23 +59,23 @@ func (is *InsertStatement) ToSQL() (string, []interface{}, error) {
 	// TODO : estimate the buffer size.
 	sqlBuffer := newSQLBuffer(is.db.adapter, 256, 16)
 
-	sqlBuffer.write("INSERT ")
+	sqlBuffer.Write("INSERT ")
 
 	if err := sqlBuffer.writeInto(is.intoTable); err != nil {
 		return "", nil, err
 	}
 
-	sqlBuffer.write(" (")
+	sqlBuffer.Write(" (")
 	if err := sqlBuffer.writeColumns(is.columns); err != nil {
 		return "", nil, err
 	}
-	sqlBuffer.write(") ")
+	sqlBuffer.Write(") ")
 
 	if err := sqlBuffer.writeReturningForPosition(is.returningColumns, adapters.ReturningSQLServer); err != nil {
 		return "", nil, err
 	}
 
-	sqlBuffer.write("VALUES ")
+	sqlBuffer.Write("VALUES ")
 
 	if err := sqlBuffer.writeInsertValues(is.values, len(is.columns)); err != nil {
 		return "", nil, err
@@ -85,11 +85,9 @@ func (is *InsertStatement) ToSQL() (string, []interface{}, error) {
 		return "", nil, err
 	}
 
-	if err := sqlBuffer.writeStrings(is.suffixes); err != nil {
-		return "", nil, err
-	}
+	sqlBuffer.writeStringsWithSpaces(is.suffixes)
 
-	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
+	return sqlBuffer.SQL(), sqlBuffer.Arguments(), nil
 }
 
 // Do executes the builded INSERT statement and returns the creadted 'id' if

@@ -119,11 +119,9 @@ func (us *UpdateStatement) ToSQL() (string, []interface{}, error) {
 		argsWhereLength,
 	)
 
-	sqlBuffer.write("UPDATE ")
+	sqlBuffer.Write("UPDATE ")
 
-	if err := sqlBuffer.write(us.updateTable); err != nil {
-		return "", nil, err
-	}
+	sqlBuffer.Write(us.updateTable)
 
 	if err := sqlBuffer.writeSets(us.sets); err != nil {
 		return "", nil, err
@@ -141,11 +139,9 @@ func (us *UpdateStatement) ToSQL() (string, []interface{}, error) {
 		return "", nil, err
 	}
 
-	if err := sqlBuffer.writeStrings(us.suffixes); err != nil {
-		return "", nil, err
-	}
+	sqlBuffer.writeStringsWithSpaces(us.suffixes)
 
-	return sqlBuffer.sqlString(), sqlBuffer.sqlArguments(), nil
+	return sqlBuffer.SQL(), sqlBuffer.Arguments(), nil
 }
 
 // Do executes the builded query, and return RowsAffected()
