@@ -3,20 +3,22 @@ package godb
 import "database/sql"
 
 // RawSQL allows the execution of a custom SQL query.
+// Initialize it with the RawSQL method.
 //
 // WARNING : the arguments will be used 'as is' by the Go sql package, then it
 // will not duplicate the placeholders if you use a slice.
 //
-// Note : the API to run a custom query could have been build without an
-// intermediaite struct. But this produce a mode homogeneous API, and allows
-// later evolutions without breaking the API.
+// Note : the API could have been build without an intermediaite struct.
+// But this produce a mode homogeneous API, and allows
+// later evolutions without breaking the it.
 type RawSQL struct {
 	db        *DB
 	sql       string
 	arguments []interface{}
 }
 
-// RawSQL create a RawSQL structure.
+// RawSQL create a RawSQL structure, allowing the executing of a custom sql
+// query, and the mapping of its result.
 func (db *DB) RawSQL(sql string, args ...interface{}) *RawSQL {
 	return &RawSQL{
 		db:        db,

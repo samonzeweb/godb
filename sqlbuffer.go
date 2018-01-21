@@ -11,8 +11,9 @@ import (
 // SQLBuffer is a buffer for creating SQL queries with arguments of
 // effectively, using bytes.Buffer.
 //
-// Create a buffer, add SQL parts with their arguments with Write method and
-// its friends, and get the result with SQL() and Arguments().
+// Create a buffer, add SQL parts with their arguments with the Write method and
+// its friends, and get the result with SQL() and Arguments(). Check the presence
+// presence of an error with Err().
 //
 // Unlike godb.Q, SQLBuffer does not check if arguments count and placeholders
 // count matches, because strings similar to placeholders could be valid in
@@ -55,7 +56,7 @@ func (b *SQLBuffer) SQLLen() int {
 	return b.sql.Len()
 }
 
-// Err returns the error wich has occured during build.
+// Err returns the error that may have occurred during the build.
 func (b *SQLBuffer) Err() error {
 	return b.err
 }
@@ -84,7 +85,7 @@ func (b *SQLBuffer) WriteIfNotEmpty(sql string, args ...interface{}) *SQLBuffer 
 }
 
 // WriteBytes add the givent bytes to the internal SQL buffer, and append
-// gibens arguments to the existing ones.
+// givens arguments to the existing ones.
 // It's useful when you have build something with a bytes.Buffer.
 func (b *SQLBuffer) WriteBytes(sql []byte, args ...interface{}) *SQLBuffer {
 	if b.err != nil {

@@ -27,10 +27,20 @@ Start with an adapter, and the Open method which returns a godb.DB pointer :
 		…
 	}
 
-There are two main tools family in godb : the statements tools and the structs
-tools. Statements tools allows to write and execute row SQL select, insert,
-update and delete. Structs tools looks more 'orm-ish' as they're take instances
+There are three ways to executes SQL with godb :
+
+	* the statements tools
+	* the structs tools
+	* and raw queries
+
+Using raw queries you can execute any SQL queries and get the results into
+a slice of structs (or single struct) using the automatic mapping.
+
+Structs tools looks more 'orm-ish' as they're take instances
 of objects or slices to run select, insert, update and delete.
+
+Statements tools stand between raw queries and structs tools. It's easier to
+use than raw queries, but you're limited to simplier cases.
 
 
 Statements tools
@@ -39,9 +49,9 @@ Statements tools
 The statements tools are based on types :
 
 	* SelectStatement : initialize it with db.SelectFrom
-	* InsertStatement : initialize it with with db.InsertInto
-	* UpdateStatement : initialize it with with db.UpdateTable
-	* DeleteStatement : initialize it with with db.DeleteFrom
+	* InsertStatement : initialize it with db.InsertInto
+	* UpdateStatement : initialize it with db.UpdateTable
+	* DeleteStatement : initialize it with db.DeleteFrom
 
 Example :
 
@@ -101,7 +111,6 @@ Example :
 Structs tools
 
 
-
 The structs tools are based on types :
 
 	* StructSelect : initialize it with db.Select
@@ -144,6 +153,19 @@ Examples :
 	multipleBooks := make([]Book, 0, 0)
 	err = db.Select(&multipleBooks).Do()
 	…
+
+
+Raw queries
+
+Raw queries are executed using the RawSQL type.
+
+The query could be a simple hand-written string, or something complex builded
+using SQLBuffer and Conditions.
+
+Example :
+
+	books := make([]Book, 0, 0)
+	err = db.RawSQL("select * from books where author = ?", authorAssimov).Do(&books)
 
 
 Structs mapping
@@ -242,6 +264,38 @@ Slices are managed in a particular way : a single placeholder is replaced with
 multiple ones. This allows code like :
 
 	count, err := db.SelectFrom("bar").Where("foo in (?)", fooSlice).Count()
+
+
+SQLBuffer
+
+
+The SQLBuffer exists to ease the build of complex raw queries. It's also used
+internaly by godb. Its use and purpose are simple : concatenate sql parts
+(accompagned by their arguments) in an efficient way.
+
+Example :
+
+	// see NewSQLBuffer for details about sizes
+	subQuery := godb.NewSQLBuffer(32, 0).
+		Write("select author ").
+		Write("from books ").
+		WriteCondition(godb.Q("where title = ?", bookFoundation.Title))
+
+	queryBuffer := godb.NewSQLBuffer(64, 0).
+		Write("select * ").
+		Write("from books ").
+		Write("where author in (").
+		Append(subQuery).
+		Write(")")
+
+	if queryBuffer.Err() != nil {
+		…
+	}
+
+	err = db.RawSQL(queryBuffer.SQL(), queryBuffer.Arguments()...).Do(&books)
+	if err != nil {
+		…
+	}
 
 
 Optimistic Locking

@@ -13,10 +13,11 @@ WARNING : it is still a young project and the public API could change.
 ## Features
 
 * Queries builder.
-* Mapping between structs and tables.
+* Mapping between structs and tables (or views).
 * Mapping with nested structs.
 * Execution of custom SELECT, INSERT, UPDATE and DELETE queries with structs and slices.
 * Optional execution of SELECT queries with an iterator to limit memory consumption if needed (e.g. batches).
+* Execution of raw queries, mapping rows to structs.
 * Optimistic Locking
 * SQL queries and durations logs.
 * Two adjustable prepared statements caches (with/without transaction).
@@ -235,6 +236,26 @@ func main() {
 	panicIfErr(iter.Err())
 	panicIfErr(iter.Close())
 
+	// Raw query
+	subQuery := godb.NewSQLBuffer(0, 0). // sizes are indicative
+						Write("select author ").
+						Write("from books ").
+						WriteCondition(godb.Q("where title = ?", bookTheHobbit.Title))
+
+	queryBuffer := godb.NewSQLBuffer(64, 0).
+		Write("select * ").
+		Write("from books ").
+		Write("where author in (").
+		Append(subQuery).
+		Write(")")
+
+	panicIfErr(queryBuffer.Err())
+
+	books := make([]Book, 0, 0)
+	err = db.RawSQL(queryBuffer.SQL(), queryBuffer.Arguments()...).Do(&books)
+	panicIfErr(err)
+	fmt.Printf("Raw query found %d books\n", len(books))
+
 	// Update and transactions
 	err = db.Begin()
 	panicIfErr(err)
@@ -270,7 +291,7 @@ func main() {
 	panicIfErr(err)
 }
 
-// It's just an example, what did you expect ?
+// It's just an example, what did you expect ? (never do that in real code)
 func panicIfErr(err error) {
 	if err != nil {
 		panic(err)
