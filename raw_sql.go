@@ -57,3 +57,11 @@ func (raw *RawSQL) Do(record interface{}) error {
 
 	return err
 }
+
+// DoWithIterator executes the select query and returns an Iterator allowing
+// the caller to fetch rows one at a time.
+// Warning : it does not use an existing transation to avoid some pitfalls with
+// drivers, nor the prepared statement.
+func (raw *RawSQL) DoWithIterator() (Iterator, error) {
+	return raw.db.doWithIterator(raw.sql, raw.arguments)
+}

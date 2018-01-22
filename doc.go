@@ -40,7 +40,7 @@ Structs tools looks more 'orm-ish' as they're take instances
 of objects or slices to run select, insert, update and delete.
 
 Statements tools stand between raw queries and structs tools. It's easier to
-use than raw queries, but you're limited to simplier cases.
+use than raw queries, but are limited to simplier cases.
 
 
 Statements tools
@@ -394,12 +394,14 @@ depends ! A benchmark would be wise.
 
 Iterator
 
+Using statements tools and structs tools you can execute select queries and get an
+iterator instead of filling a slice of struct instances. This could be useful if the
+request's result is big and you don't want to allocate too much memory. On the other
+side you will write almost as much code as with the `sql` package, but with an automatic
+struct mapping, and a request builder.
 
-With select statements and structs tools you can get an iterator instead of filling a slice
-of struct instances. This could be useful if the request's result is big and you don't
-want to allocate too much memory. On the other side you will write almost as much code
-as with the `sql` package, but with an automatic struct mapping, and a request
-builder.
+Iterators are also available with raw queries. In this cas you cas executes any kind of
+sql code, not just select queries.
 
 To get an interator simply use the `DoWithIterator` method instead of `Do`. The iterator
 usage is similar to the standard `sql.Rows` type. Don't forget to check that there are
