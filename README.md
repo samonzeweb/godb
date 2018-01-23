@@ -4,11 +4,9 @@
 
 godb is a simple Go query builder and struct mapper, not a full-featured ORM. godb does not manage relationships.
 
-Initially godb was a learning project. The purpose was to improve my Go skills by doing real and usable stuff. But it could be useful for somebody else.
+Initially, godb was a learning project. The goal was to improve my Go skills by doing some useful things. But more and more features have been added and godb has become a serious project that can be used by others.
 
-The documentation is as young as the code, but it exists ! You have an example (see below) showing you the main features, and more details in GoDoc : https://godoc.org/github.com/samonzeweb/godb
-
-WARNING : it is still a young project and the public API could change.
+godb is a project that is still young and evolving. The API is almost stable, but it can still change slightly from one version to another. Each new version is associated with a tag, so it is possible to target a particular one if necessary.
 
 ## Features
 
@@ -30,7 +28,19 @@ WARNING : it is still a young project and the public API could change.
   * MS SQL Server
   * other compatible database if you write an adapter.
 
-I made some tests of godb on Windows and Linux, ARM (Cortex A7) and Intel x64.
+I made tests of godb on differents architectures and operating systems : OSX, Windows, Linux, ARM (Cortex A7) and Intel x64.
+
+godb is compatible with Go 1.7, 1.8 and 1.9. Previous ones are not tested.
+
+
+## Documentation
+
+There are three forms of documentation :
+
+* This README with the example presented below, which gives an overview of what godb allows.
+* The tests in `dbtests/common`, which are run on the different databases supported.
+* Detailed documentation on GoDoc: https://godoc.org/github.com/samonzeweb/godb
+
 
 ## Install
 
@@ -39,6 +49,8 @@ go get github.com/samonzeweb/godb
 ```
 
 Install the required driver (see tests). You cas use multiple databases if needed.
+
+Of course you can also use a dependency managment tool like `dep`.
 
 ## Running Tests
 
@@ -84,7 +96,7 @@ GODB_MSSQL="your connection string" go test ./...
 
 ### Test all with Docker
 
-With Docker you can test with SQLite, PostgreSQL, MariaDB and SQL Server with the `testallwithdocker.sh` shell script.
+Using Docker you can test with SQLite, PostgreSQL, MariaDB and SQL Server with the `testallwithdocker.sh` shell script.
 
 SQL Server is greedy, on OSX allow at least 4Go to Docker.
 
