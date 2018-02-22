@@ -30,7 +30,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 
 I made tests of godb on differents architectures and operating systems : OSX, Windows, Linux, ARM (Cortex A7) and Intel x64.
 
-godb is compatible with Go 1.7, 1.8 and 1.9. Previous ones are not tested.
+godb is compatible from Go 1.7 to 1.10. Previous ones are not tested.
 
 
 ## Documentation
