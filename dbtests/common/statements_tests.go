@@ -1,6 +1,8 @@
 package common
 
 import (
+	"log"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -10,7 +12,7 @@ import (
 
 func StatementsTests(db *godb.DB, t *testing.T) {
 	// Enable logger if needed
-	//db.SetLogger(log.New(os.Stderr, "", 0))
+	db.SetLogger(log.New(os.Stderr, "", 0))
 
 	// Check experimental prepared statement cache for sql.DB
 	// db.StmtCacheDB().Enable()
@@ -361,7 +363,7 @@ func statementDeleteTest(db *godb.DB, t *testing.T) {
 	if returningBuilder != nil {
 		// A little hack as SQL Server need a prefix
 		var returningColumns []string
-		if db.Adapter().DriverName() == "mssql" {
+		if db.Adapter().DriverName() == "sqlserver" {
 			returningColumns = []string{"deleted.id", "deleted.title", "deleted.author", "deleted.published"}
 		} else {
 			returningColumns = []string{"id", "title", "author", "published"}

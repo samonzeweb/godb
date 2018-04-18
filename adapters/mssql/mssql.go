@@ -2,6 +2,8 @@ package mssql
 
 import (
 	"bytes"
+	"strconv"
+	"strings"
 
 	"github.com/samonzeweb/godb/adapters"
 	"github.com/samonzeweb/godb/dbreflect"
@@ -19,11 +21,29 @@ type MSSQL struct{}
 var Adapter = MSSQL{}
 
 func (MSSQL) DriverName() string {
-	return "mssql"
+	return "sqlserver"
 }
 
 func (MSSQL) Quote(identifier string) string {
 	return "[" + identifier + "]"
+}
+
+func (MSSQL) ReplacePlaceholders(originalPlaceholder string, sql string) string {
+	sqlBuffer := bytes.NewBuffer(make([]byte, 0, len(sql)))
+	count := 1
+	for {
+		pp := strings.Index(sql, originalPlaceholder)
+		if pp == -1 {
+			break
+		}
+		sqlBuffer.WriteString(sql[:pp])
+		sqlBuffer.WriteString("@p")
+		sqlBuffer.WriteString(strconv.Itoa(count))
+		count++
+		sql = sql[pp+1:]
+	}
+	sqlBuffer.WriteString(sql)
+	return sqlBuffer.String()
 }
 
 func (m MSSQL) ReturningBuild(columns []string) string {
