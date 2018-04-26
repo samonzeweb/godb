@@ -297,8 +297,8 @@ func (ss *SelectStatement) do(recordInfo *recordDescription, pointersGetter poin
 	return err
 }
 
-// Scan runs the request and scans results to dest params
-func (ss *SelectStatement) Scan(dest ...interface{}) error {
+// Scanx runs the request and scans results to dest params
+func (ss *SelectStatement) Scanx(dest ...interface{}) error {
 	stmt, args, err := ss.ToSQL()
 	if err != nil {
 		return err
