@@ -49,14 +49,6 @@ func (i *iteratorInternals) Scan(record interface{}) error {
 	return err
 }
 
-
-//Scanx scans record values to destination columns
-func (i *iteratorInternals) Scanx(dest ...interface{}) error {
-	var err error
-	err = i.rows.Scan(dest...)
-	return err
-}
-
 // Close frees ressources created by the request execution.
 func (i *iteratorInternals) Close() error {
 	return i.rows.Close()

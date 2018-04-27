@@ -457,15 +457,15 @@ func TestCount(t *testing.T) {
 	})
 }
 
-func TestScanx(t *testing.T) {
+func TestScan(t *testing.T) {
 	Convey("Given a test database", t, func() {
 		db := fixturesSetup(t)
 		defer db.Close()
 
-		Convey("Scanx runs and fills destination columns", func() {
+		Convey("Scan runs and fills destination columns", func() {
 			selectStmt := db.SelectFrom("dummies")
 			num := 0
-			err := selectStmt.Where("an_integer = ?", 12).Columns("an_integer").Scanx(&num)
+			err := selectStmt.Where("an_integer = ?", 12).Columns("an_integer").Scan(&num)
 			So(err, ShouldBeNil)
 			So(num, ShouldEqual, 12)
 
