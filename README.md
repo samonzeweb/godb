@@ -229,11 +229,11 @@ func main() {
 	}
 
 	// Select single record values
-        authorName := ""
+	authorName := ""
 	title := ""
 	err = db.SelectFrom("books").
 		Where("title = ?", bookTheHobbit.Title).
-		Columns("author","title")
+		Columns("author", "title").
 		Scanx(&authorName, &title)
 	if err == sql.ErrNoRows {
 		// sql.ErrNoRows is only returned when the target is a single instance
