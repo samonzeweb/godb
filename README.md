@@ -228,6 +228,20 @@ func main() {
 		panicIfErr(err)
 	}
 
+	// Select single record values
+        authorName := ""
+	title := ""
+	err = db.SelectFrom("books").
+		Where("title = ?", bookTheHobbit.Title).
+		Columns("author","title")
+		Scanx(&authorName, &title)
+	if err == sql.ErrNoRows {
+		// sql.ErrNoRows is only returned when the target is a single instance
+		fmt.Println("Book not found !")
+	} else {
+		panicIfErr(err)
+	}
+
 	// Select multiple objects
 	multipleBooks := make([]Book, 0, 0)
 	err = db.Select(&multipleBooks).Do()
