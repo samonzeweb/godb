@@ -124,6 +124,8 @@ import (
 
 	"github.com/samonzeweb/godb"
 	"github.com/samonzeweb/godb/adapters/sqlite"
+	"log"
+	"os"
 )
 
 /*
