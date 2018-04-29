@@ -50,7 +50,7 @@ func (db *DB) Commit() error {
 	db.logExecution(consumedTime, "COMMIT")
 	db.sqlTx = nil
 	if err!=nil {
-		db.logExecution(consumedTime, "COMMIT")
+		db.logExecutionErr(err, "COMMIT")
 	}
 	return err
 }
@@ -68,7 +68,7 @@ func (db *DB) Rollback() error {
 	db.addConsumedTime(consumedTime)
 	db.logExecution(consumedTime, "ROLLBACK")
 	if err!=nil {
-		db.logExecution(consumedTime, "ROLLBACK")
+		db.logExecutionErr(err, "ROLLBACK")
 	}
 	db.sqlTx = nil
 	return err
