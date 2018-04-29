@@ -457,6 +457,25 @@ func TestCount(t *testing.T) {
 	})
 }
 
+func TestScanx(t *testing.T) {
+	Convey("Given a test database", t, func() {
+		db := fixturesSetup(t)
+		defer db.Close()
+
+		Convey("Scanx runs and fills destination columns", func() {
+			selectStmt := db.SelectFrom("dummies")
+			num := 0
+			err := selectStmt.Where("an_integer = ?", 12).Columns("an_integer").Scanx(&num)
+			So(err, ShouldBeNil)
+			So(num, ShouldEqual, 12)
+
+			Convey("Do compute time consumed by SQL query", func() {
+				So(db.ConsumedTime(), ShouldBeGreaterThan, 0)
+			})
+		})
+	})
+}
+
 func TestSelectDoWithIterator(t *testing.T) {
 	Convey("Given a test database", t, func() {
 		db := fixturesSetup(t)

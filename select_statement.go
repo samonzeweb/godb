@@ -297,6 +297,32 @@ func (ss *SelectStatement) do(recordInfo *recordDescription, pointersGetter poin
 	return err
 }
 
+// Scanx runs the request and scans results to dest params
+func (ss *SelectStatement) Scanx(dest ...interface{}) error {
+	stmt, args, err := ss.ToSQL()
+	if err != nil {
+		return err
+	}
+	stmt = ss.db.replacePlaceholders(stmt)
+	ss.db.logPrintln("SELECT : ", stmt, args)
+
+	startTime := time.Now()
+	queryable, err := ss.db.getQueryable(stmt)
+	if err != nil {
+		return err
+	}
+	err = queryable.QueryRow(args...).Scan(dest...)
+	consumedTime := timeElapsedSince(startTime)
+	ss.db.addConsumedTime(consumedTime)
+	ss.db.logDuration(consumedTime)
+	if err != nil {
+		ss.db.logPrintln("ERROR : ", err)
+		return err
+	}
+
+	return nil
+}
+
 // Count runs the request with COUNT(*) (remove others columns)
 // and returns the count.
 func (ss *SelectStatement) Count() (int64, error) {
