@@ -1,13 +1,16 @@
 package godb
 
 import (
-	"log"
 	"time"
 )
 
+type Logger interface {
+	Println(v ...interface{})
+}
+
 // SetLogger sets the logger for the given DB.
 // By default there is no logger.
-func (db *DB) SetLogger(logger *log.Logger) {
+func (db *DB) SetLogger(logger Logger) {
 	db.logger = logger
 }
 
