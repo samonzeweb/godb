@@ -329,29 +329,9 @@ func (ss *SelectStatement) Count() (int64, error) {
 	ss.columns = ss.columns[:0]
 	ss.Columns("COUNT(*)")
 
-	sql, args, err := ss.ToSQL()
-	if err != nil {
-		return 0, err
-	}
-	sql = ss.db.replacePlaceholders(sql)
-	ss.db.logPrintln("SELECT : ", sql, args)
-
 	var count int64
-	startTime := time.Now()
-	queryable, err := ss.db.getQueryable(sql)
-	if err != nil {
-		return 0, err
-	}
-	err = queryable.QueryRow(args...).Scan(&count)
-	condumedTime := timeElapsedSince(startTime)
-	ss.db.addConsumedTime(condumedTime)
-	ss.db.logDuration(condumedTime)
-	if err != nil {
-		ss.db.logPrintln("ERROR : ", err)
-		return 0, err
-	}
-
-	return count, nil
+	err := ss.Scanx(&count)
+	return count, err
 }
 
 // DoWithIterator executes the select query and returns an Iterator allowing
