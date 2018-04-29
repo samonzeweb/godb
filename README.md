@@ -21,6 +21,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 * Two adjustable prepared statements caches (with/without transaction).
 * `RETURNING` support for PostgreSQL.
 * `OUTPUT` support for SQL Server.
+* Define your own logger (should have `Println(...)` method)
 * Could by used with
   * SQLite
   * PostgreSQL

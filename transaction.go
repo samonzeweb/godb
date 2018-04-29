@@ -16,7 +16,6 @@ type preparableAndQueryable interface {
 
 // Begin starts a new transaction, fails if there is already one.
 func (db *DB) Begin() error {
-	db.logPrintln("SQL : Begin")
 
 	if db.sqlTx != nil {
 		return fmt.Errorf("Begin was called multiple times, sql transaction already exists")
@@ -24,10 +23,11 @@ func (db *DB) Begin() error {
 
 	startTime := time.Now()
 	tx, err := db.sqlDB.Begin()
-	condumedTime := timeElapsedSince(startTime)
-	db.addConsumedTime(condumedTime)
-	db.logDuration(condumedTime)
+	consumedTime := timeElapsedSince(startTime)
+	db.addConsumedTime(consumedTime)
+	db.logExecution(consumedTime, "BEGIN")
 	if err != nil {
+		db.logExecutionErr(err, "BEGIN")
 		return err
 	}
 
@@ -37,7 +37,6 @@ func (db *DB) Begin() error {
 
 // Commit commits an existing transaction, fails if none exists.
 func (db *DB) Commit() error {
-	db.logPrintln("SQL : Commit")
 
 	if db.sqlTx == nil {
 		return fmt.Errorf("Commit was called without existing sql transaction")
@@ -46,17 +45,18 @@ func (db *DB) Commit() error {
 	db.stmtCacheTx.clearWithoutClosingStmt()
 	startTime := time.Now()
 	err := db.sqlTx.Commit()
-	condumedTime := timeElapsedSince(startTime)
-	db.addConsumedTime(condumedTime)
-	db.logDuration(condumedTime)
+	consumedTime := timeElapsedSince(startTime)
+	db.addConsumedTime(consumedTime)
+	db.logExecution(consumedTime, "COMMIT")
 	db.sqlTx = nil
+	if err!=nil {
+		db.logExecution(consumedTime, "COMMIT")
+	}
 	return err
 }
 
 // Rollback rollbacks an existing transaction, fails if none exists.
 func (db *DB) Rollback() error {
-	db.logPrintln("SQL : Rollback")
-
 	if db.sqlTx == nil {
 		return fmt.Errorf("Rollback was called without existing sql transaction")
 	}
@@ -64,9 +64,12 @@ func (db *DB) Rollback() error {
 	db.stmtCacheTx.clearWithoutClosingStmt()
 	startTime := time.Now()
 	err := db.sqlTx.Rollback()
-	condumedTime := timeElapsedSince(startTime)
-	db.addConsumedTime(condumedTime)
-	db.logDuration(condumedTime)
+	consumedTime := timeElapsedSince(startTime)
+	db.addConsumedTime(consumedTime)
+	db.logExecution(consumedTime, "ROLLBACK")
+	if err!=nil {
+		db.logExecution(consumedTime, "ROLLBACK")
+	}
 	db.sqlTx = nil
 	return err
 }

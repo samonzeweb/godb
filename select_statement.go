@@ -304,19 +304,19 @@ func (ss *SelectStatement) Scanx(dest ...interface{}) error {
 		return err
 	}
 	stmt = ss.db.replacePlaceholders(stmt)
-	ss.db.logPrintln("SELECT : ", stmt, args)
 
 	startTime := time.Now()
 	queryable, err := ss.db.getQueryable(stmt)
 	if err != nil {
+		ss.db.logExecutionErr(err, stmt, args)
 		return err
 	}
 	err = queryable.QueryRow(args...).Scan(dest...)
 	consumedTime := timeElapsedSince(startTime)
 	ss.db.addConsumedTime(consumedTime)
-	ss.db.logDuration(consumedTime)
+	ss.db.logExecution(consumedTime, stmt, args)
 	if err != nil {
-		ss.db.logPrintln("ERROR : ", err)
+		ss.db.logExecutionErr(err, stmt, args)
 		return err
 	}
 
