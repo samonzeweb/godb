@@ -193,6 +193,8 @@ func main() {
 	// Connect to the DB
 	db, err := godb.Open(sqlite.Adapter, "./library.db")
 	panicIfErr(err)
+	// OPTIONAL: Set logger to show SQL execution logs
+	db.SetLogger(log.New(os.Stderr, "", 0))
 
 	// Single insert (id will be updated)
 	err = db.Insert(&bookTheHobbit).Do()
