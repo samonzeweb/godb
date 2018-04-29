@@ -491,23 +491,44 @@ func TestSelectDoWithIterator(t *testing.T) {
 			So(err, ShouldBeNil)
 			defer iter.Close()
 
-			count := 0
-			for iter.Next() {
-				count++
-				singleDummy := Dummy{}
-				err := iter.Scan(&singleDummy)
-				So(err, ShouldBeNil)
+			Convey("Fetch data with Scan", func() {
+				count := 0
+				for iter.Next() {
+					count++
+					singleDummy := Dummy{}
+					err := iter.Scan(&singleDummy)
+					So(err, ShouldBeNil)
 
-				if count == 1 {
-					So(singleDummy.ID, ShouldBeGreaterThan, 0)
-					So(singleDummy.AText, ShouldEqual, "First")
-					So(singleDummy.AnotherText, ShouldEqual, "Premier")
-					So(singleDummy.AnInteger, ShouldEqual, 11)
+					if count == 1 {
+						So(singleDummy.ID, ShouldBeGreaterThan, 0)
+						So(singleDummy.AText, ShouldEqual, "First")
+						So(singleDummy.AnotherText, ShouldEqual, "Premier")
+						So(singleDummy.AnInteger, ShouldEqual, 11)
+					}
+
 				}
+				So(count, ShouldEqual, 3)
+				So(iter.Err(), ShouldBeNil)
+			})
 
-			}
-			So(count, ShouldEqual, 3)
-			So(iter.Err(), ShouldBeNil)
+			Convey("Fetch data with Scanx", func() {
+				count := 0
+				for iter.Next() {
+					var ID, anInteger int
+					var aText, anotherText string
+					err := iter.Scanx(&ID, &aText, &anotherText, &anInteger)
+					So(err, ShouldBeNil)
+
+					if count == 1 {
+						So(ID, ShouldBeGreaterThan, 0)
+						So(aText, ShouldEqual, "First")
+						So(anotherText, ShouldEqual, "Premier")
+						So(anInteger, ShouldEqual, 11)
+					}
+
+				}
+				So(iter.Err(), ShouldBeNil)
+			})
 		})
 	})
 }

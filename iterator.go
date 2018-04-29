@@ -8,6 +8,7 @@ import "database/sql"
 type Iterator interface {
 	Next() bool
 	Scan(interface{}) error
+	Scanx(...interface{}) error
 	Close() error
 	Err() error
 }
@@ -45,16 +46,12 @@ func (i *iteratorInternals) Scan(record interface{}) error {
 		return err
 	}
 
-	err = i.rows.Scan(pointers...)
-	return err
+	return i.rows.Scan(pointers...)
 }
-
 
 //Scanx scans record values to destination columns
 func (i *iteratorInternals) Scanx(dest ...interface{}) error {
-	var err error
-	err = i.rows.Scan(dest...)
-	return err
+	return i.rows.Scan(dest...)
 }
 
 // Close frees ressources created by the request execution.
