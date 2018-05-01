@@ -21,6 +21,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 * Two adjustable prepared statements caches (with/without transaction).
 * `RETURNING` support for PostgreSQL.
 * `OUTPUT` support for SQL Server.
+* Define your own logger (should have `Println(...)` method)
 * Could by used with
   * SQLite
   * PostgreSQL
@@ -123,6 +124,8 @@ import (
 
 	"github.com/samonzeweb/godb"
 	"github.com/samonzeweb/godb/adapters/sqlite"
+	"log"
+	"os"
 )
 
 /*
@@ -192,6 +195,8 @@ func main() {
 	// Connect to the DB
 	db, err := godb.Open(sqlite.Adapter, "./library.db")
 	panicIfErr(err)
+	// OPTIONAL: Set logger to show SQL execution logs
+	db.SetLogger(log.New(os.Stderr, "", 0))
 
 	// Single insert (id will be updated)
 	err = db.Insert(&bookTheHobbit).Do()

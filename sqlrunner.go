@@ -14,20 +14,20 @@ type pointersGetter func(record interface{}, columns []string) ([]interface{}, e
 // placeholders if neeeded, and returns sql.Result.
 func (db *DB) do(query string, arguments []interface{}) (sql.Result, error) {
 	query = db.replacePlaceholders(query)
-	db.logPrintln(query, arguments)
 
 	// Execute the statement
 	startTime := time.Now()
 	queryable, err := db.getQueryable(query)
 	if err != nil {
+		db.logExecutionErr(err, query, arguments)
 		return nil, err
 	}
 	result, err := queryable.Exec(arguments...)
-	condumedTime := timeElapsedSince(startTime)
-	db.addConsumedTime(condumedTime)
-	db.logDuration(condumedTime)
+	consumedTime := timeElapsedSince(startTime)
+	db.addConsumedTime(consumedTime)
+	db.logExecution(consumedTime, query, arguments)
 	if err != nil {
-		db.logPrintln("ERROR : ", err)
+		db.logExecutionErr(err, query, arguments)
 		return nil, err
 	}
 
@@ -56,13 +56,13 @@ func (db *DB) doSelectOrWithReturning(query string, arguments []interface{}, rec
 		rowsCount, err = db.growAndFillWithValues(recordDescription, pointersGetter, columns, rows)
 	}
 	if err != nil {
-		db.logPrintln("ERROR : ", err)
+		db.logExecutionErr(err, query, arguments)
 		return 0, err
 	}
 
 	err = rows.Err()
 	if err != nil {
-		db.logPrintln("ERROR : ", err)
+		db.logExecutionErr(err, query, arguments)
 	}
 	return int64(rowsCount), err
 }
@@ -71,25 +71,25 @@ func (db *DB) doSelectOrWithReturning(query string, arguments []interface{}, rec
 // resulting *sql.Rows, the list of columns names, and an error.
 func (db *DB) executeQuery(query string, arguments []interface{}, noTx, noStmtCache bool) (*sql.Rows, []string, error) {
 	query = db.replacePlaceholders(query)
-	db.logPrintln(query, arguments)
 
 	startTime := time.Now()
 	queryable, err := db.getQueryableWithOptions(query, noTx, noStmtCache)
 	if err != nil {
+		db.logExecutionErr(err, query, arguments)
 		return nil, nil, err
 	}
 	rows, err := queryable.Query(arguments...)
-	condumedTime := timeElapsedSince(startTime)
-	db.addConsumedTime(condumedTime)
-	db.logDuration(condumedTime)
+	consumedTime := timeElapsedSince(startTime)
+	db.addConsumedTime(consumedTime)
+	db.logExecution(consumedTime, query, arguments)
 	if err != nil {
-		db.logPrintln("ERROR : ", err)
+		db.logExecutionErr(err, query, arguments)
 		return nil, nil, err
 	}
 
 	columns, err := rows.Columns()
 	if err != nil {
-		db.logPrintln("ERROR : ", err)
+		db.logExecutionErr(err, query, arguments)
 		rows.Close()
 		return nil, nil, err
 	}

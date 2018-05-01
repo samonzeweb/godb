@@ -3,7 +3,6 @@ package godb
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"strings"
 	"time"
 
@@ -16,8 +15,8 @@ import (
 type DB struct {
 	adapter      adapters.Adapter
 	sqlDB        *sql.DB
-	sqlTx        *sql.Tx
-	logger       *log.Logger
+	sqlTx        *sql.Tx	
+	logger       Logger
 	consumedTime time.Duration
 
 	// Prepared Statement cache for DB and Tx
