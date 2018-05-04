@@ -19,6 +19,9 @@ type StructMapping struct {
 	Name          string
 	structMapping structMappingDetails
 	opLockSQLName string
+	fieldCount    int
+	keyCount      int
+	autoCount     int
 }
 
 // innerStructMapping contains the details of a relation between a struct
@@ -58,6 +61,7 @@ func NewStructMapping(structInfo reflect.Type) (*StructMapping, error) {
 	}
 
 	sm.Name = sm.structMapping.name
+	sm.setFieldsCount()
 
 	err = sm.setOpLockField()
 	if err != nil {
@@ -160,7 +164,7 @@ func (smd *structMappingDetails) newSubStructMapping(structField reflect.StructF
 	// Optional prefix and relation
 	var options map[string]string
 	subStructMapping.prefix, options = smd.tagData(structField.Tag)
-	if relation,ok := options[optionRelation]; ok {
+	if relation, ok := options[optionRelation]; ok {
 		subStructMapping.relation = relation
 	}
 
@@ -192,6 +196,26 @@ func (*structMappingDetails) tagData(tag reflect.StructTag) (string, map[string]
 	}
 
 	return firstValue, tagMaps
+}
+
+// setFieldsCount set all fields count (all, auto, keys)
+func (sm *StructMapping) setFieldsCount() {
+	sm.fieldCount = 0
+	sm.autoCount = 0
+	sm.keyCount = 0
+
+	f := func(_ string, fieldMapping *fieldMapping, _ *reflect.Value) (stop bool, err error) {
+		sm.fieldCount++
+		if fieldMapping.isAuto {
+			sm.autoCount++
+		}
+		if fieldMapping.isKey {
+			sm.keyCount++
+		}
+		return false, nil
+	}
+
+	sm.structMapping.traverseTree("", "", nil, f)
 }
 
 // setOpLockField searchs optimistic locking field an update the struct mapping
@@ -242,7 +266,7 @@ func isValidNonAutoOpLockFieldType(fieldMapping *fieldMapping) bool {
 
 // GetAllColumnsNames returns the names of all columns.
 func (sm *StructMapping) GetAllColumnsNames() []string {
-	columns := make([]string, 0, 0)
+	columns := make([]string, 0, sm.fieldCount)
 
 	f := func(fullName string, _ *fieldMapping, _ *reflect.Value) (stop bool, err error) {
 		columns = append(columns, fullName)
@@ -255,7 +279,7 @@ func (sm *StructMapping) GetAllColumnsNames() []string {
 
 // GetNonAutoColumnsNames returns the names of non auto columns.
 func (sm *StructMapping) GetNonAutoColumnsNames() []string {
-	columns := make([]string, 0, 0)
+	columns := make([]string, 0, sm.fieldCount-sm.autoCount)
 
 	f := func(fullName string, fieldMapping *fieldMapping, _ *reflect.Value) (stop bool, err error) {
 		if !fieldMapping.isAuto {
@@ -270,7 +294,7 @@ func (sm *StructMapping) GetNonAutoColumnsNames() []string {
 
 // GetAutoColumnsNames returns the names of auto columns.
 func (sm *StructMapping) GetAutoColumnsNames() []string {
-	columns := make([]string, 0, 0)
+	columns := make([]string, 0, sm.autoCount)
 
 	f := func(fullName string, fieldMapping *fieldMapping, _ *reflect.Value) (stop bool, err error) {
 		if fieldMapping.isAuto {
@@ -285,7 +309,7 @@ func (sm *StructMapping) GetAutoColumnsNames() []string {
 
 // GetKeyColumnsNames returns the names of key columns.
 func (sm *StructMapping) GetKeyColumnsNames() []string {
-	columns := make([]string, 0, 0)
+	columns := make([]string, 0, sm.keyCount)
 
 	f := func(fullName string, fieldMapping *fieldMapping, _ *reflect.Value) (stop bool, err error) {
 		if fieldMapping.isKey {
@@ -305,7 +329,7 @@ func (sm *StructMapping) GetAllFieldsPointers(s interface{}) []interface{} {
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
 
-	pointers := make([]interface{}, 0, 0)
+	pointers := make([]interface{}, 0, sm.fieldCount)
 
 	f := func(fullName string, _ *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		pointers = append(pointers, value.Addr().Interface())
@@ -323,7 +347,7 @@ func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
 
-	values := make([]interface{}, 0, 0)
+	values := make([]interface{}, 0, sm.fieldCount-sm.autoCount)
 
 	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		if !fieldMapping.isAuto {
@@ -343,7 +367,7 @@ func (sm *StructMapping) GetKeyFieldsValues(s interface{}) []interface{} {
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
 
-	values := make([]interface{}, 0, 0)
+	values := make([]interface{}, 0, sm.keyCount)
 
 	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		if fieldMapping.isKey {
@@ -423,7 +447,7 @@ func (sm *StructMapping) GetAutoFieldsPointers(s interface{}) ([]interface{}, er
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
 
-	pointers := make([]interface{}, 0, 0)
+	pointers := make([]interface{}, 0, sm.autoCount)
 
 	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		if fieldMapping.isAuto {
@@ -510,7 +534,7 @@ func (smd *structMappingDetails) traverseTree(relation string, prefix string, st
 		if relation != "" {
 			fullName = relation + "." + fullName
 		}
-		
+
 		if startValue != nil {
 			fieldValue := startValue.FieldByName(fm.name)
 			stopped, err = f(fullName, &fm, &fieldValue)
