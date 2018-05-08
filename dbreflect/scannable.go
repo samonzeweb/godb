@@ -1,10 +1,10 @@
 package dbreflect
 
 import (
-	"database/sql"
 	"fmt"
 	"reflect"
 	"time"
+	"github.com/samonzeweb/godb/nullable"
 )
 
 var scannableStructs map[string]bool
@@ -13,11 +13,14 @@ func init() {
 	scannableStructs = make(map[string]bool)
 	// time.Time is scannable by default
 	RegisterScannableStruct(time.Time{})
-	// Sql nullable type
-	RegisterScannableStruct(sql.NullBool{})
-	RegisterScannableStruct(sql.NullFloat64{})
-	RegisterScannableStruct(sql.NullInt64{})
-	RegisterScannableStruct(sql.NullString{})
+	// Sql nullable types
+	RegisterScannableStruct(nullable.NullBool{})
+	RegisterScannableStruct(nullable.NullFloat64{})
+	RegisterScannableStruct(nullable.NullInt64{})
+	RegisterScannableStruct(nullable.NullString{})
+	// Custom nullable types
+	RegisterScannableStruct(nullable.NullTime{})
+	RegisterScannableStruct(nullable.NullBytes{})
 }
 
 // RegisterScannableStruct registers a struct (through an instance or pointer)

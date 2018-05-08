@@ -1,8 +1,8 @@
 package common
 
 import (
-	"database/sql"
 	"time"
+	"github.com/samonzeweb/godb/nullable"
 )
 
 type Book struct {
@@ -29,8 +29,8 @@ func (*Inventory) TableName() string {
 }
 
 type InventoryPart struct {
-	Id       sql.NullInt64 `db:"id"`
-	Counting sql.NullInt64 `db:"counting"`
+	Id       nullable.NullInt64 `db:"id"`
+	Counting nullable.NullInt64 `db:"counting"`
 }
 
 type BooksWithInventories struct {

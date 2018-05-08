@@ -91,8 +91,8 @@ Example :
 	}
 
 	type InventoryPart struct {
-		Id       sql.NullInt64 `db:"id"`
-		Counting sql.NullInt64 `db:"counting"`
+		Id       nullable.NullInt64 `db:"id"`
+		Counting nullable.NullInt64 `db:"counting"`
 	}
 
 	type BooksWithInventories struct {
@@ -225,7 +225,7 @@ Databases columns are :
 The mapping is managed by the 'dbreflect' subpackage. Normally its direct use
 is not necessary, exept in one case : some structs are scannable and have to be
 considered like fields, and mapped to databases columns. Common case are
-time.Time, or sql.NullString, ... You can register a custom struct with the
+time.Time, or NullString, ... You can register a custom struct with the
 `RegisterScannableStruct` and a struct instance, for example the time.Time is
 registered like this :
 
