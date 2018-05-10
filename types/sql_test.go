@@ -1,5 +1,5 @@
 
-package nullable
+package types
 import (
 	"testing"
 	. "github.com/smartystreets/goconvey/convey"

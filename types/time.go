@@ -1,4 +1,4 @@
-package nullable
+package types
 
 
 // NullTime is a type that can be null or a time

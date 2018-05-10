@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/samonzeweb/godb/adapters/sqlite"
-	"github.com/samonzeweb/godb/nullable"
+	"github.com/samonzeweb/godb/types"
 )
 
 func checkToSQL(t *testing.T, sqlExpected string, sqlProduced string, err error) {
@@ -38,7 +38,7 @@ type Dummy struct {
 	AText           string         `db:"a_text"`
 	AnotherText     string         `db:"another_text"`
 	AnInteger       int            `db:"an_integer"`
-	ANullableString nullable.NullString `db:"a_nullable_string"`
+	ANullableString types.NullString `db:"a_nullable_string"`
 	Version         int            `db:"version,oplock"`
 }
 
@@ -66,7 +66,7 @@ type DummyAutoOplock struct {
 	AText           string         `db:"a_text"`
 	AnotherText     string         `db:"another_text"`
 	AnInteger       int            `db:"an_integer"`
-	ANullableString nullable.NullString `db:"a_nullable_string"`
+	ANullableString types.NullString `db:"a_nullable_string"`
 	Version         int            `db:"version,auto,oplock"`
 }
 

@@ -91,8 +91,8 @@ Example :
 	}
 
 	type InventoryPart struct {
-		Id       nullable.NullInt64 `db:"id"`
-		Counting nullable.NullInt64 `db:"counting"`
+		Id       types.NullInt64 `db:"id"`
+		Counting types.NullInt64 `db:"counting"`
 	}
 
 	type BooksWithInventories struct {

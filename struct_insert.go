@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/samonzeweb/godb/adapters"
-	"github.com/samonzeweb/godb/nullable"
+	"github.com/samonzeweb/godb/types"
 )
 
 // StructInsert builds an INSERT statement for the given object.
@@ -150,8 +150,8 @@ func (si *StructInsert) Do() error {
 			*t = uint32(insertedID)
 		case *uint64:
 			*t = uint64(insertedID)
-		case *nullable.NullInt64:
-			*t = nullable.NullInt64From(insertedID)
+		case *types.NullInt64:
+			*t = types.NullInt64From(insertedID)
 		}
 	}
 

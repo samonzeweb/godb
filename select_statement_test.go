@@ -416,7 +416,7 @@ func TestSelectDo(t *testing.T) {
 			So(err, ShouldEqual, sql.ErrNoRows)
 		})
 
-		Convey("Do fills nullable fields", func() {
+		Convey("Do fills types fields", func() {
 			dummiesSlice := make([]Dummy, 0, 0)
 			selectStmt := db.SelectFrom("dummies").
 				Columns("id", "a_nullable_string").

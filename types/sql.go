@@ -1,4 +1,4 @@
-package nullable
+package types
 
 import (
 	"database/sql"

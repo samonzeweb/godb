@@ -1,4 +1,4 @@
-package nullable
+package types
 
 // NullBytes can be an []byte or a null value.
 import (
