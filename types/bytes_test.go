@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"testing"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 

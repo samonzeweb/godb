@@ -1,9 +1,11 @@
 package dbreflect
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"time"
+
 	"github.com/samonzeweb/godb/types"
 )
 
@@ -14,10 +16,10 @@ func init() {
 	// time.Time is scannable by default
 	RegisterScannableStruct(time.Time{})
 	// Sql types types
-	RegisterScannableStruct(types.NullBool{})
-	RegisterScannableStruct(types.NullFloat64{})
-	RegisterScannableStruct(types.NullInt64{})
-	RegisterScannableStruct(types.NullString{})
+	RegisterScannableStruct(sql.NullBool{})
+	RegisterScannableStruct(sql.NullFloat64{})
+	RegisterScannableStruct(sql.NullInt64{})
+	RegisterScannableStruct(sql.NullString{})
 	// Custom types types
 	RegisterScannableStruct(types.NullTime{})
 	RegisterScannableStruct(types.NullBytes{})

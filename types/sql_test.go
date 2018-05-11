@@ -1,10 +1,10 @@
-
 package types
+
 import (
 	"testing"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
-
 
 func TestSqlTypes(t *testing.T) {
 	Convey("Given SqlTypes", t, func() {

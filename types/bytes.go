@@ -1,10 +1,10 @@
 package types
 
-// NullBytes can be an []byte or a null value.
 import (
 	"database/sql/driver"
 )
 
+// NullBytes can be an []byte or a null value.
 type NullBytes struct {
 	Bytes []byte
 	Valid bool // Valid is true if Bytes is not NULL
@@ -27,7 +27,7 @@ func (n NullBytes) Value() (driver.Value, error) {
 // NullBytesFrom creates a valid NullBytesFrom
 func NullBytesFrom(v []byte) NullBytes {
 	if v == nil {
-		return 	NullBytes{Bytes: v, Valid: false}
+		return NullBytes{Bytes: v, Valid: false}
 	}
 	return NullBytes{Bytes: v, Valid: true}
 }

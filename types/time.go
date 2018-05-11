@@ -1,13 +1,13 @@
 package types
 
 
-// NullTime is a type that can be null or a time
 import (
-	"time"
 	"database/sql/driver"
 	"fmt"
+	"time"
 )
 
+// NullTime is a type that can be null or a time
 type NullTime struct {
 	Time  time.Time
 	Valid bool // Valid is true if Time is not NULL
@@ -29,7 +29,6 @@ func (nt NullTime) Value() (driver.Value, error) {
 	}
 	return nt.Time, nil
 }
-
 
 // NullTimeFrom creates a valid NullTime
 func NullTimeFrom(v time.Time) NullTime {
