@@ -64,7 +64,7 @@ type ComplexStructsWithRelations struct {
 	// no prefix but a relation
 	SimpleStruct `db:",rel=firsttable"`
 	// prefix and relation
-	Foobar SubStruct `db:"nested_,rel=secondtable"`		
+	Foobar SubStruct `db:"nested_,rel=secondtable"`
 }
 
 func TestStructMapping(t *testing.T) {
@@ -75,10 +75,16 @@ func TestStructMapping(t *testing.T) {
 			So(structMap.Name, ShouldEndWith, "SimpleStruct")
 		})
 
-		Convey("It store data about all tagged fields ", func() {
+		Convey("It store data about all tagged fields", func() {
 			So(len(structMap.GetAllColumnsNames()), ShouldEqual, 2)
 			So(structMap.GetAllColumnsNames(), ShouldContain, "id")
 			So(structMap.GetAllColumnsNames(), ShouldContain, "my_text")
+		})
+
+		Convey("It counts fields", func() {
+			So(structMap.fieldCount, ShouldEqual, 2)
+			So(structMap.autoCount, ShouldEqual, 1)
+			So(structMap.keyCount, ShouldEqual, 1)
 		})
 	})
 
@@ -96,6 +102,12 @@ func TestStructMapping(t *testing.T) {
 			So(structMapDetails.subStructMapping[1].prefix, ShouldEqual, "nested_")
 			So(structMapDetails.subStructMapping[1].structMapping.name, ShouldEndWith, "SubStruct")
 		})
+
+		Convey("It counts fields", func() {
+			So(structMap.fieldCount, ShouldEqual, 5)
+			So(structMap.autoCount, ShouldEqual, 1)
+			So(structMap.keyCount, ShouldEqual, 1)
+		})
 	})
 
 	Convey("NewStructMapping with nested structs and relations", t, func() {
@@ -112,7 +124,7 @@ func TestStructMapping(t *testing.T) {
 			So(structMapDetails.subStructMapping[1].prefix, ShouldEqual, "nested_")
 			So(structMapDetails.subStructMapping[1].relation, ShouldEndWith, "secondtable")
 		})
-	})	
+	})
 }
 
 func TestScannableStructs(t *testing.T) {
@@ -178,7 +190,7 @@ func TestGetAllColumnsNames(t *testing.T) {
 			So(columns[2], ShouldEqual, "secondtable.nested_foo")
 			So(columns[3], ShouldEqual, "secondtable.nested_bar")
 		})
-	})	
+	})
 }
 
 func TestGetNonAutoColumnsNames(t *testing.T) {
