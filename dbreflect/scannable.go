@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+
+	"github.com/samonzeweb/godb/types"
 )
 
 var scannableStructs map[string]bool
@@ -13,11 +15,14 @@ func init() {
 	scannableStructs = make(map[string]bool)
 	// time.Time is scannable by default
 	RegisterScannableStruct(time.Time{})
-	// Sql nullable type
+	// Sql types types
 	RegisterScannableStruct(sql.NullBool{})
 	RegisterScannableStruct(sql.NullFloat64{})
 	RegisterScannableStruct(sql.NullInt64{})
 	RegisterScannableStruct(sql.NullString{})
+	// Custom types types
+	RegisterScannableStruct(types.NullTime{})
+	RegisterScannableStruct(types.NullBytes{})
 }
 
 // RegisterScannableStruct registers a struct (through an instance or pointer)
