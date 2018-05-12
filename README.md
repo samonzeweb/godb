@@ -22,7 +22,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 * `RETURNING` support for PostgreSQL.
 * `OUTPUT` support for SQL Server.
 * Define your own logger (should have `Println(...)` method)
-* Define table name for structs. For example, if struct's name is `BookAuthor`:
+* Define table name for structs. (You can call one of `SetTableNamer...` functions at your main function to use a namer.) For example, if struct's name is `BookAuthor`:
     * Default tablename will be same as struct's name(`SetTableNamerSame()`). Example table name will be `BookAuthor`.
     * Call `SetTableNamerPlural()` to use plural name of struct. Example table name will be `BookAuthors`.
     * Call `SetTableNamerSnake()` to get struct name as sname format. Example table name will be `book_author`.
