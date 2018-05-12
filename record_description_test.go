@@ -187,7 +187,9 @@ func TestIndex(t *testing.T) {
 }
 
 func TestTableName(t *testing.T) {
-	Convey("Given a record descriptor", t, func() {
+	// Same
+	Convey("Given a record descriptor, same name", t, func() {
+		SetTableNamerSame()
 		instancePtr := &typeToDescribe{}
 		recordDesc, _ := buildRecordDescription(instancePtr)
 		Convey("getTableName returns by default the struct name a table name", func() {
@@ -196,10 +198,74 @@ func TestTableName(t *testing.T) {
 		})
 	})
 
-	Convey("Given a record descriptor of type implmenting tableNamer interface", t, func() {
+	Convey("Given a record descriptor of type implementing tableNamer interface, same name", t, func() {
+		SetTableNamerSame()
 		instancePtr := &otherTypeToDescribe{}
 		recordDesc, _ := buildRecordDescription(instancePtr)
 		Convey("getTableName returns the string given by TableName()", func() {
+			tableName := recordDesc.getTableName()
+			So(tableName, ShouldEqual, "others")
+		})
+	})
+
+	// Plural
+	Convey("Given a record descriptor, plural name", t, func() {
+		SetTableNamerPlural()
+		instancePtr := &typeToDescribe{}
+		recordDesc, _ := buildRecordDescription(instancePtr)
+		Convey("getTableName returns by default the struct name a table name in plural form", func() {
+			tableName := recordDesc.getTableName()
+			So(tableName, ShouldEqual, "typeToDescribes")
+		})
+	})
+
+	Convey("Given a record descriptor of type implementing tableNamer interface, in plural form", t, func() {
+		SetTableNamerPlural()
+		instancePtr := &otherTypeToDescribe{}
+		recordDesc, _ := buildRecordDescription(instancePtr)
+		Convey("getTableName returns the string given by TableName() - plural", func() {
+			tableName := recordDesc.getTableName()
+			So(tableName, ShouldEqual, "others")
+		})
+	})
+
+	// Snake
+	Convey("Given a record descriptor, snake case name", t, func() {
+		SetTableNamerSnake()
+		instancePtr := &typeToDescribe{}
+		recordDesc, _ := buildRecordDescription(instancePtr)
+		Convey("getTableName returns by default the struct name a table name in snake form", func() {
+			tableName := recordDesc.getTableName()
+			So(tableName, ShouldEqual, "type_to_describe")
+		})
+	})
+
+	Convey("Given a record descriptor of type implementing tableNamer interface, snake name", t, func() {
+		SetTableNamerSnake()
+		instancePtr := &otherTypeToDescribe{}
+		recordDesc, _ := buildRecordDescription(instancePtr)
+		Convey("getTableName returns the string given by TableName() - snake", func() {
+			tableName := recordDesc.getTableName()
+			So(tableName, ShouldEqual, "others")
+		})
+	})
+
+	// Snake Plural
+	Convey("Given a record descriptor, snake case name in plural", t, func() {
+		SetTableNamerSnakePlural()
+		instancePtr := &typeToDescribe{}
+		recordDesc, _ := buildRecordDescription(instancePtr)
+		Convey("getTableName returns by default the struct name a table name in plural snake form", func() {
+			tableName := recordDesc.getTableName()
+			So(tableName, ShouldEqual, "type_to_describes")
+		})
+	})
+
+	Convey("Given a record descriptor of type implementing tableNamer interface, plural snake name", t, func() {
+		SetTableNamerSnakePlural()
+		instancePtr := &otherTypeToDescribe{}
+		recordDesc, _ := buildRecordDescription(instancePtr)
+		Convey("getTableName returns the string given by TableName() - plural snake", func() {
 			tableName := recordDesc.getTableName()
 			So(tableName, ShouldEqual, "others")
 		})

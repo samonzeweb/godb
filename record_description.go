@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"unicode"
 
 	"github.com/samonzeweb/godb/dbreflect"
+	"github.com/jinzhu/inflection"
 )
 
 // recordDescription describes the source or target of a SQL statement.
@@ -24,6 +26,13 @@ type recordDescription struct {
 // corresponding table name in database.
 type tableNamer interface {
 	TableName() string
+}
+
+// tableNamerFunc function is called when formatting table name from struct name
+var tableNamerFunc func(string) string
+
+func init() {
+	SetTableNamerSame()
 }
 
 // buildRecordDescription builds a recordDescription for the given object.
@@ -146,5 +155,55 @@ func (r *recordDescription) getTableName() string {
 	}
 
 	typeNameParts := strings.Split(r.structMapping.Name, ".")
-	return typeNameParts[len(typeNameParts)-1]
+	return tableNamerFunc(typeNameParts[len(typeNameParts)-1])
+}
+
+
+// SetTableNamerFunc sets func to be used to format table name if TableName()
+// method is not defined for a struct
+func SetTableNamerFunc(fn func(string) string) {
+	tableNamerFunc = fn
+}
+
+// SetTableNamerPlural builds table name as plural form of struct's name
+func SetTableNamerPlural() {
+	SetTableNamerFunc(inflection.Plural)
+}
+
+// SetTableNamerSame builds table name same as struct's name
+func SetTableNamerSame() {
+	SetTableNamerFunc(func(name string) string { return name})
+}
+
+// Converts a string to snake case, used for converting struct name to snake_case
+func ToSnakeCase(s string) string {
+	in := []rune(s)
+	isLower := func(idx int) bool {
+		return idx >= 0 && idx < len(in) && unicode.IsLower(in[idx])
+	}
+
+	out := make([]rune, 0, len(in)+len(in)/2)
+	for i, r := range in {
+		if unicode.IsUpper(r) {
+			r = unicode.ToLower(r)
+			if i > 0 && in[i-1] != '_' && (isLower(i-1) || isLower(i+1)) {
+				out = append(out, '_')
+			}
+		}
+		out = append(out, r)
+	}
+
+	return string(out)
+}
+
+// SetTableNamerSnake builds table name from struct's name in snake format
+func SetTableNamerSnake() {
+	SetTableNamerFunc(ToSnakeCase)
+}
+
+// SetTableNamerSnake builds table name from struct's name in plural snake format
+func SetTableNamerSnakePlural() {
+	SetTableNamerFunc(func(name string) string {
+		return inflection.Plural(ToSnakeCase(name))
+	})
 }
