@@ -24,10 +24,10 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 * Define your own logger (should have `Println(...)` method)
 * Define struct's name => db table naming function by calling `db.SetDefaultTableNamer(yourFn)`:
     * Where `yourFn` is one of (for example if struct name is `BookAuthor`):
-        * Use `tablenamer.TableNamerSame()` to use same name of struct(default). Example table name will be `BookAuthor`.
-        * Use `tablenamer.TableNamerPlural()` to use plural name of struct. Example table name will be `BookAuthors`.
-        * Use `tablenamer.TableNamerSnake()` to get struct name as sname format. Example table name will be `book_author`.
-        * Use `tablenamer.TableNamerSnakePlural()` to get struct name as plural snake format. Example  table name will be `book_authors`.
+        * Use `tablenamer.Same()` to use same name of struct(default). Example table name will be `BookAuthor`.
+        * Use `tablenamer.Plural()` to use plural name of struct. Example table name will be `BookAuthors`.
+        * Use `tablenamer.Snake()` to get struct name as sname format. Example table name will be `book_author`.
+        * Use `tablenamer.SnakePlural()` to get struct name as plural snake format. Example  table name will be `book_authors`.
     * If none of options is good for you add `TableName() string` method to for your struct and return whatever table name will be.
 * Could by used with
   * SQLite
@@ -205,7 +205,7 @@ func main() {
 	// OPTIONAL: Set logger to show SQL execution logs
 	db.SetLogger(log.New(os.Stderr, "", 0))
 	// OPTIONAL: Set default table naming building style from struct's name(active if struct doesn't have TableName() method)
-	db.SetDefaultTableNamer(tablenamer.TableNamerPlural())
+	db.SetDefaultTableNamer(tablenamer.Plural())
 	// Single insert (id will be updated)
 	err = db.Insert(&bookTheHobbit).Do()
 	panicIfErr(err)

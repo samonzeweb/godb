@@ -9,8 +9,8 @@ import (
 // TableNamer function type is used set table naming function to build table name from struct's name
 type TableNamerFn func(string, bool) string
 
-// SetTableNamerPlural builds table name as plural form of struct's name
-func TableNamerPlural() TableNamerFn {
+// Plural builds table name as plural form of struct's name
+func Plural() TableNamerFn {
 	fn := plural.EnglishPluralization().Plural
 	return func(name string, done bool) string {
 		if done {
@@ -20,8 +20,8 @@ func TableNamerPlural() TableNamerFn {
 	}
 }
 
-// SetTableNamerSame builds table name same as struct's name
-func TableNamerSame() TableNamerFn {
+// Same builds table name same as struct's name
+func Same() TableNamerFn {
 	return func(name string, done bool) string {
 		if done {
 			return name
@@ -30,8 +30,8 @@ func TableNamerSame() TableNamerFn {
 	}
 }
 
-// SetTableNamerSnake builds table name from struct's name in snake format
-func TableNamerSnake() TableNamerFn {
+// Snake builds table name from struct's name in snake format
+func Snake() TableNamerFn {
 	return func(name string, done bool) string {
 		if done {
 			return name
@@ -40,8 +40,8 @@ func TableNamerSnake() TableNamerFn {
 	}
 }
 
-// SetTableNamerSnake builds table name from struct's name in plural snake format
-func TableNamerSnakePlural() TableNamerFn {
+// SnakePlural builds table name from struct's name in plural snake format
+func SnakePlural() TableNamerFn {
 	fn := plural.EnglishPluralization().Plural
 	return func(name string, done bool) string {
 		if done {
@@ -51,7 +51,7 @@ func TableNamerSnakePlural() TableNamerFn {
 	}
 }
 
-// Converts a string to snake case, used for converting struct name to snake_case
+// ToSnakeCase converts a string to snake case, used for converting struct name to snake_case
 func ToSnakeCase(s string) string {
 	in := []rune(s)
 	isLower := func(idx int) bool {

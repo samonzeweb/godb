@@ -55,7 +55,7 @@ func initialize(adapter adapters.Adapter, dbInst *sql.DB) *DB {
 	db := DB{
 		adapter:     adapter,
 		sqlDB:       dbInst,
-		defaultTableNamer: tablenamer.TableNamerSame(),
+		defaultTableNamer: tablenamer.Same(),
 		stmtCacheDB: newStmtCache(),
 		stmtCacheTx: newStmtCache(),
 	}
