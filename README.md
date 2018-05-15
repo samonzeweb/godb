@@ -23,7 +23,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 * `OUTPUT` support for SQL Server.
 * Define your own logger (should have `Println(...)` method)
 * Define struct's name => db table naming function by calling `db.SetDefaultTableNamer(yourFn)`:
-    * Where `yourFn` is one of for example struct name `BookAuthor`:
+    * Where `yourFn` is one of (for example if struct name is `BookAuthor`):
         * Use `tablenamer.TableNamerSame()` to use same name of struct(default). Example table name will be `BookAuthor`.
         * Use `tablenamer.TableNamerPlural()` to use plural name of struct. Example table name will be `BookAuthors`.
         * Use `tablenamer.TableNamerSnake()` to get struct name as sname format. Example table name will be `book_author`.
