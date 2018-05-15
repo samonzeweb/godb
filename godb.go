@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/samonzeweb/godb/adapters"
+	"github.com/samonzeweb/godb/tablenamer"
 )
+
 
 // DB stores a connection to the database, the current transaction, logger, ...
 // Everything starts with a DB.
@@ -18,7 +20,8 @@ type DB struct {
 	sqlTx        *sql.Tx	
 	logger       Logger
 	consumedTime time.Duration
-
+	// Called to format db table name if TableName() func is not defined for model struct
+	defaultTableNamer tablenamer.TableNamerFn
 	// Prepared Statement cache for DB and Tx
 	stmtCacheDB *StmtCache
 	stmtCacheTx *StmtCache
@@ -52,6 +55,7 @@ func initialize(adapter adapters.Adapter, dbInst *sql.DB) *DB {
 	db := DB{
 		adapter:     adapter,
 		sqlDB:       dbInst,
+		defaultTableNamer: tablenamer.TableNamerSame(),
 		stmtCacheDB: newStmtCache(),
 		stmtCacheTx: newStmtCache(),
 	}
@@ -74,6 +78,7 @@ func (db *DB) Clone() *DB {
 		sqlTx:        nil,
 		logger:       db.logger,
 		consumedTime: 0,
+		defaultTableNamer: db.defaultTableNamer,
 		stmtCacheDB:  newStmtCache(),
 		stmtCacheTx:  newStmtCache(),
 	}
@@ -176,4 +181,8 @@ func (db *DB) replacePlaceholders(sql string) string {
 	}
 
 	return placeholderReplacer.ReplacePlaceholders(Placeholder, sql)
+}
+
+func (db *DB) SetDefaultTableNamer(tnamer tablenamer.TableNamerFn) {
+	db.defaultTableNamer = tnamer
 }

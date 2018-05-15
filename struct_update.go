@@ -34,7 +34,7 @@ func (db *DB) Update(record interface{}) *StructUpdate {
 		return su
 	}
 
-	quotedTableName := db.adapter.Quote(su.recordDescription.getTableName())
+	quotedTableName := db.adapter.Quote(db.defaultTableNamer(su.recordDescription.getTableName()))
 	su.updateStatement = db.UpdateTable(quotedTableName)
 	return su
 }
