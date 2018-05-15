@@ -22,11 +22,12 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 * `RETURNING` support for PostgreSQL.
 * `OUTPUT` support for SQL Server.
 * Define your own logger (should have `Println(...)` method)
-* Define table name for structs. (You can call one of `SetTableNamer...` functions at your main function to use a namer.) For example, if struct's name is `BookAuthor`:
-    * Default tablename will be same as struct's name(`SetTableNamerSame()`). Example table name will be `BookAuthor`.
-    * Call `SetTableNamerPlural()` to use plural name of struct. Example table name will be `BookAuthors`.
-    * Call `SetTableNamerSnake()` to get struct name as sname format. Example table name will be `book_author`.
-    * Call `SetTableNamerSnakePlural()` to get struct name as plural snake format. Example  table name will be `book_authors`.
+* Define struct's name => db table naming function by calling `db.SetDefaultTableNamer(yourFn)`:
+    * Where `yourFn` is one of for example struct name `BookAuthor`:
+        * Use `tablenamer.TableNamerSame()` to use same name of struct(default). Example table name will be `BookAuthor`.
+        * Use `tablenamer.TableNamerPlural()` to use plural name of struct. Example table name will be `BookAuthors`.
+        * Use `tablenamer.TableNamerSnake()` to get struct name as sname format. Example table name will be `book_author`.
+        * Use `tablenamer.TableNamerSnakePlural()` to get struct name as plural snake format. Example  table name will be `book_authors`.
     * If none of options is good for you add `TableName() string` method to for your struct and return whatever table name will be.
 * Could by used with
   * SQLite
