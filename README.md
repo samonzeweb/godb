@@ -204,8 +204,8 @@ func main() {
 	panicIfErr(err)
 	// OPTIONAL: Set logger to show SQL execution logs
 	db.SetLogger(log.New(os.Stderr, "", 0))
-    // OPTIONAL: Set default table naming building style from struct's name(active if struct doesn't have TableName() method)
-    db.SetDefaultTableNamer(tablenamer.TableNamerPlural())
+	// OPTIONAL: Set default table naming building style from struct's name(active if struct doesn't have TableName() method)
+	db.SetDefaultTableNamer(tablenamer.TableNamerPlural())
 	// Single insert (id will be updated)
 	err = db.Insert(&bookTheHobbit).Do()
 	panicIfErr(err)
