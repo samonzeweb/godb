@@ -6,63 +6,82 @@ import (
 	"fmt"
 )
 
+// JSONStr makes easy to handle JSON data at database's text fields(like VARCHAR,CHAR,TEXT) and blob fields(like BLOB,
+// BYTEA, JSONB). NullJSONStr is Nullable version of JSONStr.
+//
 // JSONStr is `json.RawMessage` (`[]byte`) type, adding `Value()` and `Scan()` methods for db access
 // and `MarshalJSON`, `UnmarshalJSON` for json serializing.
-// Also `Unmarshal` method can be used to unmarshals json to an interface type.
+//
 // This type make use of DB binary or string fields like a JSON container.
 // DB field type can be text types like CHAR, STRING, CHARACTER VARYING, TEXT or binary types like JSONB, BYTEA, BLOB...
 //
 // For performance binary db field use is advised.
 //
-// Example Usage:
 //
-// For table:
-//  	CREATE TABLE books (
-//  	meta      TEXT
-//  	metab	  BYTEA -- or BLOB or JSONB
-//  	);
 // Example:
-//  	type Book struct {
-//  		Id        int                 `db:"id,key,auto"`
-//  		Meta      types.NullJSONStr   `db:"meta"`
-//  		Metab     types.NullJSONStr   `db:"metab"`
+//
+//  package main
+//
+//  import (
+//  	"fmt"
+//  	"github.com/samonzeweb/godb"
+//  	"github.com/samonzeweb/godb/adapters/sqlite"
+//  	"github.com/samonzeweb/godb/types"
+//  )
+//
+//  type Meta struct {
+//  	Code        string `json:"code"`
+//  	Population  int64  `json:"population"`
+//  	PhonePrefix string `json:"phone_prefix"`
+//  }
+//
+//  type Country struct {
+//  	Id    int                 `db:"id,key,auto"`
+//  	Meta  types.NullJSONStr   `db:"meta"`
+//  	Metab types.NullJSONStr   `db:"metab"`
+//  }
+//
+//  func (b *Country) TableName() string {
+//  	return "countries"
+//  }
+//
+//  func main() {
+//  	db, err := godb.Open(sqlite.Adapter, "./countries.dat")
+//  	if err != nil {
+//  		panic(fmt.Sprintf("db connection err: %v", err))
 //  	}
-//  	func (b *Book) TableName() string {
-//  		return "books"
-//  	}
-
-//  	bookTheHobbit := Book{
-//  		Meta:      types.NullJSONStrFrom([]byte(`{"isdn":"123"}`)),
-//  		Metab:     types.NullJSONStrFrom([]byte(`{"isdn":"123aaaaaaaa"}`)),
-//  	}
-//  	if err = db.Insert(&bookTheHobbit).Do(); err != nil {
-//  		panic(fmt.Sprintf("can not insert book err: %v", err))
+//  	if _, err = db.CurrentDB().Exec(`
+//  		CREATE TABLE IF NOT EXISTS countries (
+//  			id integer not null primary key autoincrement,
+//  			meta      TEXT,
+//  			metab	  BLOB
+//  		);`); err != nil {
+//  		panic(err)
 //  	}
 //
-//  	b := Book{}
-//  	err = db.Select(&b).
-//  		Where("id = ?", bookTheHobbit.Id).Do()
-//  	if err == sql.ErrNoRows {
-//  		fmt.Println("Book not found !")
-//  	} else if err != nil {
-//  		panic(fmt.Sprintf("can not get book err: %v", err))
+//  	// Insert nullable JSONStr
+//  	country := Country{
+//  		Meta:      types.NullJSONStrFrom([]byte(`{"code": "US", "phone_prefix": "1"}`)),
+//  		Metab:     types.NullJSONStrFrom([]byte(`{"code": "TR", "phone_prefix": "90"}`)),
 //  	}
-//  	fmt.Printf("------Meta: %v, Metabin: %v\n", b.Meta, b.Metab)
+//  	if err = db.Insert(&country).Do(); err != nil {
+//  		panic(err)
+//  	}
+//
+//  	// Select
+//  	c := new(Country)
+//  	if err = db.Select(c).Where("id = ?", country.Id).Do(); err != nil {
+//  		panic(err)
+//  	}
+//  	fmt.Printf("Meta: %v, Metab: %v\n", c.Meta, c.Metab)
+//
+//  	// Loading JSON into struct
 //  	meta := Meta{}
-//  	err = b.Metab.Unmarshal(&meta)
-//  	fmt.Printf("------Meta: %v, err: %v\n", meta, err)
-//
-//  	metaVal := ""
-//  	metabVal := []byte("")
-//  	err = db.SelectFrom("books"). //
-//  		Columns("meta", "metab").
-//  		Scanx(&metaVal, &metabVal)
-//  	if err == sql.ErrNoRows {
-//  		fmt.Println("Book not found !")
-//  	} else if err != nil {
-//  		panic(fmt.Sprintf("can not get book err: %v", err))
+//  	if err = c.Metab.Unmarshal(&meta); err != nil {
+//  		panic(err)
 //  	}
-//  	fmt.Printf("Meta: %v, Metabin: %v\n", metaVal, metabVal)
+//  	fmt.Printf("Meta Struct: %v\n", meta)
+//  }
 //
 
 type JSONStr json.RawMessage

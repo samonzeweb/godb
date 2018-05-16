@@ -6,9 +6,13 @@ import (
 	"database/sql/driver"
 	"bytes"
 )
+// CompactJSONStr is same as JSONStr except, whitespaces are remove from JSON formatted data while saving to database.
+// It is useless if data is hold in database specific json typed field(like PostgreSQL's JSONB field).
+// NullCompactJSONStr is nullable version of CompactJSONStr.
+//
 // CompactJSONStr is `json.RawMessage` (`[]byte`) type, adding `Value()` and `Scan()` methods for db access
 // and `MarshalJSON`, `UnmarshalJSON` for json serializing.
-// Also `Unmarshal` method can be used to unmarshals json to an interface type.
+//
 // This type make use of DB binary or string fields like a JSON container.
 // DB field type can be text types like CHAR, STRING, CHARACTER VARYING, TEXT or binary types like JSONB, BYTEA, BLOB...
 //
