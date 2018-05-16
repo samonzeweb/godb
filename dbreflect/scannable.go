@@ -23,6 +23,10 @@ func init() {
 	// Custom nullable types
 	RegisterScannableStruct(types.NullTime{})
 	RegisterScannableStruct(types.NullBytes{})
+	RegisterScannableStruct(types.JSONStr{})
+	RegisterScannableStruct(types.NullJSONStr{})
+	RegisterScannableStruct(types.CompactJSONStr{})
+	RegisterScannableStruct(types.NullCompactJSONStr{})
 }
 
 // RegisterScannableStruct registers a struct (through an instance or pointer)
