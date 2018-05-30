@@ -3,38 +3,48 @@ package plural
 import (
 	"regexp"
 	"strings"
+	"sync"
 )
 
-// RegCache holds a compiled regex to match pluralized word
-type RegCache struct {
+// regCache holds a compiled regex to match pluralized word
+type regCache struct {
 	Regexp   *regexp.Regexp
 	Replacer string
 }
 
-// Irregular holds irregular words
-type Irregular struct {
+// irregular holds irregular words
+type irregular struct {
 	Singular string
 	Plural   string
 }
 
 // EnglishPlural defines methods and rules for getting plural form of a word for English
 type EnglishPlural struct {
-	Plurals      []RegCache
-	Uncountables []string
-	Irregulars   []Irregular
+	plurals      []regCache
+	uncountables map[string]bool
+	irregulars   map[string]*irregular
+	cache        map[string]string
+	mu           sync.RWMutex // protects this struct's properties
 }
 
 // AddPluralRegex add regex rule for holding plural rule
 func (ep *EnglishPlural) AddPluralRegex(matcherReg, replacerWord string) {
-	ep.Plurals = append(ep.Plurals, RegCache{
+	ep.mu.Lock()
+	defer ep.mu.Unlock()
+
+	ep.plurals = append(ep.plurals, regCache{
 		Regexp:   regexp.MustCompile(matcherReg),
 		Replacer: replacerWord,
 	})
+	ep.cache = map[string]string{}
 }
 
-// GetPlural returns a non-empty string if the str is found in the Plurals, else empty string is returned
-func (ep *EnglishPlural) GetIfPlural(word string) string {
-	for _, p := range ep.Plurals {
+// getIfPlural returns a non-empty string if the str is found in the Plurals, else empty string is returned
+func (ep *EnglishPlural) getIfPlural(word string) string {
+	ep.mu.RLock()
+	defer ep.mu.RUnlock()
+
+	for _, p := range ep.plurals {
 		if p.Regexp.MatchString(word) {
 			return p.Regexp.ReplaceAllString(word, p.Replacer)
 		}
@@ -44,86 +54,122 @@ func (ep *EnglishPlural) GetIfPlural(word string) string {
 
 // AddPluralRegex add regex rule for holding plural rule
 func (ep *EnglishPlural) AddIrregular(singularWord, pluralWord string) {
-	ep.Irregulars = append(ep.Irregulars, Irregular{
+	irr := &irregular{
 		Singular: singularWord,
 		Plural:   pluralWord,
-	})
+	}
+	ep.mu.Lock()
+	defer ep.mu.Unlock()
+
+	ep.irregulars[strings.ToLower(singularWord)] = irr
+	ep.irregulars[strings.ToLower(pluralWord)] = irr
+	ep.cache = map[string]string{}
 }
 
-// GetIfIrregular returns a non-empty string if the str is found in the Irregulars, else empty string is returned
-func (ep *EnglishPlural) GetIfIrregular(word string) string {
-	word = strings.ToLower(word)
-	for _, irr := range ep.Irregulars {
-		if strings.ToLower(irr.Singular) == word || strings.ToLower(irr.Plural) == word {
-			return irr.Plural
-		}
+// getIfIrregular returns a non-empty string if the str is found in the Irregulars, else empty string is returned
+func (ep *EnglishPlural) getIfIrregular(word string) string {
+	ep.mu.RLock()
+	defer ep.mu.RUnlock()
+
+	if p, ok := ep.irregulars[strings.ToLower(word)]; ok {
+		return p.Plural
 	}
 	return ""
 }
 
 // AddUncountable adds uncountable word
 func (ep *EnglishPlural) AddUncountable(uncountable string) {
-	ep.Uncountables = append(ep.Uncountables, uncountable)
+	ep.mu.Lock()
+	defer ep.mu.Unlock()
+
+	ep.uncountables[uncountable] = true
+	ep.cache = map[string]string{}
 }
 
-// IsUncountable returns a true if the str is found in the Uncountables.
-func (ep *EnglishPlural) IsUncountable(word string) bool {
-	for _, w := range ep.Uncountables {
-		if w == word {
-			return true
-		}
+// isUncountable returns a true if the str is found in the Uncountables.
+func (ep *EnglishPlural) isUncountable(word string) bool {
+	ep.mu.RLock()
+	defer ep.mu.RUnlock()
+
+	if _, ok := ep.uncountables[word]; ok {
+		return true
 	}
 	return false
 }
 
-// Plural returns plural form of a word
-func (ep *EnglishPlural) Plural(word string) string {
-	if ep.IsUncountable(word) {
+func (ep *EnglishPlural) pluralFromCache(word string) string {
+	ep.mu.RLock()
+	defer ep.mu.RUnlock()
+	if res, ok := ep.cache[word]; ok {
+		return res
+	}
+	return ""
+}
+
+func (ep *EnglishPlural) plural(word string) string {
+	if ep.isUncountable(word) {
 		return word
-	} else if irr := ep.GetIfIrregular(word); irr != "" {
+	} else if irr := ep.getIfIrregular(word); irr != "" {
 		return irr
-	} else if p := ep.GetIfPlural(word); p != "" {
+	} else if p := ep.getIfPlural(word); p != "" {
 		return p
 	}
 	return word
 }
 
+func (ep *EnglishPlural) pluralToCache(word, res string) {
+	ep.mu.Lock()
+	defer ep.mu.Unlock()
+	ep.cache[word] = res
+}
+
+// Plural returns plural form of a word
+func (ep *EnglishPlural) Plural(word string) string {
+	var res string
+	if res = ep.pluralFromCache(word); res == "" {
+		res = ep.plural(word)
+		ep.pluralToCache(word, res)
+	}
+	return res
+}
+
 func EnglishPluralization() *EnglishPlural {
 	ep := &EnglishPlural{
-		Plurals:    []RegCache{},
-		Irregulars: []Irregular{},
-		Uncountables: []string{
-			`advice`,
-			`art`,
-			`buffalo`,
-			`butter`,
-			`currency`,
-			`deer`,
-			`electricity`,
-			`equipment`,
-			`fish`,
-			`furniture`,
-			`gas`,
-			`happiness`,
-			`information`,
-			`jeans`,
-			`love`,
-			`luggage`,
-			`money`,
-			`music`,
-			`news`,
-			`police`,
-			`power`,
-			`rice`,
-			`salmon`,
-			`scenery`,
-			`series`,
-			`sheep`,
-			`species`,
-			`sugar`,
-			`trout`,
-			`tuna`,
-			`water`,
+		plurals:    []regCache{},
+		irregulars: map[string]*irregular{},
+		cache:      map[string]string{},
+		uncountables: map[string]bool{
+			`advice`:      true,
+			`art`:         true,
+			`buffalo`:     true,
+			`butter`:      true,
+			`currency`:    true,
+			`deer`:        true,
+			`electricity`: true,
+			`equipment`:   true,
+			`fish`:        true,
+			`furniture`:   true,
+			`gas`:         true,
+			`happiness`:   true,
+			`information`: true,
+			`jeans`:       true,
+			`love`:        true,
+			`luggage`:     true,
+			`money`:       true,
+			`music`:       true,
+			`news`:        true,
+			`police`:      true,
+			`power`:       true,
+			`rice`:        true,
+			`salmon`:      true,
+			`scenery`:     true,
+			`series`:      true,
+			`sheep`:       true,
+			`species`:     true,
+			`sugar`:       true,
+			`trout`:       true,
+			`tuna`:        true,
+			`water`:       true,
 		},
 	}
 

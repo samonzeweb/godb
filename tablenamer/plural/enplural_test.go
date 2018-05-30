@@ -6,7 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestJSONStr(t *testing.T) {
+func TestEnglishPlural(t *testing.T) {
 	var en = EnglishPluralization()
 	Convey("Given English", t, func() {
 		Convey("Uncountables", func() {
