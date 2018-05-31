@@ -23,30 +23,32 @@ type EnglishPlural struct {
 	uncountables sync.Map
 	irregulars   sync.Map
 	cache        sync.Map
-	plurals      sync.Map
+	plurals      []regCache
+	mu           sync.RWMutex // protects plurals
 }
 
 // AddPluralRegex add regex rule for holding plural rule
 func (ep *EnglishPlural) AddPluralRegex(matcherReg, replacerWord string) {
-	ep.plurals.Store(matcherReg, regCache{
+	ep.mu.Lock()
+	defer ep.mu.Unlock()
+
+	ep.plurals = append(ep.plurals, regCache{
 		Regexp:   regexp.MustCompile(matcherReg),
-		Replacer: replacerWord,
+ 		Replacer: replacerWord,
 	})
 	ep.cache = sync.Map{}
 }
 
 // getIfPlural returns a non-empty string if the str is found in the Plurals, else empty string is returned
 func (ep *EnglishPlural) getIfPlural(word string) (res string) {
-	var p regCache
-	ep.plurals.Range(func(key, value interface{}) bool {
-		p = value.(regCache)
+	ep.mu.RLock()
+	defer ep.mu.RUnlock()
+	for _, p := range ep.plurals {
 		if p.Regexp.MatchString(word) {
-			res = p.Regexp.ReplaceAllString(word, p.Replacer)
-			return false
+			return p.Regexp.ReplaceAllString(word, p.Replacer)
 		}
-		return true
-	})
-	return res
+	}
+	return ""
 }
 
 // AddPluralRegex add regex rule for holding plural rule
@@ -124,7 +126,7 @@ var once sync.Once
 func EnglishPluralization() *EnglishPlural {
 	once.Do(func() {
 		ep = &EnglishPlural{
-			plurals:    sync.Map{},
+			plurals:    []regCache{},
 			irregulars: sync.Map{},
 			cache:      sync.Map{},
 			uncountables: sync.Map{},
