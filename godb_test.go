@@ -3,8 +3,8 @@ package godb
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/samonzeweb/godb/tablenamer"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestClone(t *testing.T) {

@@ -3,18 +3,19 @@ package tablenamer
 import (
 	"unicode"
 
-	"github.com/samonzeweb/godb/tablenamer/plural"
 	"sync"
+
+	"github.com/samonzeweb/godb/tablenamer/plural"
 )
 
-// TableNamerFn function type is used set table naming function to build table name from struct's name
-type TableNamerFn func(string, bool) string
+// NamerFn function type is used set table naming function to build table name from struct's name
+type NamerFn func(string, bool) string
 
 // sCache is cache for ToSnakeCase function
 var sCache = sync.Map{}
 
 // Plural builds table name as plural form of struct's name
-func Plural() TableNamerFn {
+func Plural() NamerFn {
 	return func(name string, done bool) string {
 		if done {
 			return name
@@ -24,7 +25,7 @@ func Plural() TableNamerFn {
 }
 
 // Same builds table name same as struct's name
-func Same() TableNamerFn {
+func Same() NamerFn {
 	return func(name string, done bool) string {
 		if done {
 			return name
@@ -34,7 +35,7 @@ func Same() TableNamerFn {
 }
 
 // Snake builds table name from struct's name in snake format
-func Snake() TableNamerFn {
+func Snake() NamerFn {
 	sCache = sync.Map{}
 	return func(name string, done bool) string {
 		if done {
@@ -45,7 +46,7 @@ func Snake() TableNamerFn {
 }
 
 // SnakePlural builds table name from struct's name in plural snake format
-func SnakePlural() TableNamerFn {
+func SnakePlural() NamerFn {
 	sCache = sync.Map{}
 	return func(name string, done bool) string {
 		if done {
@@ -65,11 +66,11 @@ func ToSnakeCase(s string) string {
 		return idx >= 0 && idx < len(in) && unicode.IsLower(in[idx])
 	}
 
-	out := make([]rune, 0, len(in) + len(in) / 2)
+	out := make([]rune, 0, len(in)+len(in)/2)
 	for i, r := range in {
 		if unicode.IsUpper(r) {
 			r = unicode.ToLower(r)
-			if i > 0 && in[i - 1] != '_' && (isLower(i - 1) || isLower(i + 1)) {
+			if i > 0 && in[i-1] != '_' && (isLower(i-1) || isLower(i+1)) {
 				out = append(out, '_')
 			}
 		}

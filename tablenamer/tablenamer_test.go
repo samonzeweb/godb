@@ -3,8 +3,9 @@ package tablenamer
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"sync"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestSnakeCaseCacheInit(t *testing.T) {

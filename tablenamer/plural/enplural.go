@@ -34,7 +34,7 @@ func (ep *EnglishPlural) AddPluralRegex(matcherReg, replacerWord string) {
 
 	ep.plurals = append(ep.plurals, regCache{
 		Regexp:   regexp.MustCompile(matcherReg),
- 		Replacer: replacerWord,
+		Replacer: replacerWord,
 	})
 	ep.cache = sync.Map{}
 }
@@ -51,7 +51,7 @@ func (ep *EnglishPlural) getIfPlural(word string) (res string) {
 	return ""
 }
 
-// AddPluralRegex add regex rule for holding plural rule
+// AddIrregular add regex rule for holding plural rule
 func (ep *EnglishPlural) AddIrregular(singularWord, pluralWord string) {
 	irr := irregular{
 		Singular: singularWord,
@@ -126,9 +126,9 @@ var once sync.Once
 func EnglishPluralization() *EnglishPlural {
 	once.Do(func() {
 		ep = &EnglishPlural{
-			plurals:    []regCache{},
-			irregulars: sync.Map{},
-			cache:      sync.Map{},
+			plurals:      []regCache{},
+			irregulars:   sync.Map{},
+			cache:        sync.Map{},
 			uncountables: sync.Map{},
 		}
 		ep.AddUncountable(`advice`)
