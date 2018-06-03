@@ -138,13 +138,14 @@ func (r *recordDescription) index(i int) interface{} {
 	return v.Addr().Interface()
 }
 
-// getTableName returns the table name to use for the current record.
-func (r *recordDescription) getTableName() string {
+// getTableName returns the table name to use for the current record and
+// if model's TableName() is used to get name it returns true, else false
+func (r *recordDescription) getTableName() (string, bool) {
 	p := r.getOneInstancePointer()
 	if namer, ok := p.(tableNamer); ok {
-		return namer.TableName()
+		return namer.TableName(), true
 	}
 
 	typeNameParts := strings.Split(r.structMapping.Name, ".")
-	return typeNameParts[len(typeNameParts)-1]
+	return typeNameParts[len(typeNameParts)-1], false
 }

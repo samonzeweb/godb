@@ -191,7 +191,7 @@ func TestTableName(t *testing.T) {
 		instancePtr := &typeToDescribe{}
 		recordDesc, _ := buildRecordDescription(instancePtr)
 		Convey("getTableName returns by default the struct name a table name", func() {
-			tableName := recordDesc.getTableName()
+			tableName,_ := recordDesc.getTableName()
 			So(tableName, ShouldEqual, "typeToDescribe")
 		})
 	})
@@ -200,7 +200,7 @@ func TestTableName(t *testing.T) {
 		instancePtr := &otherTypeToDescribe{}
 		recordDesc, _ := buildRecordDescription(instancePtr)
 		Convey("getTableName returns the string given by TableName()", func() {
-			tableName := recordDesc.getTableName()
+			tableName,_ := recordDesc.getTableName()
 			So(tableName, ShouldEqual, "others")
 		})
 	})

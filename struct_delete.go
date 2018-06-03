@@ -30,7 +30,7 @@ func (db *DB) Delete(record interface{}) *StructDelete {
 		return sd
 	}
 
-	quotedTableName := db.adapter.Quote(sd.recordDescription.getTableName())
+	quotedTableName := db.adapter.Quote(db.defaultTableNamer(sd.recordDescription.getTableName()))
 	sd.deleteStatement = db.DeleteFrom(quotedTableName)
 	return sd
 }

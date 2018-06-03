@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/samonzeweb/godb/adapters"
+	"github.com/samonzeweb/godb/tablenamer"
 )
 
 // DB stores a connection to the database, the current transaction, logger, ...
@@ -15,10 +16,11 @@ import (
 type DB struct {
 	adapter      adapters.Adapter
 	sqlDB        *sql.DB
-	sqlTx        *sql.Tx	
+	sqlTx        *sql.Tx
 	logger       Logger
 	consumedTime time.Duration
-
+	// Called to format db table name if TableName() func is not defined for model struct
+	defaultTableNamer tablenamer.NamerFn
 	// Prepared Statement cache for DB and Tx
 	stmtCacheDB *StmtCache
 	stmtCacheTx *StmtCache
@@ -50,10 +52,11 @@ func Wrap(adapter adapters.Adapter, dbInst *sql.DB) *DB {
 // initialize a new godb.DB struct
 func initialize(adapter adapters.Adapter, dbInst *sql.DB) *DB {
 	db := DB{
-		adapter:     adapter,
-		sqlDB:       dbInst,
-		stmtCacheDB: newStmtCache(),
-		stmtCacheTx: newStmtCache(),
+		adapter:           adapter,
+		sqlDB:             dbInst,
+		defaultTableNamer: tablenamer.Same(),
+		stmtCacheDB:       newStmtCache(),
+		stmtCacheTx:       newStmtCache(),
 	}
 
 	// Prepared statements cache is disabled by default except for Tx
@@ -69,13 +72,14 @@ func initialize(adapter adapters.Adapter, dbInst *sql.DB) *DB {
 // Use Clear when a clone is not longer useful to free ressources.
 func (db *DB) Clone() *DB {
 	clone := &DB{
-		adapter:      db.adapter,
-		sqlDB:        db.sqlDB,
-		sqlTx:        nil,
-		logger:       db.logger,
-		consumedTime: 0,
-		stmtCacheDB:  newStmtCache(),
-		stmtCacheTx:  newStmtCache(),
+		adapter:           db.adapter,
+		sqlDB:             db.sqlDB,
+		sqlTx:             nil,
+		logger:            db.logger,
+		consumedTime:      0,
+		defaultTableNamer: db.defaultTableNamer,
+		stmtCacheDB:       newStmtCache(),
+		stmtCacheTx:       newStmtCache(),
 	}
 
 	clone.stmtCacheDB.SetSize(db.stmtCacheDB.GetSize())
@@ -176,4 +180,9 @@ func (db *DB) replacePlaceholders(sql string) string {
 	}
 
 	return placeholderReplacer.ReplacePlaceholders(Placeholder, sql)
+}
+
+// SetDefaultTableNamer sets table naming function
+func (db *DB) SetDefaultTableNamer(tnamer tablenamer.NamerFn) {
+	db.defaultTableNamer = tnamer
 }

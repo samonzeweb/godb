@@ -22,6 +22,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 * `RETURNING` support for PostgreSQL.
 * `OUTPUT` support for SQL Server.
 * Define your own logger (should have `Println(...)` method)
+* Define model struct name to db table naming with `db.SetDefaultTableNamer(yourFn)`. Supported types are: Plural,Snake,SnakePlural. You can also define `TableName() string` method to for your struct and return whatever table name will be.
 * Could by used with
   * SQLite
   * PostgreSQL
@@ -31,8 +32,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 
 I made tests of godb on differents architectures and operating systems : OSX, Windows, Linux, ARM (Cortex A7) and Intel x64.
 
-godb is compatible from Go 1.8 to 1.10 (SQL Server driver requires at least Go 1.8).
-
+godb is compatible from Go 1.9 to 1.10 (SQL Server driver requires at least Go 1.8, sync.Map for caching needs at least Go 1.9).
 
 ## Documentation
 
@@ -41,7 +41,6 @@ There are three forms of documentation :
 * This README with the example presented below, which gives an overview of what godb allows.
 * The tests in `dbtests/common`, which are run on the different databases supported.
 * Detailed documentation on GoDoc: https://godoc.org/github.com/samonzeweb/godb
-
 
 ## Install
 
@@ -66,7 +65,7 @@ To run tests, go into the godb directory and executes `go test ./...`
 
 SQLite tests are done with in memory database, it's fast. You can run tests with others databases, see below.
 
-With the exception of SQLite, all drivers are *pure Go* code, and does not require external dependencies.
+With the exception of SQLite, all drivers are _pure Go_ code, and does not require external dependencies.
 
 ### Test with PostgreSQL
 
@@ -112,7 +111,6 @@ If the containers are slow to start, the script could wait before accessing them
 The example below illustrates the main features of godb.
 
 You can copy the code into an `example.go` file and run it. You need to create the database and the `books` table as explained in the code.
-
 
 ```go
 package main
@@ -197,7 +195,8 @@ func main() {
 	panicIfErr(err)
 	// OPTIONAL: Set logger to show SQL execution logs
 	db.SetLogger(log.New(os.Stderr, "", 0))
-
+	// OPTIONAL: Set default table name building style from struct's name(if active struct doesn't have TableName() method)
+	db.SetDefaultTableNamer(tablenamer.Plural())
 	// Single insert (id will be updated)
 	err = db.Insert(&bookTheHobbit).Do()
 	panicIfErr(err)
@@ -328,7 +327,6 @@ func panicIfErr(err error) {
 		panic(err)
 	}
 }
-
 ```
 
 # Licence
