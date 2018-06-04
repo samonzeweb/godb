@@ -36,7 +36,6 @@ func Same() NamerFn {
 
 // Snake builds table name from struct's name in snake format
 func Snake() NamerFn {
-	sCache = sync.Map{}
 	return func(name string, done bool) string {
 		if done {
 			return name
@@ -47,7 +46,6 @@ func Snake() NamerFn {
 
 // SnakePlural builds table name from struct's name in plural snake format
 func SnakePlural() NamerFn {
-	sCache = sync.Map{}
 	return func(name string, done bool) string {
 		if done {
 			return name
