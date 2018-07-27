@@ -84,6 +84,7 @@ import (
 //  }
 //
 
+// JSONStr makes easy to handle JSON data at database's text fields(like VARCHAR,CHAR,TEXT) and blob fields
 type JSONStr json.RawMessage
 
 // MarshalJSON returns JSON encoding
