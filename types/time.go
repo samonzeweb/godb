@@ -1,6 +1,5 @@
 package types
 
-
 import (
 	"database/sql/driver"
 	"fmt"
@@ -16,7 +15,7 @@ type NullTime struct {
 // Scan implements the time scanner interface.
 func (nt *NullTime) Scan(value interface{}) error {
 	nt.Time, nt.Valid = value.(time.Time)
-	if !nt.Valid || value != nil {
+	if !nt.Valid && value != nil {
 		return fmt.Errorf("invalid type %T for NullTime: %v", value, value)
 	}
 	return nil
