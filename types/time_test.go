@@ -23,7 +23,7 @@ func TestNullTime(t *testing.T) {
 		Convey("nil value", func() {
 			var nullTime NullTime
 			err := nullTime.Scan(nil)
-			So(err, ShouldNotEqual, nil)
+			So(err, ShouldEqual, nil)
 			So(nullTime.Valid, ShouldEqual, false)
 			So(nullTime.Time.Second(), ShouldEqual, 0)
 		})
