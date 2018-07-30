@@ -46,7 +46,7 @@ func TestSqlTypes(t *testing.T) {
 			So(n.Valid, ShouldEqual, false)
 		})
 
-		Convey("NullFloat64From", func() {
+		Convey("NullFloat64", func() {
 			valFloat := 99.9
 			valJSON := fmt.Sprintf(`%.1f`, valFloat)
 			n := NullFloat64From(valFloat)
@@ -79,7 +79,7 @@ func TestSqlTypes(t *testing.T) {
 			So(n.Valid, ShouldEqual, false)
 		})
 
-		Convey("NullBoolFrom", func() {
+		Convey("NullBool", func() {
 			valBool := true
 			valJSON := fmt.Sprintf(`%v`, valBool)
 			n := NullBoolFrom(valBool)
@@ -113,7 +113,7 @@ func TestSqlTypes(t *testing.T) {
 			So(n.Valid, ShouldEqual, false)
 		})
 
-		Convey("NullInt64From", func() {
+		Convey("NullInt64", func() {
 			valInt64 := int64(99)
 			valJSON := fmt.Sprintf(`%d`, valInt64)
 			n := NullInt64From(valInt64)
