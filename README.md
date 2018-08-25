@@ -32,7 +32,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 
 I made tests of godb on differents architectures and operating systems : OSX, Windows, Linux, ARM (Cortex A7) and Intel x64.
 
-godb is compatible from Go 1.9 to 1.10 (SQL Server driver requires at least Go 1.8, sync.Map for caching needs at least Go 1.9).
+godb is compatible from Go 1.9 to 1.11 (SQL Server driver requires at least Go 1.8, sync.Map for caching needs at least Go 1.9).
 
 ## Documentation
 
