@@ -24,8 +24,8 @@ func (n NullBytes) Value() (driver.Value, error) {
 	return n.Bytes, nil
 }
 
-// NullBytesFrom creates a valid NullBytesFrom
-func NullBytesFrom(v []byte) NullBytes {
+// ToNullBytes creates a valid NullBytes
+func ToNullBytes(v []byte) NullBytes {
 	if v == nil {
 		return NullBytes{Bytes: v, Valid: false}
 	}

@@ -25,8 +25,8 @@ type NullBool struct {
 	sql.NullBool
 }
 
-// NullStringFrom creates a valid NullString
-func NullStringFrom(v string) NullString {
+// ToNullString creates a valid NullString
+func ToNullString(v string) NullString {
 	return NullString{sql.NullString{String: v, Valid: true}}
 }
 
@@ -48,8 +48,8 @@ func (n *NullString) UnmarshalJSON(b []byte) error {
 	return n.Scan(s)
 }
 
-// NullFloat64From creates a valid NullFloat64
-func NullFloat64From(v float64) NullFloat64 {
+// ToNullFloat64 creates a valid NullFloat64
+func ToNullFloat64(v float64) NullFloat64 {
 	return NullFloat64{sql.NullFloat64{Float64: v, Valid: true}}
 }
 
@@ -71,8 +71,8 @@ func (n *NullFloat64) UnmarshalJSON(b []byte) error {
 	return n.Scan(s)
 }
 
-// NullInt64From creates a valid NullInt64
-func NullInt64From(v int64) NullInt64 {
+// ToNullInt64 creates a valid NullInt64
+func ToNullInt64(v int64) NullInt64 {
 	return NullInt64{sql.NullInt64{Int64: v, Valid: true}}
 }
 
@@ -94,8 +94,8 @@ func (n *NullInt64) UnmarshalJSON(b []byte) error {
 	return n.Scan(s)
 }
 
-// NullBoolFrom creates a valid NullBool
-func NullBoolFrom(v bool) NullBool {
+// ToNullBool creates a valid NullBool
+func ToNullBool(v bool) NullBool {
 	return NullBool{sql.NullBool{Bool: v, Valid: true}}
 }
 

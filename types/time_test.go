@@ -12,7 +12,7 @@ func TestNullTime(t *testing.T) {
 	Convey("Given NullTime", t, func() {
 		Convey("valid value", func() {
 			now := time.Now()
-			nullTime := NullTimeFrom(now)
+			nullTime := ToNullTime(now)
 			So(nullTime.Valid, ShouldEqual, true)
 			So(nullTime.Time, ShouldEqual, now)
 			v, err := nullTime.Value()
@@ -55,7 +55,7 @@ func TestNullTime(t *testing.T) {
 
 		Convey("serialize to JSON", func() {
 			now := time.Now()
-			nullTime := NullTimeFrom(now)
+			nullTime := ToNullTime(now)
 			b, err := nullTime.MarshalJSON()
 			tb, _ := nullTime.Time.MarshalJSON()
 			So(err, ShouldEqual, nil)

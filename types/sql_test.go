@@ -15,7 +15,7 @@ func TestSqlTypes(t *testing.T) {
 		Convey("NullString", func() {
 			valString := "foo"
 			valJSON := fmt.Sprintf(`"%s"`, valString)
-			n := NullStringFrom(valString)
+			n := ToNullString(valString)
 			So(n.Valid, ShouldEqual, true)
 			So(n.String, ShouldEqual, valString)
 
@@ -25,7 +25,7 @@ func TestSqlTypes(t *testing.T) {
 			So(string(b), ShouldEqual, valJSON)
 
 			// Marshal null
-			n = NullStringFrom("")
+			n = ToNullString("")
 			n.Valid = false
 			b, err = json.Marshal(n)
 			So(err, ShouldEqual, nil)
@@ -49,7 +49,7 @@ func TestSqlTypes(t *testing.T) {
 		Convey("NullFloat64", func() {
 			valFloat := 99.9
 			valJSON := fmt.Sprintf(`%.1f`, valFloat)
-			n := NullFloat64From(valFloat)
+			n := ToNullFloat64(valFloat)
 			So(n.Valid, ShouldEqual, true)
 			So(n.Float64, ShouldEqual, valFloat)
 
@@ -59,14 +59,14 @@ func TestSqlTypes(t *testing.T) {
 			So(string(b), ShouldEqual, valJSON)
 
 			// Unmarshal valid
-			n = NullFloat64From(0)
+			n = ToNullFloat64(0)
 			n.Valid = false
 			b, err = json.Marshal(n)
 			So(err, ShouldEqual, nil)
 			So(string(b), ShouldEqual, valNull)
 
 			// Unmarshal valid
-			n = NullFloat64From(valFloat)
+			n = ToNullFloat64(valFloat)
 			err = json.Unmarshal([]byte(valJSON), &n)
 			So(err, ShouldEqual, nil)
 			So(n.Float64, ShouldEqual, valFloat)
@@ -82,7 +82,7 @@ func TestSqlTypes(t *testing.T) {
 		Convey("NullBool", func() {
 			valBool := true
 			valJSON := fmt.Sprintf(`%v`, valBool)
-			n := NullBoolFrom(valBool)
+			n := ToNullBool(valBool)
 			So(n.Valid, ShouldEqual, true)
 			So(n.Bool, ShouldEqual, valBool)
 
@@ -92,14 +92,14 @@ func TestSqlTypes(t *testing.T) {
 			So(string(b), ShouldEqual, valJSON)
 
 			// Marshal invalid
-			n = NullBoolFrom(false)
+			n = ToNullBool(false)
 			n.Valid = false
 			b, err = json.Marshal(n)
 			So(err, ShouldEqual, nil)
 			So(string(b), ShouldEqual, valNull)
 
 			// Unmarshal valid
-			n = NullBoolFrom(false)
+			n = ToNullBool(false)
 			err = json.Unmarshal([]byte(valJSON), &n)
 			So(err, ShouldEqual, nil)
 			So(n.Bool, ShouldEqual, valBool)
@@ -116,7 +116,7 @@ func TestSqlTypes(t *testing.T) {
 		Convey("NullInt64", func() {
 			valInt64 := int64(99)
 			valJSON := fmt.Sprintf(`%d`, valInt64)
-			n := NullInt64From(valInt64)
+			n := ToNullInt64(valInt64)
 			So(n.Valid, ShouldEqual, true)
 			So(n.Int64, ShouldEqual, valInt64)
 
@@ -126,14 +126,14 @@ func TestSqlTypes(t *testing.T) {
 			So(string(b), ShouldEqual, valJSON)
 
 			// Marshal invalid
-			n = NullInt64From(0)
+			n = ToNullInt64(0)
 			n.Valid = false
 			b, err = json.Marshal(n)
 			So(err, ShouldEqual, nil)
 			So(string(b), ShouldEqual, valNull)
 
 			// Unmarshal valid
-			n = NullInt64From(0)
+			n = ToNullInt64(0)
 			err = json.Unmarshal([]byte(valJSON), &n)
 			So(err, ShouldEqual, nil)
 			So(n.Int64, ShouldEqual, valInt64)

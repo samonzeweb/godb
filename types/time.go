@@ -31,8 +31,8 @@ func (nt NullTime) Value() (driver.Value, error) {
 	return nt.Time, nil
 }
 
-// NullTimeFrom creates a valid NullTime
-func NullTimeFrom(v time.Time) NullTime {
+// ToNullTime creates a valid NullTime
+func ToNullTime(v time.Time) NullTime {
 	return NullTime{Time: v, Valid: true}
 }
 

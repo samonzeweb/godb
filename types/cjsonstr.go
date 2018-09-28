@@ -110,7 +110,7 @@ func (n NullCompactJSONStr) Value() (driver.Value, error) {
 	return n.CompactJSONStr.Value()
 }
 
-// NullCompactJSONStrFrom creates a valid NullCompactJSONStr
-func NullCompactJSONStrFrom(dst []byte) NullCompactJSONStr {
+// ToNullCompactJSONStr creates a valid NullCompactJSONStr
+func ToNullCompactJSONStr(dst []byte) NullCompactJSONStr {
 	return NullCompactJSONStr{CompactJSONStr: dst, Valid: true}
 }
