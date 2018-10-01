@@ -151,8 +151,10 @@ func (si *StructInsert) Do() error {
 			*t = uint32(insertedID)
 		case *uint64:
 			*t = uint64(insertedID)
+		case *types.NullInt64:
+			*t = types.ToNullInt64(insertedID)
 		case *sql.NullInt64:
-			*t = types.NullInt64From(insertedID)
+			*t = sql.NullInt64{Int64: insertedID, Valid: true}
 		}
 	}
 

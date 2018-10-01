@@ -61,8 +61,8 @@ import (
 //
 //  	// Insert nullable JSONStr
 //  	country := Country{
-//  		Meta:      types.NullJSONStrFrom([]byte(`{"code": "US", "phone_prefix": "1"}`)),
-//  		Metab:     types.NullJSONStrFrom([]byte(`{"code": "TR", "phone_prefix": "90"}`)),
+//  		Meta:      types.ToNullJSONStr([]byte(`{"code": "US", "phone_prefix": "1"}`)),
+//  		Metab:     types.ToNullJSONStr([]byte(`{"code": "TR", "phone_prefix": "90"}`)),
 //  	}
 //  	if err = db.Insert(&country).Do(); err != nil {
 //  		panic(err)
@@ -84,6 +84,7 @@ import (
 //  }
 //
 
+// JSONStr makes easy to handle JSON data at database's text fields(like VARCHAR,CHAR,TEXT) and blob fields
 type JSONStr json.RawMessage
 
 // MarshalJSON returns JSON encoding
@@ -172,7 +173,7 @@ func (n NullJSONStr) Value() (driver.Value, error) {
 	return n.JSONStr.Value()
 }
 
-// NullJSONStrFrom creates a valid NullJSONStr
-func NullJSONStrFrom(dst []byte) NullJSONStr {
+// ToNullJSONStr creates a valid NullJSONStr
+func ToNullJSONStr(dst []byte) NullJSONStr {
 	return NullJSONStr{JSONStr: dst, Valid: true}
 }

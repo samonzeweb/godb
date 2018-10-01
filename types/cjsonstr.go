@@ -1,11 +1,12 @@
 package types
 
 import (
+	"bytes"
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"database/sql/driver"
-	"bytes"
 )
+
 // CompactJSONStr is same as JSONStr except, whitespaces are remove from JSON formatted data while saving to database.
 // It is useless if data is hold in database specific json typed field(like PostgreSQL's JSONB field).
 // NullCompactJSONStr is nullable version of CompactJSONStr.
@@ -40,14 +41,14 @@ func (js *CompactJSONStr) UnmarshalJSON(data []byte) error {
 
 // Value returns value. Validates JSON.
 // If value is invalid json, it returns an error.
-func (c CompactJSONStr) Value() (driver.Value, error) {
+func (js CompactJSONStr) Value() (driver.Value, error) {
 	var m json.RawMessage
-	var err = c.Unmarshal(&m)
+	var err = js.Unmarshal(&m)
 	if err != nil {
 		return []byte{}, err
 	}
 	var buf bytes.Buffer
-	err = json.Compact(&buf, []byte(c))
+	err = json.Compact(&buf, []byte(js))
 	return buf.Bytes(), err
 }
 
@@ -109,7 +110,7 @@ func (n NullCompactJSONStr) Value() (driver.Value, error) {
 	return n.CompactJSONStr.Value()
 }
 
-// NullCompactJSONStrFrom creates a valid NullCompactJSONStr
-func NullCompactJSONStrFrom(dst []byte) NullCompactJSONStr {
+// ToNullCompactJSONStr creates a valid NullCompactJSONStr
+func ToNullCompactJSONStr(dst []byte) NullCompactJSONStr {
 	return NullCompactJSONStr{CompactJSONStr: dst, Valid: true}
 }

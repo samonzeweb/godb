@@ -11,7 +11,7 @@ func TestNullBytes(t *testing.T) {
 	Convey("Given NullBytes", t, func() {
 		Convey("valid value", func() {
 			val := []byte("Test bytes")
-			nullBytes := NullBytesFrom(val)
+			nullBytes := ToNullBytes(val)
 			So(nullBytes.Valid, ShouldEqual, true)
 			So(bytes.Compare(nullBytes.Bytes, val), ShouldEqual, 0)
 			v, err := nullBytes.Value()
@@ -20,7 +20,7 @@ func TestNullBytes(t *testing.T) {
 		})
 
 		Convey("nil value", func() {
-			nullBytes := NullBytesFrom(nil)
+			nullBytes := ToNullBytes(nil)
 			So(nullBytes.Valid, ShouldEqual, false)
 			So(nullBytes.Bytes, ShouldEqual, nil)
 		})

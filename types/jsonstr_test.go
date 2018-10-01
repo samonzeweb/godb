@@ -3,13 +3,14 @@ package types
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"fmt"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-type JsonStrTest struct {
+type JSONStrTest struct {
 	A string `json:"a" db:"a"`
-	B int64 `json:"b" db:"b"`
+	B int64  `json:"b" db:"b"`
 }
 
 func TestJSONStr(t *testing.T) {
@@ -22,7 +23,7 @@ func TestJSONStr(t *testing.T) {
 			So(fmt.Sprintf("%s", v.([]byte)), ShouldEqual, `{"a": "test", "b": 2}`)
 			err = (&x).Scan(v)
 			So(err, ShouldEqual, nil)
-			m := JsonStrTest{}
+			m := JSONStrTest{}
 			err = x.Unmarshal(&m)
 			So(err, ShouldEqual, nil)
 			So(m.A, ShouldEqual, "test")
@@ -39,7 +40,7 @@ func TestJSONStr(t *testing.T) {
 			So(fmt.Sprintf("%s", v.([]byte)), ShouldEqual, `{"a": "test", "b": 2}`)
 			err = (&x).Scan(v)
 			So(err, ShouldEqual, nil)
-			m := JsonStrTest{}
+			m := JSONStrTest{}
 			err = x.Unmarshal(&m)
 			So(err, ShouldEqual, nil)
 			So(m.A, ShouldEqual, "test")

@@ -10,25 +10,25 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 
 ## Features
 
-* Queries builder.
-* Mapping between structs and tables (or views).
-* Mapping with nested structs.
-* Execution of custom SELECT, INSERT, UPDATE and DELETE queries with structs and slices.
-* Optional execution of SELECT queries with an iterator to limit memory consumption if needed (e.g. batches).
-* Execution of raw queries, mapping rows to structs.
-* Optimistic Locking
-* SQL queries and durations logs.
-* Two adjustable prepared statements caches (with/without transaction).
-* `RETURNING` support for PostgreSQL.
-* `OUTPUT` support for SQL Server.
-* Define your own logger (should have `Println(...)` method)
-* Define model struct name to db table naming with `db.SetDefaultTableNamer(yourFn)`. Supported types are: Plural,Snake,SnakePlural. You can also define `TableName() string` method to for your struct and return whatever table name will be.
-* Could by used with
-  * SQLite
-  * PostgreSQL
-  * MySQL / MariaDB
-  * MS SQL Server
-  * other compatible database if you write an adapter.
+- Queries builder.
+- Mapping between structs and tables (or views).
+- Mapping with nested structs.
+- Execution of custom SELECT, INSERT, UPDATE and DELETE queries with structs and slices.
+- Optional execution of SELECT queries with an iterator to limit memory consumption if needed (e.g. batches).
+- Execution of raw queries, mapping rows to structs.
+- Optimistic Locking
+- SQL queries and durations logs.
+- Two adjustable prepared statements caches (with/without transaction).
+- `RETURNING` support for PostgreSQL.
+- `OUTPUT` support for SQL Server.
+- Define your own logger (should have `Println(...)` method)
+- Define model struct name to db table naming with `db.SetDefaultTableNamer(yourFn)`. Supported types are: Plural,Snake,SnakePlural. You can also define `TableName() string` method to for your struct and return whatever table name will be.
+- Could by used with
+  - SQLite
+  - PostgreSQL
+  - MySQL / MariaDB
+  - MS SQL Server
+  - other compatible database if you write an adapter.
 
 I made tests of godb on differents architectures and operating systems : OSX, Windows, Linux, ARM (Cortex A7) and Intel x64.
 
@@ -38,9 +38,9 @@ godb is compatible from Go 1.9 to 1.11 (SQL Server driver requires at least Go 1
 
 There are three forms of documentation :
 
-* This README with the example presented below, which gives an overview of what godb allows.
-* The tests in `dbtests/common`, which are run on the different databases supported.
-* Detailed documentation on GoDoc: https://godoc.org/github.com/samonzeweb/godb
+- This README with the example presented below, which gives an overview of what godb allows.
+- The tests in `dbtests/common`, which are run on the different databases supported.
+- Detailed documentation on GoDoc: https://godoc.org/github.com/samonzeweb/godb
 
 ## Install
 

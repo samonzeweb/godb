@@ -20,6 +20,10 @@ func init() {
 	RegisterScannableStruct(sql.NullFloat64{})
 	RegisterScannableStruct(sql.NullInt64{})
 	RegisterScannableStruct(sql.NullString{})
+	RegisterScannableStruct(types.NullBool{})
+	RegisterScannableStruct(types.NullFloat64{})
+	RegisterScannableStruct(types.NullInt64{})
+	RegisterScannableStruct(types.NullString{})
 	// Custom nullable types
 	RegisterScannableStruct(types.NullTime{})
 	RegisterScannableStruct(types.NullBytes{})
