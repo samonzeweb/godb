@@ -373,19 +373,18 @@ func (sm *StructMapping) GetNonAutoFieldsValuesFiltered(s interface{}, filterCol
 	}
 
 	values := make(map[string]interface{}, ln)
-	flt := func(isAuto bool, colName string) bool {
+	flt := func(colName string) bool {
+		found := false
 		for _, c := range filterColumns {
 			if c == colName {
-				return true
+				found = true
+				break
 			}
 		}
-		if len(filterColumns) > 0 {
-			return false
-		}
-		return !isAuto
+		return found
 	}
 	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
-		if flt(fieldMapping.isAuto, fieldMapping.sqlName) {
+		if !fieldMapping.isAuto && flt(fieldMapping.sqlName) {
 			values[fieldMapping.sqlName] = value.Interface()
 		}
 		return false, nil

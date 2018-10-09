@@ -69,6 +69,7 @@ func (db *DB) buildInsert(record interface{}) *StructInsert {
 
 // WhiteList saves columns to be inserted from struct
 // It adds columns to list each time it is called
+// whitelist should not include auto key tagged columns
 func (si *StructInsert) WhiteList(columns ...string) *StructInsert {
 	si.whiteList = append(si.whiteList, columns...)
 	return si

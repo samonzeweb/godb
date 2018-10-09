@@ -42,6 +42,8 @@ func (db *DB) Update(record interface{}) *StructUpdate {
 }
 
 // WhiteList saves columns to be updated from struct
+//
+// whitelist should not include auto key tagged columns
 func (su *StructUpdate) WhiteList(columns ...string) *StructUpdate {
 	su.whiteList = append(su.whiteList, columns...)
 	return su
