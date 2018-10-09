@@ -16,6 +16,8 @@ type StructUpdate struct {
 	error             error
 	updateStatement   *UpdateStatement
 	recordDescription *recordDescription
+	whiteList         []string
+	blackList         []string
 }
 
 // Update initializes an UPDATE sql statement for the given object.
@@ -39,6 +41,32 @@ func (db *DB) Update(record interface{}) *StructUpdate {
 	return su
 }
 
+// WhiteList saves columns to be updated from struct
+func (su *StructUpdate) WhiteList(columns ...string) *StructUpdate {
+	su.whiteList = append(su.whiteList, columns...)
+	return su
+}
+
+// WhiteListReset resets whiteList
+func (su *StructUpdate) WhiteListReset() *StructUpdate {
+	su.whiteList = nil
+	return su
+}
+
+// BlackList saves columns not to be updated from struct
+// It adds columns to list each time it is called. If a column defined in whitelist is
+// also given in black list than that column will be blacklisted.
+func (su *StructUpdate) BlackList(columns ...string) *StructUpdate {
+	su.blackList = append(su.blackList, columns...)
+	return su
+}
+
+// BlackListReset resets blacklist
+func (su *StructUpdate) BlackListReset() *StructUpdate {
+	su.blackList = nil
+	return su
+}
+
 // Do executes the UPDATE statement for the struct given to the Update method.
 func (su *StructUpdate) Do() error {
 	if su.error != nil {
@@ -46,14 +74,32 @@ func (su *StructUpdate) Do() error {
 	}
 
 	// Which columns to update ?
-	columnsToUpdate := su.recordDescription.structMapping.GetNonAutoColumnsNames()
-	values := su.recordDescription.structMapping.GetNonAutoFieldsValues(su.recordDescription.record)
-	for i, column := range columnsToUpdate {
-		quotedColumn := su.updateStatement.db.adapter.Quote(column)
-		su.updateStatement = su.updateStatement.Set(quotedColumn, values[i])
+	var columnsToUpdate []string
+	if len(su.whiteList) > 0 {
+		columnsToUpdate = su.whiteList
+	} else {
+		columnsToUpdate = su.recordDescription.structMapping.GetNonAutoColumnsNames()
+	}
+	// Filter black listed columns
+	i := 0
+	for _, c := range su.blackList {
+		i = 0
+		for _, a := range columnsToUpdate {
+			if a != c {
+				columnsToUpdate[i] = a
+				i++
+			}
+		}
+		columnsToUpdate = columnsToUpdate[:i]
 	}
 
-	// On wich keys
+	values := su.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(su.recordDescription.record, columnsToUpdate)
+	for _, column := range columnsToUpdate {
+		quotedColumn := su.updateStatement.db.adapter.Quote(column)
+		su.updateStatement = su.updateStatement.Set(quotedColumn, values[column])
+	}
+
+	// On which keys
 	keyColumns := su.recordDescription.structMapping.GetKeyColumnsNames()
 	keyValues := su.recordDescription.structMapping.GetKeyFieldsValues(su.recordDescription.record)
 	if len(keyColumns) == 0 {

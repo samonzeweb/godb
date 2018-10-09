@@ -23,6 +23,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 - `OUTPUT` support for SQL Server.
 - Define your own logger (should have `Println(...)` method)
 - Define model struct name to db table naming with `db.SetDefaultTableNamer(yourFn)`. Supported types are: Plural,Snake,SnakePlural. You can also define `TableName() string` method to for your struct and return whatever table name will be.
+- BlackListing or WhiteListing columns for struct based inserts and updates.
 - Could by used with
   - SQLite
   - PostgreSQL

@@ -360,6 +360,41 @@ func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 	return values
 }
 
+// GetNonAutoFieldsValuesFiltered returns values of fields in filterColumns,
+// if filterColumns is empty than returns values of non auto fields like `GetNonAutoFieldsValues` but
+// as map
+func (sm *StructMapping) GetNonAutoFieldsValuesFiltered(s interface{}, filterColumns []string) map[string]interface{} {
+	// TODO : check type
+	v := reflect.ValueOf(s)
+	v = reflect.Indirect(v)
+	ln := sm.fieldCount - sm.autoCount
+	if len(filterColumns) > 0 {
+		ln = len(filterColumns)
+	}
+
+	values := make(map[string]interface{}, ln)
+	flt := func(isAuto bool, colName string) bool {
+		for _, c := range filterColumns {
+			if c == colName {
+				return true
+			}
+		}
+		if len(filterColumns) > 0 {
+			return false
+		}
+		return !isAuto
+	}
+	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
+		if flt(fieldMapping.isAuto, fieldMapping.sqlName) {
+			values[fieldMapping.sqlName] = value.Interface()
+		}
+		return false, nil
+	}
+	sm.structMapping.traverseTree("", "", &v, f)
+
+	return values
+}
+
 // GetKeyFieldsValues returns values of key fields, in the same order
 // as TestGetKeyColumnsNames.
 func (sm *StructMapping) GetKeyFieldsValues(s interface{}) []interface{} {

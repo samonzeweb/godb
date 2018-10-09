@@ -19,6 +19,8 @@ type StructInsert struct {
 	error             error
 	insertStatement   *InsertStatement
 	recordDescription *recordDescription
+	whiteList         []string
+	blackList         []string
 }
 
 // Insert initializes an INSERT sql statement for the given object.
@@ -65,29 +67,76 @@ func (db *DB) buildInsert(record interface{}) *StructInsert {
 	return si
 }
 
+// WhiteList saves columns to be inserted from struct
+// It adds columns to list each time it is called
+func (si *StructInsert) WhiteList(columns ...string) *StructInsert {
+	si.whiteList = append(si.whiteList, columns...)
+	return si
+}
+
+// WhiteListReset resets whiteList
+func (si *StructInsert) WhiteListReset() *StructInsert {
+	si.whiteList = nil
+	return si
+}
+
+// BlackList saves columns not to be inserted from struct
+// It adds columns to list each time it is called. If a column defined in whitelist is
+// also given in black list than that column will be blacklisted.
+func (si *StructInsert) BlackList(columns ...string) *StructInsert {
+	si.blackList = append(si.blackList, columns...)
+	return si
+}
+
+// BlackListReset resets blacklist
+func (si *StructInsert) BlackListReset() *StructInsert {
+	si.blackList = nil
+	return si
+}
+
 // Do executes the insert statement.
 //
-// The behaviour differs according to the adapter. If it implements the
+// The behavior differs according to the adapter. If it implements the
 // InsertReturningSuffixer interface it will use it and fill all auto fields
 // of the given struct. Otherwise it only fills the key with LastInsertId.
 //
-// With BulkInsert the behaviour changeq occording to the adapter, see
-// BulkInsert documentation for more informations.
+// With BulkInsert the behavior changeq according to the adapter, see
+// BulkInsert documentation for more information.
 func (si *StructInsert) Do() error {
 	if si.error != nil {
 		return si.error
 	}
 
 	// Columns names
-	columns := si.recordDescription.structMapping.GetNonAutoColumnsNames()
+	var columns []string
+	if len(si.whiteList) > 0 {
+		columns = si.whiteList
+	} else {
+		columns = si.recordDescription.structMapping.GetNonAutoColumnsNames()
+	}
+	// Filter black listed columns
+	i := 0
+	for _, c := range si.blackList {
+		i = 0
+		for _, a := range columns {
+			if a != c {
+				columns[i] = a
+				i++
+			}
+		}
+		columns = columns[:i]
+	}
+
 	si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
 
 	// Values
 	len := si.recordDescription.len()
 	for i := 0; i < len; i++ {
 		currentRecord := si.recordDescription.index(i)
-		values := si.recordDescription.structMapping.GetNonAutoFieldsValues(currentRecord)
-		si.insertStatement.Values(values...)
+		values := si.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(currentRecord, columns)
+		for _, c := range columns {
+			si.insertStatement.Values(values[c])
+		}
 	}
 
 	// Use a RETURNING (or similar) clause ?
