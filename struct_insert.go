@@ -129,14 +129,19 @@ func (si *StructInsert) Do() error {
 	}
 
 	si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
-
+	hasWB := (len(si.whiteList) + len(si.blackList)) > 0
 	// Values
 	len := si.recordDescription.len()
 	for i := 0; i < len; i++ {
 		currentRecord := si.recordDescription.index(i)
-		values := si.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(currentRecord, columns)
-		for _, c := range columns {
-			si.insertStatement.Values(values[c])
+		if hasWB {
+			values := si.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(currentRecord, columns)
+			for _, c := range columns {
+				si.insertStatement.Values(values[c])
+			}
+		} else {
+			values := si.recordDescription.structMapping.GetNonAutoFieldsValues(currentRecord)
+			si.insertStatement.Values(values...)
 		}
 	}
 
