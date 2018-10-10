@@ -389,11 +389,9 @@ func (b *sqlBuffer) writeInsertValues(args [][]interface{}, columnsCount int) *s
 
 	// build (?, ?, ?, ?)
 	valuesPart := buildGroupOfPlaceholders(columnsCount).Bytes()
-	fmt.Printf("\nvaluesPart: %s\n", valuesPart)
 	// insert group of placeholders for each group of values
 	groupCount := len(args)
 	for i, currentGroup := range args {
-		fmt.Printf("\ncurrentGroup: %s\n", currentGroup)
 		if len(currentGroup) != columnsCount {
 			b.err = fmt.Errorf("Values count does not match the columns count")
 			return b

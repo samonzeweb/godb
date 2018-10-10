@@ -373,18 +373,20 @@ func (sm *StructMapping) GetNonAutoFieldsValuesFiltered(s interface{}, filterCol
 	}
 
 	values := make(map[string]interface{}, ln)
-	flt := func(colName string) bool {
-		found := false
+	// Explicitly defined columns in filterColumns will be returned whether it is key column or not
+	flt := func(isAuto bool, colName string) bool {
 		for _, c := range filterColumns {
 			if c == colName {
-				found = true
-				break
+				return true
 			}
 		}
-		return found
+		if len(filterColumns) > 0 {
+			return false
+		}
+		return !isAuto
 	}
 	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
-		if !fieldMapping.isAuto && flt(fieldMapping.sqlName) {
+		if flt(fieldMapping.isAuto, fieldMapping.sqlName) {
 			values[fieldMapping.sqlName] = value.Interface()
 		}
 		return false, nil
