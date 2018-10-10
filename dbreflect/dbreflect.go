@@ -363,7 +363,7 @@ func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 // GetNonAutoFieldsValuesFiltered returns values of fields in filterColumns,
 // if filterColumns is empty than returns values of non auto fields like `GetNonAutoFieldsValues` but
 // as map
-func (sm *StructMapping) GetNonAutoFieldsValuesFiltered(s interface{}, filterColumns []string) map[string]interface{} {
+func (sm *StructMapping) GetNonAutoFieldsValuesFiltered(s interface{}, filterColumns []string) ([]string, []interface{}) {
 	// TODO : check type
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
@@ -372,7 +372,8 @@ func (sm *StructMapping) GetNonAutoFieldsValuesFiltered(s interface{}, filterCol
 		ln = len(filterColumns)
 	}
 
-	values := make(map[string]interface{}, ln)
+	columns := make([]string, 0, ln)
+	values := make([]interface{}, 0, ln)
 	// Explicitly defined columns in filterColumns will be returned whether it is key column or not
 	flt := func(isAuto bool, colName string) bool {
 		for _, c := range filterColumns {
@@ -387,13 +388,14 @@ func (sm *StructMapping) GetNonAutoFieldsValuesFiltered(s interface{}, filterCol
 	}
 	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		if flt(fieldMapping.isAuto, fieldMapping.sqlName) {
-			values[fieldMapping.sqlName] = value.Interface()
+			columns = append(columns, fieldMapping.sqlName)
+			values = append(values, value.Interface())
 		}
 		return false, nil
 	}
 	sm.structMapping.traverseTree("", "", &v, f)
 
-	return values
+	return columns, values
 }
 
 // GetKeyFieldsValues returns values of key fields, in the same order

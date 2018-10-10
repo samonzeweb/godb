@@ -128,17 +128,20 @@ func (si *StructInsert) Do() error {
 		columns = columns[:i]
 	}
 
-	si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
 	hasWB := (len(si.whiteList) + len(si.blackList)) > 0
+	if !hasWB {
+		si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
+	}
 	// Values
 	values := make([]interface{}, 0, len(columns))
 	len := si.recordDescription.len()
+	wbColsSet := false
 	for i := 0; i < len; i++ {
 		currentRecord := si.recordDescription.index(i)
 		if hasWB {
-			valMap := si.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(currentRecord, columns)
-			for _, c := range columns {
-				values = append(values, valMap[c])
+			columns, values = si.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(currentRecord, columns)
+			if !wbColsSet { // order of old columns list and current values list may not be same so, set here:
+				si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
 			}
 		} else {
 			values = si.recordDescription.structMapping.GetNonAutoFieldsValues(currentRecord)

@@ -95,10 +95,10 @@ func (su *StructUpdate) Do() error {
 		columnsToUpdate = columnsToUpdate[:i]
 	}
 
-	values := su.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(su.recordDescription.record, columnsToUpdate)
-	for _, column := range columnsToUpdate {
+	columns, values := su.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(su.recordDescription.record, columnsToUpdate)
+	for i, column := range columns {
 		quotedColumn := su.updateStatement.db.adapter.Quote(column)
-		su.updateStatement = su.updateStatement.Set(quotedColumn, values[column])
+		su.updateStatement = su.updateStatement.Set(quotedColumn, values[i])
 	}
 
 	// On which keys
