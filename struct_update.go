@@ -41,30 +41,30 @@ func (db *DB) Update(record interface{}) *StructUpdate {
 	return su
 }
 
-// WhiteList saves columns to be updated from struct
+// Whitelist saves columns to be updated from struct
 //
 // whitelist should not include auto key tagged columns
-func (su *StructUpdate) WhiteList(columns ...string) *StructUpdate {
+func (su *StructUpdate) Whitelist(columns ...string) *StructUpdate {
 	su.whiteList = append(su.whiteList, columns...)
 	return su
 }
 
-// WhiteListReset resets whiteList
-func (su *StructUpdate) WhiteListReset() *StructUpdate {
+// WhitelistReset resets whiteList
+func (su *StructUpdate) WhitelistReset() *StructUpdate {
 	su.whiteList = nil
 	return su
 }
 
-// BlackList saves columns not to be updated from struct
+// Blacklist saves columns not to be updated from struct
 // It adds columns to list each time it is called. If a column defined in whitelist is
 // also given in black list than that column will be blacklisted.
-func (su *StructUpdate) BlackList(columns ...string) *StructUpdate {
+func (su *StructUpdate) Blacklist(columns ...string) *StructUpdate {
 	su.blackList = append(su.blackList, columns...)
 	return su
 }
 
-// BlackListReset resets blacklist
-func (su *StructUpdate) BlackListReset() *StructUpdate {
+// BlacklistReset resets blacklist
+func (su *StructUpdate) BlacklistReset() *StructUpdate {
 	su.blackList = nil
 	return su
 }

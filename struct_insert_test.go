@@ -45,7 +45,7 @@ func TestInsertDo(t *testing.T) {
 			}
 
 			Convey("Do execute the query whitlisted", func() {
-				err := db.Insert(&dummy).WhiteList("a_text", "another_text", "an_integer").Do()
+				err := db.Insert(&dummy).Whitelist("a_text", "another_text", "an_integer").Do()
 
 				So(err, ShouldBeNil)
 				So(dummy.ID, ShouldBeGreaterThan, 0)
@@ -63,7 +63,7 @@ func TestInsertDo(t *testing.T) {
 			Convey("Do execute the query whitlisted with id", func() {
 				customID := 1453
 				dummy.ID = customID
-				err := db.Insert(&dummy).WhiteList("id", "an_integer", "a_text", "another_text").Do()
+				err := db.Insert(&dummy).Whitelist("id", "an_integer", "a_text", "another_text").Do()
 
 				So(err, ShouldBeNil)
 				So(dummy.ID, ShouldEqual, customID)
@@ -80,7 +80,7 @@ func TestInsertDo(t *testing.T) {
 			})
 
 			Convey("Do execute the query whitlisted mixed order", func() {
-				err := db.Insert(&dummy).WhiteList("another_text", "an_integer", "a_text").Do()
+				err := db.Insert(&dummy).Whitelist("another_text", "an_integer", "a_text").Do()
 
 				So(err, ShouldBeNil)
 				So(dummy.ID, ShouldBeGreaterThan, 0)
@@ -96,7 +96,7 @@ func TestInsertDo(t *testing.T) {
 				})
 			})
 			Convey("Do execute the query blacklist", func() {
-				err := db.Insert(&dummy).BlackList("a_nullable_string").Do()
+				err := db.Insert(&dummy).Blacklist("a_nullable_string").Do()
 
 				So(err, ShouldBeNil)
 				So(dummy.ID, ShouldBeGreaterThan, 0)

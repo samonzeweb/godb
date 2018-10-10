@@ -67,30 +67,30 @@ func (db *DB) buildInsert(record interface{}) *StructInsert {
 	return si
 }
 
-// WhiteList saves columns to be inserted from struct
+// Whitelist saves columns to be inserted from struct
 // It adds columns to list each time it is called
 // whitelist should not include auto key tagged columns
-func (si *StructInsert) WhiteList(columns ...string) *StructInsert {
+func (si *StructInsert) Whitelist(columns ...string) *StructInsert {
 	si.whiteList = append(si.whiteList, columns...)
 	return si
 }
 
-// WhiteListReset resets whiteList
-func (si *StructInsert) WhiteListReset() *StructInsert {
+// WhitelistReset resets whiteList
+func (si *StructInsert) WhitelistReset() *StructInsert {
 	si.whiteList = nil
 	return si
 }
 
-// BlackList saves columns not to be inserted from struct
+// Blacklist saves columns not to be inserted from struct
 // It adds columns to list each time it is called. If a column defined in whitelist is
 // also given in black list than that column will be blacklisted.
-func (si *StructInsert) BlackList(columns ...string) *StructInsert {
+func (si *StructInsert) Blacklist(columns ...string) *StructInsert {
 	si.blackList = append(si.blackList, columns...)
 	return si
 }
 
-// BlackListReset resets blacklist
-func (si *StructInsert) BlackListReset() *StructInsert {
+// BlacklistReset resets blacklist
+func (si *StructInsert) BlacklistReset() *StructInsert {
 	si.blackList = nil
 	return si
 }
