@@ -59,14 +59,17 @@ func TestUpdateDo(t *testing.T) {
 			})
 		})
 
-		Convey("Update update a record whitelisted", func() {
+		Convey("Update update a record whitelisted after reset", func() {
 			dummy := &Dummy{}
 			err := db.Select(dummy).Where("an_integer = ?", 11).Do()
 			So(err, ShouldBeNil)
 			dummy.AText = "New text"
 			dummy.AnotherText = "Replacement text"
 			dummy.AnInteger = 1453
-			err = db.Update(dummy).Whitelist("another_text", "a_text").Do()
+			updQ := db.Update(dummy)
+			updQ.Whitelist("an_integer")
+			updQ.WhitelistReset()
+			err = updQ.Whitelist("another_text", "a_text").Do()
 			So(err, ShouldBeNil)
 
 			Convey("The data are in the database", func() {
@@ -79,14 +82,17 @@ func TestUpdateDo(t *testing.T) {
 			})
 		})
 
-		Convey("Update update a record blacklisted", func() {
+		Convey("Update a record blacklisted after reset", func() {
 			dummy := &Dummy{}
 			err := db.Select(dummy).Where("an_integer = ?", 11).Do()
 			So(err, ShouldBeNil)
 			dummy.AText = "New text"
 			dummy.AnotherText = "Replacement text blacklisted"
 			dummy.AnInteger = 1453
-			err = db.Update(dummy).Blacklist("another_text").Do()
+			updQ := db.Update(dummy)
+			updQ.Blacklist("a_text")
+			updQ.BlacklistReset()
+			err = updQ.Blacklist("another_text").Do()
 			So(err, ShouldBeNil)
 
 			Convey("The data are in the database", func() {
@@ -98,5 +104,6 @@ func TestUpdateDo(t *testing.T) {
 				So(retrieveddummy.AnInteger, ShouldEqual, dummy.AnInteger)
 			})
 		})
+
 	})
 }

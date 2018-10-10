@@ -44,8 +44,11 @@ func TestInsertDo(t *testing.T) {
 				ANullableString: sql.NullString{String: "Void", Valid: true},
 			}
 
-			Convey("Do execute the query whitlisted", func() {
-				err := db.Insert(&dummy).Whitelist("a_text", "another_text", "an_integer").Do()
+			Convey("Do execute the query whitelisted after reset", func() {
+				insQ := db.Insert(&dummy)
+				insQ.Whitelist("a_nullable_string")
+				insQ.WhitelistReset()
+				err := insQ.Whitelist("a_text", "another_text", "an_integer").Do()
 
 				So(err, ShouldBeNil)
 				So(dummy.ID, ShouldBeGreaterThan, 0)
@@ -60,7 +63,7 @@ func TestInsertDo(t *testing.T) {
 					So(retrieveddummy.ANullableString.Valid, ShouldEqual, false)
 				})
 			})
-			Convey("Do execute the query whitlisted with id", func() {
+			Convey("Do execute the query whitelisted with id", func() {
 				customID := 1453
 				dummy.ID = customID
 				err := db.Insert(&dummy).Whitelist("id", "an_integer", "a_text", "another_text").Do()
@@ -95,8 +98,11 @@ func TestInsertDo(t *testing.T) {
 					So(retrieveddummy.ANullableString.Valid, ShouldEqual, false)
 				})
 			})
-			Convey("Do execute the query blacklist", func() {
-				err := db.Insert(&dummy).Blacklist("a_nullable_string").Do()
+			Convey("Do execute the query blacklist after reset", func() {
+				insQ := db.Insert(&dummy)
+				insQ.Blacklist("a_string")
+				insQ.BlacklistReset()
+				err := insQ.Blacklist("a_nullable_string").Do()
 
 				So(err, ShouldBeNil)
 				So(dummy.ID, ShouldBeGreaterThan, 0)
