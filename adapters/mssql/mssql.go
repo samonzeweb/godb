@@ -102,9 +102,9 @@ func (MSSQL) ParseError(err error) error {
 	if e, ok := err.(ErrorWithNumber); ok {
 		switch e.SQLErrorNumber() {
 		case 2601:
-			return dberror.UniqueConstraint{Message: err.Error(), Field: dberror.ExtractStr(err.Error(), "index '", "'"), Err: err}
+			return dberror.UniqueConstraint{Message: err.Error(), Field: "", Err: err}
 		case 2627:
-			return dberror.UniqueConstraint{Message: err.Error(), Field: dberror.ExtractStr(err.Error(), "constraint '", "'"), Err: err}
+			return dberror.UniqueConstraint{Message: err.Error(), Field: "", Err: err}
 		case 547:
 			return dberror.CheckConstraint{Message: err.Error(), Field: dberror.ExtractStr(err.Error(), "column '", "'"), Err: err}
 		}
