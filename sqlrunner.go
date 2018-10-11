@@ -28,7 +28,7 @@ func (db *DB) do(query string, arguments []interface{}) (sql.Result, error) {
 	db.logExecution(consumedTime, query, arguments)
 	if err != nil {
 		db.logExecutionErr(err, query, arguments)
-		return nil, err
+		return nil, db.adapter.ParseError(err)
 	}
 
 	return result, err

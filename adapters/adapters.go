@@ -9,6 +9,8 @@ type Adapter interface {
 	// Quote must return an SQL identifier (table name, column name) quoted,
 	// ie : "foo" for SQLite or Postgresql, `foo` for MySQL, [foo] for SQLServer.
 	Quote(string) string
+	// ParseError parses adapter errors and returns a understandable DBError
+	ParseError(error) error
 }
 
 // PlaceholdersReplacer is an interface wrapping the optional

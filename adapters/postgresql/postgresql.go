@@ -5,8 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	_ "github.com/lib/pq"
+	pq "github.com/lib/pq"
 	"github.com/samonzeweb/godb/adapters"
+	"github.com/samonzeweb/godb/dberror"
 )
 
 type PostgreSQL struct{}
@@ -61,4 +62,23 @@ func (p PostgreSQL) FormatForNewValues(columns []string) []string {
 
 func (p PostgreSQL) GetReturningPosition() adapters.ReturningPosition {
 	return adapters.ReturningPostgreSQL
+}
+
+func (p PostgreSQL) ParseError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if e, ok := err.(*pq.Error); ok {
+		switch e.Code {
+		case "23505":
+			return dberror.UniqueConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "constraint \"", "\""), Err: e}
+		case "23503":
+			return dberror.ForeignKeyConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "constraint \"", "\""), Err: e}
+		case "23514":
+			return dberror.CheckConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "constraint \"", "\""), Err: e}
+		}
+	}
+
+	return err
 }

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/samonzeweb/godb/adapters"
+	"github.com/samonzeweb/godb/dberror"
 	"github.com/samonzeweb/godb/dbreflect"
 
 	_ "github.com/denisenkom/go-mssqldb"
@@ -88,4 +89,26 @@ func (MSSQL) BuildOffset(offset int) *adapters.SQLPart {
 
 func (MSSQL) IsOffsetFirst() bool {
 	return true
+}
+
+type ErrorWithNumber interface {
+	SQLErrorNumber() int32
+}
+
+func (MSSQL) ParseError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if e, ok := err.(ErrorWithNumber); ok {
+		switch e.SQLErrorNumber() {
+		case 2601:
+			return dberror.UniqueConstraint{Message: err.Error(), Field: dberror.ExtractStr(err.Error(), "index '", "'"), Err: err}
+		case 2627:
+			return dberror.UniqueConstraint{Message: err.Error(), Field: dberror.ExtractStr(err.Error(), "constraint '", "'"), Err: err}
+		case 547:
+			return dberror.CheckConstraint{Message: err.Error(), Field: dberror.ExtractStr(err.Error(), "column '", "'"), Err: err}
+		}
+	}
+
+	return err
 }
