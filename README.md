@@ -21,6 +21,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 - Two adjustable prepared statements caches (with/without transaction).
 - `RETURNING` support for PostgreSQL.
 - `OUTPUT` support for SQL Server.
+- Optional common db errors handling for backend databases.(`db.UseErrorParser()`)
 - Define your own logger (should have `Println(...)` method)
 - Define model struct name to db table naming with `db.SetDefaultTableNamer(yourFn)`. Supported types are: Plural,Snake,SnakePlural. You can also define `TableName() string` method to for your struct and return whatever table name will be.
 - Could by used with
