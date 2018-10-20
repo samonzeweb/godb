@@ -135,14 +135,11 @@ func (si *StructInsert) Do() error {
 	// Values
 	values := make([]interface{}, 0, len(columns))
 	len := si.recordDescription.len()
-	wbColsSet := false
 	for i := 0; i < len; i++ {
 		currentRecord := si.recordDescription.index(i)
 		if hasWB {
 			columns, values = si.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(currentRecord, columns)
-			if !wbColsSet { // order of old columns list and current values list may not be same so, set here:
-				si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
-			}
+			si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
 		} else {
 			values = si.recordDescription.structMapping.GetNonAutoFieldsValues(currentRecord)
 		}
