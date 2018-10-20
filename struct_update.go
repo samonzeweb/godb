@@ -95,7 +95,7 @@ func (su *StructUpdate) Do() error {
 		columnsToUpdate = columnsToUpdate[:i]
 	}
 
-	columns, values := su.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(su.recordDescription.record, columnsToUpdate)
+	columns, values := su.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(su.recordDescription.record, columnsToUpdate, false)
 	for i, column := range columns {
 		quotedColumn := su.updateStatement.db.adapter.Quote(column)
 		su.updateStatement = su.updateStatement.Set(quotedColumn, values[i])

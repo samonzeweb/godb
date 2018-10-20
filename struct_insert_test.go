@@ -166,9 +166,29 @@ func TestBulkInsertDo(t *testing.T) {
 					ANullableString: sql.NullString{String: "Void", Valid: true},
 				}
 				dummies = append(dummies, dummy1, dummy2)
-				err := db.BulkInsert(&dummies).Blacklist("a_nullable_string").Do()
+				err := db.BulkInsert(&dummies).Blacklist("a_nullable_string", "version").Do()
 				So(err, ShouldBeNil)
 			})
+
+			Convey("Do executes the query using a whitelist", func() {
+				dummies := make([]Dummy, 0, 2)
+				dummy1 := Dummy{
+					AText:           "Dummy1",
+					AnotherText:     "Foo",
+					AnInteger:       12345,
+					ANullableString: sql.NullString{String: "Void", Valid: true},
+				}
+				dummy2 := Dummy{
+					AText:           "Dummy2",
+					AnotherText:     "Foo",
+					AnInteger:       12345,
+					ANullableString: sql.NullString{String: "Void", Valid: true},
+				}
+				dummies = append(dummies, dummy1, dummy2)
+				err := db.BulkInsert(&dummies).Whitelist("an_integer", "a_text", "another_text").Do()
+				So(err, ShouldBeNil)
+			})
+
 		})
 	})
 

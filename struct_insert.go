@@ -140,15 +140,21 @@ func (si *StructInsert) Do() error {
 		currentRecord := si.recordDescription.index(i)
 		if hasWB {
 			if !wbColsSet { // order of old columns list and current values list may not be same so, set here:
-				columns, values = si.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(currentRecord, columns)
+				columns, values = si.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(currentRecord, columns, false)
+				si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
 				wbColsSet = true
+			} else {
+				// as columns are already ordered, just get values in same order
+				_, values = si.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(currentRecord, columns, true)
 			}
-			si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
 		} else {
 			values = si.recordDescription.structMapping.GetNonAutoFieldsValues(currentRecord)
 		}
 		si.insertStatement.Values(values...)
 	}
+
+	fmt.Printf("\n cols: %v\n", si.insertStatement.columns)
+	fmt.Printf("\n values: %v\n", si.insertStatement.values)
 
 	// Use a RETURNING (or similar) clause ?
 	returningBuilder, ok := si.insertStatement.db.adapter.(adapters.ReturningBuilder)
@@ -170,6 +176,7 @@ func (si *StructInsert) Do() error {
 
 	// Case for adapters not implenting ReturningSuffix(), we use the
 	// value given by LastInsertId() (through Do method)
+	fmt.Printf("\n******************************\n")
 	insertedID, err := si.insertStatement.Do()
 	if err != nil {
 		return err
