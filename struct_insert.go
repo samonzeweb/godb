@@ -153,9 +153,6 @@ func (si *StructInsert) Do() error {
 		si.insertStatement.Values(values...)
 	}
 
-	fmt.Printf("\n cols: %v\n", si.insertStatement.columns)
-	fmt.Printf("\n values: %v\n", si.insertStatement.values)
-
 	// Use a RETURNING (or similar) clause ?
 	returningBuilder, ok := si.insertStatement.db.adapter.(adapters.ReturningBuilder)
 	if ok {
@@ -176,7 +173,6 @@ func (si *StructInsert) Do() error {
 
 	// Case for adapters not implenting ReturningSuffix(), we use the
 	// value given by LastInsertId() (through Do method)
-	fmt.Printf("\n******************************\n")
 	insertedID, err := si.insertStatement.Do()
 	if err != nil {
 		return err
