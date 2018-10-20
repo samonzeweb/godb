@@ -150,6 +150,26 @@ func TestBulkInsertDo(t *testing.T) {
 					So(len(retrieveddummies), ShouldEqual, 10)
 				})
 			})
+
+			Convey("Do executes the query using a blacklist", func() {
+				dummies := make([]Dummy, 0, 2)
+				dummy1 := Dummy{
+					AText:           "Dummy1",
+					AnotherText:     "Foo",
+					AnInteger:       12345,
+					ANullableString: sql.NullString{String: "Void", Valid: true},
+				}
+				dummy2 := Dummy{
+					AText:           "Dummy2",
+					AnotherText:     "Foo",
+					AnInteger:       12345,
+					ANullableString: sql.NullString{String: "Void", Valid: true},
+				}
+				dummies = append(dummies, dummy1, dummy2)
+				err := db.BulkInsert(&dummies).Blacklist("a_nullable_string").Do()
+				So(err, ShouldBeNil)
+			})
 		})
 	})
+
 }
