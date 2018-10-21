@@ -24,6 +24,9 @@ type DB struct {
 	// Prepared Statement cache for DB and Tx
 	stmtCacheDB *StmtCache
 	stmtCacheTx *StmtCache
+	// Optional error parsing by adapters (false by default = legacy mode)
+	// Will probably be the default behavior in new major release.
+	useErrorParser bool
 }
 
 // Placeholder is the placeholder string, use it to build queries.
@@ -80,6 +83,7 @@ func (db *DB) Clone() *DB {
 		defaultTableNamer: db.defaultTableNamer,
 		stmtCacheDB:       newStmtCache(),
 		stmtCacheTx:       newStmtCache(),
+		useErrorParser:    db.useErrorParser,
 	}
 
 	clone.stmtCacheDB.SetSize(db.stmtCacheDB.GetSize())
@@ -185,4 +189,9 @@ func (db *DB) replacePlaceholders(sql string) string {
 // SetDefaultTableNamer sets table naming function
 func (db *DB) SetDefaultTableNamer(tnamer tablenamer.NamerFn) {
 	db.defaultTableNamer = tnamer
+}
+
+// UseErrorParser will allow adapters to parse errors and wrap ones returned by drivers
+func (db *DB) UseErrorParser() {
+	db.useErrorParser = true
 }
