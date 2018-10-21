@@ -389,7 +389,6 @@ func (b *sqlBuffer) writeInsertValues(args [][]interface{}, columnsCount int) *s
 
 	// build (?, ?, ?, ?)
 	valuesPart := buildGroupOfPlaceholders(columnsCount).Bytes()
-
 	// insert group of placeholders for each group of values
 	groupCount := len(args)
 	for i, currentGroup := range args {

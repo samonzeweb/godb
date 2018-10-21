@@ -19,6 +19,8 @@ type StructInsert struct {
 	error             error
 	insertStatement   *InsertStatement
 	recordDescription *recordDescription
+	whiteList         []string
+	blackList         []string
 }
 
 // Insert initializes an INSERT sql statement for the given object.
@@ -65,28 +67,89 @@ func (db *DB) buildInsert(record interface{}) *StructInsert {
 	return si
 }
 
+// Whitelist saves columns to be inserted from struct
+// It adds columns to list each time it is called
+// whitelist should not include auto key tagged columns
+func (si *StructInsert) Whitelist(columns ...string) *StructInsert {
+	si.whiteList = append(si.whiteList, columns...)
+	return si
+}
+
+// WhitelistReset resets whiteList
+func (si *StructInsert) WhitelistReset() *StructInsert {
+	si.whiteList = nil
+	return si
+}
+
+// Blacklist saves columns not to be inserted from struct
+// It adds columns to list each time it is called. If a column defined in whitelist is
+// also given in black list than that column will be blacklisted.
+func (si *StructInsert) Blacklist(columns ...string) *StructInsert {
+	si.blackList = append(si.blackList, columns...)
+	return si
+}
+
+// BlacklistReset resets blacklist
+func (si *StructInsert) BlacklistReset() *StructInsert {
+	si.blackList = nil
+	return si
+}
+
 // Do executes the insert statement.
 //
-// The behaviour differs according to the adapter. If it implements the
+// The behavior differs according to the adapter. If it implements the
 // InsertReturningSuffixer interface it will use it and fill all auto fields
 // of the given struct. Otherwise it only fills the key with LastInsertId.
 //
-// With BulkInsert the behaviour changeq occording to the adapter, see
-// BulkInsert documentation for more informations.
+// With BulkInsert the behavior changeq according to the adapter, see
+// BulkInsert documentation for more information.
 func (si *StructInsert) Do() error {
 	if si.error != nil {
 		return si.error
 	}
 
 	// Columns names
-	columns := si.recordDescription.structMapping.GetNonAutoColumnsNames()
-	si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
+	var columns []string
+	if len(si.whiteList) > 0 {
+		columns = si.whiteList
+	} else {
+		columns = si.recordDescription.structMapping.GetNonAutoColumnsNames()
+	}
+	// Filter black listed columns
+	i := 0
+	for _, c := range si.blackList {
+		i = 0
+		for _, a := range columns {
+			if a != c {
+				columns[i] = a
+				i++
+			}
+		}
+		columns = columns[:i]
+	}
 
+	hasWB := (len(si.whiteList) + len(si.blackList)) > 0
+	if !hasWB {
+		si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
+	}
 	// Values
+	values := make([]interface{}, 0, len(columns))
 	len := si.recordDescription.len()
+	wbColsSet := false
 	for i := 0; i < len; i++ {
 		currentRecord := si.recordDescription.index(i)
-		values := si.recordDescription.structMapping.GetNonAutoFieldsValues(currentRecord)
+		if hasWB {
+			if !wbColsSet { // order of old columns list and current values list may not be same so, set here:
+				columns, values = si.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(currentRecord, columns, false)
+				si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
+				wbColsSet = true
+			} else {
+				// as columns are already ordered, just get values in same order
+				_, values = si.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(currentRecord, columns, true)
+			}
+		} else {
+			values = si.recordDescription.structMapping.GetNonAutoFieldsValues(currentRecord)
+		}
 		si.insertStatement.Values(values...)
 	}
 

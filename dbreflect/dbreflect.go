@@ -360,6 +360,53 @@ func (sm *StructMapping) GetNonAutoFieldsValues(s interface{}) []interface{} {
 	return values
 }
 
+// GetNonAutoFieldsValuesFiltered returns values of fields in filterColumns,
+// if filterColumns is empty than returns values of non auto fields like `GetNonAutoFieldsValues` but
+// as map
+func (sm *StructMapping) GetNonAutoFieldsValuesFiltered(s interface{}, filterColumns []string, isAlreadyOrdered bool) ([]string, []interface{}) {
+	// TODO : check type
+	v := reflect.ValueOf(s)
+	v = reflect.Indirect(v)
+	ln := sm.fieldCount - sm.autoCount
+	var columns []string
+	// Do not build ordered columns list if columns are already ordered and filtered
+	if isAlreadyOrdered {
+		columns = filterColumns
+	} else {
+		columns = make([]string, 0, ln)
+	}
+	if len(filterColumns) > 0 {
+		ln = len(filterColumns)
+	}
+
+	values := make([]interface{}, 0, ln)
+	// Explicitly defined columns in filterColumns will be returned whether it is key column or not
+	flt := func(isAuto bool, colName string) bool {
+		for _, c := range filterColumns {
+			if c == colName {
+				return true
+			}
+		}
+		if len(filterColumns) > 0 {
+			return false
+		}
+		return !isAuto
+	}
+	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
+		if flt(fieldMapping.isAuto, fieldMapping.sqlName) {
+			// Build ordered columns list if not columns are already ordered and filtered
+			if !isAlreadyOrdered {
+				columns = append(columns, fieldMapping.sqlName)
+			}
+			values = append(values, value.Interface())
+		}
+		return false, nil
+	}
+	sm.structMapping.traverseTree("", "", &v, f)
+
+	return columns, values
+}
+
 // GetKeyFieldsValues returns values of key fields, in the same order
 // as TestGetKeyColumnsNames.
 func (sm *StructMapping) GetKeyFieldsValues(s interface{}) []interface{} {

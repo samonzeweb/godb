@@ -58,5 +58,52 @@ func TestUpdateDo(t *testing.T) {
 				So(err, ShouldEqual, ErrOpLock)
 			})
 		})
+
+		Convey("Update update a record whitelisted after reset", func() {
+			dummy := &Dummy{}
+			err := db.Select(dummy).Where("an_integer = ?", 11).Do()
+			So(err, ShouldBeNil)
+			dummy.AText = "New text"
+			dummy.AnotherText = "Replacement text"
+			dummy.AnInteger = 1453
+			updQ := db.Update(dummy)
+			updQ.Whitelist("an_integer")
+			updQ.WhitelistReset()
+			err = updQ.Whitelist("another_text", "a_text").Do()
+			So(err, ShouldBeNil)
+
+			Convey("The data are in the database", func() {
+				retrieveddummy := Dummy{}
+				db.Select(&retrieveddummy).Where("id = ?", dummy.ID).Do()
+				So(retrieveddummy.ID, ShouldEqual, dummy.ID)
+				So(retrieveddummy.AText, ShouldEqual, dummy.AText)
+				So(retrieveddummy.AnotherText, ShouldEqual, dummy.AnotherText)
+				So(retrieveddummy.AnInteger, ShouldNotEqual, dummy.AnInteger)
+			})
+		})
+
+		Convey("Update a record blacklisted after reset", func() {
+			dummy := &Dummy{}
+			err := db.Select(dummy).Where("an_integer = ?", 11).Do()
+			So(err, ShouldBeNil)
+			dummy.AText = "New text"
+			dummy.AnotherText = "Replacement text blacklisted"
+			dummy.AnInteger = 1453
+			updQ := db.Update(dummy)
+			updQ.Blacklist("a_text")
+			updQ.BlacklistReset()
+			err = updQ.Blacklist("another_text").Do()
+			So(err, ShouldBeNil)
+
+			Convey("The data are in the database", func() {
+				retrieveddummy := Dummy{}
+				db.Select(&retrieveddummy).Where("id = ?", dummy.ID).Do()
+				So(retrieveddummy.ID, ShouldEqual, dummy.ID)
+				So(retrieveddummy.AText, ShouldEqual, dummy.AText)
+				So(retrieveddummy.AnotherText, ShouldNotEqual, dummy.AnotherText)
+				So(retrieveddummy.AnInteger, ShouldEqual, dummy.AnInteger)
+			})
+		})
+
 	})
 }
