@@ -242,6 +242,12 @@ func (ss *SelectStatement) Do(record interface{}) error {
 	if err != nil {
 		return err
 	}
+	// If no columns defined for selection, get all columns (SELECT * FROM)
+	if len(ss.columns) == 0 {
+		ss.areColumnsFromStruct = true
+		columns := ss.db.quoteAll(recordInfo.structMapping.GetAllColumnsNames())
+		ss.columns = append(ss.columns, columns...)
+	}
 
 	// the function which will return the pointers according to the given columns
 	f := func(record interface{}, columns []string) ([]interface{}, error) {
