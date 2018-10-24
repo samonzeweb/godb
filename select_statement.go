@@ -231,6 +231,8 @@ func (ss *SelectStatement) ToSQL() (string, []interface{}, error) {
 
 // Do executes the select statement.
 // The record argument has to be a pointer to a struct or a slice.
+// If no columns is defined for current select statement, all columns are
+// added from record parameter's struct.
 // If the argument is not a slice, a row is expected, and Do returns
 // sql.ErrNoRows is none where found.
 func (ss *SelectStatement) Do(record interface{}) error {
