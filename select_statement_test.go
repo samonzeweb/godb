@@ -67,7 +67,6 @@ func TestSelectColumnsFromStruct(t *testing.T) {
 				ToSQL()
 			So(err, ShouldNotBeNil)
 		})
-
 	})
 }
 
@@ -431,6 +430,35 @@ func TestSelectDo(t *testing.T) {
 			So(dummiesSlice[1].ANullableString.String, ShouldEqual, "")
 			So(dummiesSlice[2].ANullableString.Valid, ShouldBeFalse)
 		})
+
+		Convey("ColumnsFromStruct with auto added all columns for single record", func() {
+			singleDummy := Dummy{}
+			selectStmt := db.SelectFrom("dummies").
+				Where("an_integer = ?", 13)
+
+			err := selectStmt.Do(&singleDummy)
+			So(err, ShouldBeNil)
+			So(singleDummy.ID, ShouldBeGreaterThan, 0)
+
+			So(err, ShouldBeNil)
+			So(len(selectStmt.columns), ShouldEqual, 6)
+			So(singleDummy.AnInteger, ShouldEqual, 13)
+		})
+
+		Convey("ColumnsFromStruct with auto added all columns for slice", func() {
+			dummiesSlice := make([]*Dummy, 0, 0)
+			selectStmt := db.SelectFrom("dummies").
+				OrderBy("an_integer")
+
+			err := selectStmt.Do(&dummiesSlice)
+			So(err, ShouldBeNil)
+			So(len(selectStmt.columns), ShouldEqual, 6)
+			So(len(dummiesSlice), ShouldEqual, 3)
+			So(dummiesSlice[0].AnInteger, ShouldEqual, 11)
+			So(dummiesSlice[1].AnInteger, ShouldEqual, 12)
+			So(dummiesSlice[2].AnInteger, ShouldEqual, 13)
+		})
+
 	})
 }
 
