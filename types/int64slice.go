@@ -6,12 +6,12 @@ import (
 	"fmt"
 )
 
-// Int64Slice makes easy to handle JSON encoded string lists from/to db stored either in TEXT or BLOB.
+// Int64Slice makes easy to handle JSON encoded int64 lists from/to db stored either in TEXT or BLOB.
 //
-// Int64Slice is `[]String` type, adding `Value()` and `Scan()` methods for db access.
+// Int64Slice is `[]int64` type, adding `Value()` and `Scan()` methods for db access.
 //
 
-// Int64Slice makes easy to handle JSON data at database's text fields(like VARCHAR,CHAR,TEXT) and blob fields
+// Int64Slice makes easy to handle JSON encoded int64 lists stored at database's text fields(like VARCHAR,CHAR,TEXT) and blob fields
 type Int64Slice []int64
 
 // Value returns value.

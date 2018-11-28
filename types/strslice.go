@@ -8,7 +8,7 @@ import (
 
 // StrSlice makes easy to handle JSON encoded string lists from/to db stored either in TEXT or BLOB.
 //
-// StrSlice is `[]String` type, adding `Value()` and `Scan()` methods for db access.
+// StrSlice is `[]string` type, adding `Value()` and `Scan()` methods for db access.
 //
 // Example:
 //
@@ -84,7 +84,7 @@ import (
 // 	fmt.Printf("Null Cities: %v, BigCities: %v\n", cities, bCities)
 // }
 
-// StrSlice makes easy to handle JSON data at database's text fields(like VARCHAR,CHAR,TEXT) and blob fields
+// StrSlice makes easy to handle JSON encoded string lists stored at database's text fields(like VARCHAR,CHAR,TEXT) and blob fields
 type StrSlice []string
 
 // Value returns value.
