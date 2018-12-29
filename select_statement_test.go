@@ -445,6 +445,29 @@ func TestSelectDo(t *testing.T) {
 			So(singleDummy.AnInteger, ShouldEqual, 13)
 		})
 
+		Convey("ColumnAlias with auto added all columns for single record", func() {
+			type DummyAlias struct {
+				ID              int            `db:"id,key,auto"`
+				AText           string         `db:"new_name"`
+				AnotherText     string         `db:"another_text"`
+				AnInteger       int            `db:"an_integer"`
+				ANullableString sql.NullString `db:"a_nullable_string"`
+				Version         int            `db:"version,oplock"`
+			}
+			singleDummy := DummyAlias{}
+			selectStmt := db.SelectFrom("dummies").
+				Where("an_integer = ?", 13)
+			selectStmt.ColumnAlias("a_text", "new_name")
+			selectStmt.OrderBy("new_name")
+			err := selectStmt.Do(&singleDummy)
+			So(err, ShouldBeNil)
+			So(singleDummy.ID, ShouldBeGreaterThan, 0)
+
+			So(err, ShouldBeNil)
+			So(len(selectStmt.columns), ShouldEqual, 6)
+			So(singleDummy.AnInteger, ShouldEqual, 13)
+		})
+
 		Convey("ColumnsFromStruct with auto added all columns for slice", func() {
 			dummiesSlice := make([]*Dummy, 0, 0)
 			selectStmt := db.SelectFrom("dummies").
@@ -458,7 +481,6 @@ func TestSelectDo(t *testing.T) {
 			So(dummiesSlice[1].AnInteger, ShouldEqual, 12)
 			So(dummiesSlice[2].AnInteger, ShouldEqual, 13)
 		})
-
 	})
 }
 
