@@ -3,6 +3,7 @@ package godb
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/samonzeweb/godb/adapters"
@@ -23,6 +24,7 @@ type SelectStatement struct {
 	distinct             bool
 	columns              []string
 	areColumnsFromStruct bool
+	columnAliases        map[string]string
 	fromTables           []string
 	joins                []*joinPart
 	where                []*Condition
@@ -44,7 +46,7 @@ type joinPart struct {
 
 // SelectFrom initializes a SELECT statement builder.
 func (db *DB) SelectFrom(tableNames ...string) *SelectStatement {
-	ss := &SelectStatement{db: db}
+	ss := &SelectStatement{db: db, columnAliases: map[string]string{}}
 	return ss.From(tableNames...)
 }
 
@@ -83,6 +85,17 @@ func (ss *SelectStatement) ColumnsFromStruct(record interface{}) *SelectStatemen
 		ss.columns = append(ss.columns, columns...)
 	}
 
+	return ss
+}
+
+// ColumnAlias allows to define alias for a column. Useful if selectable
+// columns are built with ColumnsFromStruct and when using joins.
+func (ss *SelectStatement) ColumnAlias(column, alias string) *SelectStatement {
+	quoted := strings.Split(column, ".")
+	for i := range quoted {
+		quoted[i] = ss.db.adapter.Quote(quoted[i])
+	}
+	ss.columnAliases[ss.db.adapter.Quote(alias)] = strings.Join(quoted, ".")
 	return ss
 }
 
@@ -249,6 +262,13 @@ func (ss *SelectStatement) Do(record interface{}) error {
 		ss.areColumnsFromStruct = true
 		columns := ss.db.quoteAll(recordInfo.structMapping.GetAllColumnsNames())
 		ss.columns = append(ss.columns, columns...)
+	}
+
+	// Replace columns with aliases
+	for i := range ss.columns {
+		if c, ok := ss.columnAliases[ss.columns[i]]; ok {
+			ss.columns[i] = fmt.Sprintf("%s as %s", c, ss.columns[i])
+		}
 	}
 
 	// the function which will return the pointers according to the given columns
