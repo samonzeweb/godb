@@ -69,7 +69,7 @@ func (us *UpdateStatement) WhereQ(condition *Condition) *UpdateStatement {
 	return us
 }
 
-// Returning adds a RETURNING or OUPUT clause to the statement. Use it with
+// Returning adds a RETURNING or OUTPUT clause to the statement. Use it with
 // PostgreSQL and SQL Server.
 func (us *UpdateStatement) Returning(columns ...string) *UpdateStatement {
 	us.returningColumns = append(us.returningColumns, columns...)

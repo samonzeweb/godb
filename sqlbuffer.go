@@ -133,7 +133,7 @@ func (b *SQLBuffer) Append(other *SQLBuffer) *SQLBuffer {
 	return b
 }
 
-// WriteCondition writes single conditionnal expressions.
+// WriteCondition writes single conditional expressions.
 func (b *SQLBuffer) WriteCondition(condition *Condition) *SQLBuffer {
 	if b.err != nil {
 		return b
@@ -457,7 +457,7 @@ func (b *sqlBuffer) writeNameList(nameList []string) *sqlBuffer {
 	return b
 }
 
-// writeConditions writes conditionnal expressions for WHERE or HAVING clauses
+// writeConditions writes conditional expressions for WHERE or HAVING clauses
 // separated by AND conjunction.
 func (b *sqlBuffer) writeConditions(conditions []*Condition) *sqlBuffer {
 	if b.Err() != nil {

@@ -341,7 +341,7 @@ func TestGetAutoKeyPointer(t *testing.T) {
 		structInstance := BadStructMultipleAutoKey{}
 		structMap, _ := NewStructMapping(reflect.TypeOf(&structInstance))
 
-		Convey("GetAutoKeyPointer returns an error if ther eare multiple auto+key fields", func() {
+		Convey("GetAutoKeyPointer returns an error if there eare multiple auto+key fields", func() {
 			pointer, err := structMap.GetAutoKeyPointer(&structInstance)
 			So(err, ShouldNotBeNil)
 			So(pointer, ShouldBeNil)

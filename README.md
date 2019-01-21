@@ -52,7 +52,7 @@ go get github.com/samonzeweb/godb
 
 Install the required driver (see tests). You cas use multiple databases if needed.
 
-Of course you can also use a dependency managment tool like `dep`.
+Of course you can also use a dependency management tool like `dep`.
 
 ## Running Tests
 
