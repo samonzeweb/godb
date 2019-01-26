@@ -105,13 +105,13 @@ func (ss *SelectStatement) Distinct() *SelectStatement {
 	return ss
 }
 
-// InnerJoin adds as INNER JOIN clause, wich will be inserted between FROM and WHERE
+// InnerJoin adds as INNER JOIN clause, which will be inserted between FROM and WHERE
 // clauses.
 func (ss *SelectStatement) InnerJoin(tableName string, as string, on *Condition) *SelectStatement {
 	return ss.addJoin("INNER JOIN", tableName, as, on)
 }
 
-// LeftJoin adds a LEFT JOIN clause, wich will be inserted between FROM and WHERE
+// LeftJoin adds a LEFT JOIN clause, which will be inserted between FROM and WHERE
 // clauses.
 func (ss *SelectStatement) LeftJoin(tableName string, as string, on *Condition) *SelectStatement {
 	return ss.addJoin("LEFT JOIN", tableName, as, on)

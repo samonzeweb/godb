@@ -54,7 +54,7 @@ func (db *DB) getQueryableWithOptions(query string, noTx, noStmtCache bool) (que
 	}
 
 	// If the cache is disabled, or it has not to be used, just return a wrapper
-	// wich look like a prepared statement.
+	// which look like a prepared statement.
 	if !cache.IsEnabled() || noStmtCache {
 		wrapper := queryWrapper{
 			db:       dbOrTx,

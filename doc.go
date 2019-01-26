@@ -40,7 +40,7 @@ Structs tools looks more 'orm-ish' as they're take instances
 of objects or slices to run select, insert, update and delete.
 
 Statements tools stand between raw queries and structs tools. It's easier to
-use than raw queries, but are limited to simplier cases.
+use than raw queries, but are limited to simpler cases.
 
 
 Statements tools
@@ -223,7 +223,7 @@ Databases columns are :
 	* nested_bar
 
 The mapping is managed by the 'dbreflect' subpackage. Normally its direct use
-is not necessary, exept in one case : some structs are scannable and have to be
+is not necessary, except in one case : some structs are scannable and have to be
 considered like fields, and mapped to databases columns. Common case are
 time.Time, or sql.NullString, ... You can register a custom struct with the
 `RegisterScannableStruct` and a struct instance, for example the time.Time is
@@ -243,7 +243,7 @@ Conditions
 
 
 Statements and structs tools manage 'where' and 'group by' sql clauses. These
-conditionnal clauses are build either with raw sql code, or build with the
+conditional clauses are build either with raw sql code, or build with the
 Condition struct like this :
 
 	q := godb.Or(godb.Q("foo is null"), godb.Q("foo > ?", 123))
@@ -406,7 +406,7 @@ sql code, not just select queries.
 To get an interator simply use the `DoWithIterator` method instead of `Do`. The iterator
 usage is similar to the standard `sql.Rows` type. Don't forget to check that there are
 no errors with the `Err` method, and don't forget to call `Close` when the iterator is no
-longer useful, especialy if you don't scan all the resultset.
+longer useful, especially if you don't scan all the resultset.
 
 	iter, err := db.SelectFrom("books").
 		Columns("id", "title", "author", "published").

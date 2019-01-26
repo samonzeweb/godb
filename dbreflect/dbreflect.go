@@ -218,7 +218,7 @@ func (sm *StructMapping) setFieldsCount() {
 	sm.structMapping.traverseTree("", "", nil, f)
 }
 
-// setOpLockField searchs optimistic locking field an update the struct mapping
+// setOpLockField searches optimistic locking field an update the struct mapping
 // with the op lock field data.
 // It returns an error if there is more then one op lock field.
 func (sm *StructMapping) setOpLockField() error {

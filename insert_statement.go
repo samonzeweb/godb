@@ -40,7 +40,7 @@ func (is *InsertStatement) Values(values ...interface{}) *InsertStatement {
 	return is
 }
 
-// Returning adds a RETURNING or OUPUT clause to the statement. Use it with
+// Returning adds a RETURNING or OUTPUT clause to the statement. Use it with
 // PostgreSQL and SQL Server.
 func (is *InsertStatement) Returning(columns ...string) *InsertStatement {
 	is.returningColumns = append(is.returningColumns, columns...)

@@ -179,7 +179,7 @@ func (si *StructInsert) Do() error {
 	}
 
 	// Bulk insert don't update ids with this adater, the insert was done,
-	// without error, but the new ids are unkonwn.
+	// without error, but the new ids are unknown.
 	if si.recordDescription.isSlice {
 		return nil
 	}

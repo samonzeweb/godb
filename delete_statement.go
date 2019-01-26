@@ -35,7 +35,7 @@ func (ds *DeleteStatement) WhereQ(condition *Condition) *DeleteStatement {
 	return ds
 }
 
-// Returning adds a RETURNING or OUPUT clause to the statement. Use it with
+// Returning adds a RETURNING or OUTPUT clause to the statement. Use it with
 // PostgreSQL and SQL Server.
 func (ds *DeleteStatement) Returning(columns ...string) *DeleteStatement {
 	ds.returningColumns = append(ds.returningColumns, columns...)
