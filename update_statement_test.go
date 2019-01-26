@@ -154,7 +154,7 @@ func TestDoUpdate(t *testing.T) {
 			So(rowsAffected, ShouldEqual, 2)
 
 			Convey("The database is up-to-date", func() {
-				dummies := make([]Dummy, 0, 0)
+				dummies := make([]Dummy, 0)
 				_ = db.Select(&dummies).Where("an_integer >= ?", 12).Do()
 				for _, dummy := range dummies {
 					So(dummy.AnotherText, ShouldEqual, "New text")

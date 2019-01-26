@@ -133,7 +133,7 @@ func (si *StructInsert) Do() error {
 		si.insertStatement = si.insertStatement.Columns(si.insertStatement.db.quoteAll(columns)...)
 	}
 	// Values
-	values := make([]interface{}, 0, len(columns))
+	var values []interface{}
 	len := si.recordDescription.len()
 	wbColsSet := false
 	for i := 0; i < len; i++ {

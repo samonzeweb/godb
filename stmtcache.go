@@ -56,7 +56,7 @@ func (cache *StmtCache) IsEnabled() bool {
 // SetSize sets the maximum cache size, and remove exceeding entries if needed.
 func (cache *StmtCache) SetSize(size int) error {
 	if size < 0 || size > MaximumStmtCacheSize {
-		return fmt.Errorf("Given cache size is out if allowed boundarie")
+		return fmt.Errorf("given cache size is out if allowed boundarie")
 	}
 
 	cache.maxSize = size

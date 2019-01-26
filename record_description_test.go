@@ -34,7 +34,7 @@ func TestBuildRecordDescription(t *testing.T) {
 	})
 
 	Convey("Given a slice pointer", t, func() {
-		slice := make([]typeToDescribe, 0, 0)
+		slice := make([]typeToDescribe, 0)
 
 		Convey("extratType will extract the type information", func() {
 			recordDesc, err := buildRecordDescription(&slice)
@@ -48,7 +48,7 @@ func TestBuildRecordDescription(t *testing.T) {
 	})
 
 	Convey("Given a slice pointer of pointers", t, func() {
-		slice := make([]*typeToDescribe, 0, 0)
+		slice := make([]*typeToDescribe, 0)
 
 		Convey("extratType will extract the type information", func() {
 			recordDesc, err := buildRecordDescription(&slice)
@@ -78,7 +78,7 @@ func TestFillRecord(t *testing.T) {
 	})
 
 	Convey("Given a slice descriptor ", t, func() {
-		slice := make([]typeToDescribe, 0, 0)
+		slice := make([]typeToDescribe, 0)
 		recordDesc, _ := buildRecordDescription(&slice)
 
 		Convey("fillRecord call the given func with a new instance pointer", func() {
@@ -94,7 +94,7 @@ func TestFillRecord(t *testing.T) {
 	})
 
 	Convey("Given a slice of pointers descriptor ", t, func() {
-		slice := make([]*typeToDescribe, 0, 0)
+		slice := make([]*typeToDescribe, 0)
 		recordDesc, _ := buildRecordDescription(&slice)
 
 		Convey("fillRecord call the given func with a new instance pointer", func() {
@@ -121,7 +121,7 @@ func TestGetOneInstancePointer(t *testing.T) {
 	})
 
 	Convey("Given a slice descriptor ", t, func() {
-		slice := make([]typeToDescribe, 0, 0)
+		slice := make([]typeToDescribe, 0)
 		recordDesc, _ := buildRecordDescription(&slice)
 		Convey("getOneInstancePointer returns a pointer to the instance", func() {
 			p := recordDesc.getOneInstancePointer()
@@ -140,7 +140,7 @@ func TestLen(t *testing.T) {
 	})
 
 	Convey("Given a slice descriptor", t, func() {
-		slice := make([]typeToDescribe, 0, 0)
+		slice := make([]typeToDescribe, 0)
 		slice = append(slice, typeToDescribe{})
 		slice = append(slice, typeToDescribe{})
 		recordDesc, _ := buildRecordDescription(&slice)
@@ -160,7 +160,7 @@ func TestIndex(t *testing.T) {
 	})
 
 	Convey("Given a slice descriptor", t, func() {
-		slice := make([]typeToDescribe, 0, 0)
+		slice := make([]typeToDescribe, 0)
 		first := typeToDescribe{ID: 123}
 		second := typeToDescribe{ID: 456}
 		slice = append(slice, first, second)
@@ -174,7 +174,7 @@ func TestIndex(t *testing.T) {
 	})
 
 	Convey("Given a slice of pointers descriptor", t, func() {
-		slice := make([]*typeToDescribe, 0, 0)
+		slice := make([]*typeToDescribe, 0)
 		first := typeToDescribe{ID: 123}
 		second := typeToDescribe{ID: 456}
 		slice = append(slice, &first, &second)
@@ -191,7 +191,7 @@ func TestTableName(t *testing.T) {
 		instancePtr := &typeToDescribe{}
 		recordDesc, _ := buildRecordDescription(instancePtr)
 		Convey("getTableName returns by default the struct name a table name", func() {
-			tableName,_ := recordDesc.getTableName()
+			tableName, _ := recordDesc.getTableName()
 			So(tableName, ShouldEqual, "typeToDescribe")
 		})
 	})
@@ -200,7 +200,7 @@ func TestTableName(t *testing.T) {
 		instancePtr := &otherTypeToDescribe{}
 		recordDesc, _ := buildRecordDescription(instancePtr)
 		Convey("getTableName returns the string given by TableName()", func() {
-			tableName,_ := recordDesc.getTableName()
+			tableName, _ := recordDesc.getTableName()
 			So(tableName, ShouldEqual, "others")
 		})
 	})

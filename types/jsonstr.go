@@ -130,7 +130,7 @@ func (js *JSONStr) Scan(src interface{}) error {
 	case nil:
 		*js = JSONStr("{}")
 	default:
-		return fmt.Errorf("Incompatible type for JSONStr")
+		return fmt.Errorf("incompatible type for JSONStr")
 	}
 	*js = JSONStr(append((*js)[0:0], source...))
 	return nil

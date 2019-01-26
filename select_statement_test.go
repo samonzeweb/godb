@@ -372,7 +372,7 @@ func TestSelectDo(t *testing.T) {
 		})
 
 		Convey("Do execute the query and fills a slice", func() {
-			dummiesSlice := make([]Dummy, 0, 0)
+			dummiesSlice := make([]Dummy, 0)
 			selectStmt := db.SelectFrom("dummies").
 				Columns("id", "a_text", "another_text", "an_integer").
 				OrderBy("an_integer")
@@ -389,7 +389,7 @@ func TestSelectDo(t *testing.T) {
 		})
 
 		Convey("Do execute the query and fills a slice of pointers", func() {
-			dummiesSlice := make([]*Dummy, 0, 0)
+			dummiesSlice := make([]*Dummy, 0)
 			selectStmt := db.SelectFrom("dummies").
 				Columns("id", "a_text", "another_text", "an_integer").
 				OrderBy("an_integer")
@@ -416,7 +416,7 @@ func TestSelectDo(t *testing.T) {
 		})
 
 		Convey("Do fills nullable fields", func() {
-			dummiesSlice := make([]Dummy, 0, 0)
+			dummiesSlice := make([]Dummy, 0)
 			selectStmt := db.SelectFrom("dummies").
 				Columns("id", "a_nullable_string").
 				OrderBy("an_integer")
@@ -469,7 +469,7 @@ func TestSelectDo(t *testing.T) {
 		})
 
 		Convey("ColumnsFromStruct with auto added all columns for slice", func() {
-			dummiesSlice := make([]*Dummy, 0, 0)
+			dummiesSlice := make([]*Dummy, 0)
 			selectStmt := db.SelectFrom("dummies").
 				OrderBy("an_integer")
 
@@ -589,7 +589,7 @@ func TestSelectDoUsingStructForColumns(t *testing.T) {
 		defer db.Close()
 
 		Convey("Do execute the query with two tables and fills a given instance", func() {
-			fromTwoTables := make([]FromTwoTables, 0, 0)
+			fromTwoTables := make([]FromTwoTables, 0)
 
 			selectStmt := db.SelectFrom("dummies").
 				ColumnsFromStruct(&FromTwoTables{}).

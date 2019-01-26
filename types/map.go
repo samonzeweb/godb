@@ -38,7 +38,7 @@ func (ss *Map) Scan(src interface{}) error {
 		*ss = nil
 		return nil
 	default:
-		return fmt.Errorf("Incompatible type for Map")
+		return fmt.Errorf("incompatible type for Map")
 	}
 	err := json.Unmarshal(source, ss)
 	return err

@@ -25,7 +25,7 @@ func TestSelectDoWithStruct(t *testing.T) {
 		})
 
 		Convey("Do execute the query and fills a slice", func() {
-			dummiesSlice := make([]Dummy, 0, 0)
+			dummiesSlice := make([]Dummy, 0)
 			selectStmt := db.Select(&dummiesSlice).
 				OrderBy("an_integer")
 
@@ -41,7 +41,7 @@ func TestSelectDoWithStruct(t *testing.T) {
 		})
 
 		Convey("Do execute the query and fills a slice of pointers", func() {
-			dummiesSlice := make([]*Dummy, 0, 0)
+			dummiesSlice := make([]*Dummy, 0)
 			selectStmt := db.SelectFrom("dummies").
 				Columns("id", "a_text", "another_text", "an_integer").
 				OrderBy("an_integer")

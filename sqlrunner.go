@@ -110,7 +110,7 @@ func (db *DB) fillWithValues(recordDescription *recordDescription, pointersGette
 	for rows.Next() {
 		rowsCount++
 		if rowsCount > recordLength {
-			return 0, fmt.Errorf("There are more rows returned than the target size : %v", recordLength)
+			return 0, fmt.Errorf("there are more rows returned than the target size : %v", recordLength)
 		}
 		instancePtr := recordDescription.index(rowsCount - 1)
 
@@ -133,7 +133,7 @@ func (db *DB) growAndFillWithValues(recordDescription *recordDescription, pointe
 	for rows.Next() {
 		rowsCount++
 		if rowsCount > 1 && !recordDescription.isSlice {
-			return 0, fmt.Errorf("There are multiple rows for a single instance")
+			return 0, fmt.Errorf("there are multiple rows for a single instance")
 		}
 		err := recordDescription.fillRecord(
 			// Fill one instance with one row

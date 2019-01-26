@@ -43,7 +43,7 @@ func (ss *Int64Slice) Scan(src interface{}) error {
 		*ss = nil
 		return nil
 	default:
-		return fmt.Errorf("Incompatible type for Int64Slice")
+		return fmt.Errorf("incompatible type for Int64Slice")
 	}
 	err := json.Unmarshal(source, ss)
 	return err

@@ -91,7 +91,7 @@ func structsSelectTest(db *godb.DB, t *testing.T) {
 	}
 
 	// Fetch multiple books
-	theLordOfTheRing := make([]Book, 0, 0)
+	theLordOfTheRing := make([]Book, 0)
 	err = db.Select(&theLordOfTheRing).
 		Where("author = ?", authorTolkien).
 		Where("title <> ?", bookTheHobbit.Title).
@@ -153,7 +153,7 @@ func structsUpdateTest(db *godb.DB, t *testing.T) {
 	// All the change will be rollbacked.
 	db.Begin()
 
-	booksToUpdate := make([]*Book, 0, 0)
+	booksToUpdate := make([]*Book, 0)
 	err := db.Select(&booksToUpdate).
 		Where("author = ?", authorTolkien).
 		Do()
@@ -170,7 +170,7 @@ func structsUpdateTest(db *godb.DB, t *testing.T) {
 		}
 	}
 
-	updatedBooks := make([]Book, 0, 0)
+	updatedBooks := make([]Book, 0)
 	booksCount, err := db.Select(&updatedBooks).
 		Where("author = ?", gandalf).
 		Count()

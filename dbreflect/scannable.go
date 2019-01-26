@@ -42,7 +42,7 @@ func RegisterScannableStruct(instance interface{}) error {
 		instanceType = instanceType.Elem()
 	}
 	if instanceType.Kind() != reflect.Struct {
-		return fmt.Errorf("The given type is not a struct : %T", instance)
+		return fmt.Errorf("the given type is not a struct : %T", instance)
 	}
 	scannableStructs[instanceType.Name()] = true
 	return nil

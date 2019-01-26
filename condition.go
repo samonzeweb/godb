@@ -27,7 +27,7 @@ func Q(sql string, args ...interface{}) *Condition {
 	c := Condition{}
 
 	if strings.Count(sql, Placeholder) != len(args) {
-		c.err = fmt.Errorf("Wrong number of arguments in condition %s", sql)
+		c.err = fmt.Errorf("wrong number of arguments in condition %s", sql)
 		return &c
 	}
 
@@ -37,7 +37,7 @@ func Q(sql string, args ...interface{}) *Condition {
 	// Search slice args to manage case like "WHERE id IN (?)"
 	for _, arg := range args {
 		if arg == nil {
-			c.err = fmt.Errorf("Using nil as argument in condition %s", sql)
+			c.err = fmt.Errorf("using nil as argument in condition %s", sql)
 			return &c
 		}
 
@@ -51,7 +51,7 @@ func Q(sql string, args ...interface{}) *Condition {
 			v := reflect.ValueOf(arg)
 			length := reflect.ValueOf(arg).Len()
 			if length == 0 {
-				c.err = fmt.Errorf("Empty slice used as argument in condition %s", sql)
+				c.err = fmt.Errorf("empty slice used as argument in condition %s", sql)
 				return &c
 			}
 			for i := 0; i < length; i++ {
@@ -160,7 +160,7 @@ func sumOfConditionsLengths(conditions []*Condition) (int, int, error) {
 func joinSQL(buffer *bytes.Buffer, conjunction string, conditions []*Condition) *bytes.Buffer {
 	firstCondition := true
 	for _, c := range conditions {
-		if firstCondition == false {
+		if !firstCondition {
 			buffer.WriteString(conjunction)
 		} else {
 			firstCondition = false

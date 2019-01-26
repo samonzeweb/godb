@@ -43,7 +43,7 @@ func (ss *BoolSlice) Scan(src interface{}) error {
 		*ss = nil
 		return nil
 	default:
-		return fmt.Errorf("Incompatible type for BoolSlice")
+		return fmt.Errorf("incompatible type for BoolSlice")
 	}
 	err := json.Unmarshal(source, ss)
 	return err

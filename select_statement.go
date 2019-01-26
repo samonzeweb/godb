@@ -59,7 +59,7 @@ func (ss *SelectStatement) From(tableNames ...string) *SelectStatement {
 // Columns adds columns to select. Multple calls of columns are allowed.
 func (ss *SelectStatement) Columns(columns ...string) *SelectStatement {
 	if ss.areColumnsFromStruct {
-		ss.error = fmt.Errorf("You can't mix Columns and ColumnsFromStruct to build a select query")
+		ss.error = fmt.Errorf("you can't mix Columns and ColumnsFromStruct to build a select query")
 		return ss
 	}
 
@@ -72,7 +72,7 @@ func (ss *SelectStatement) Columns(columns ...string) *SelectStatement {
 // You can't mix the use of ColumnsFromStruct and Columns methods.
 func (ss *SelectStatement) ColumnsFromStruct(record interface{}) *SelectStatement {
 	if len(ss.columns) > 0 {
-		ss.error = fmt.Errorf("You can't mix Columns and ColumnsFromStruct to build a select query")
+		ss.error = fmt.Errorf("you can't mix Columns and ColumnsFromStruct to build a select query")
 		return ss
 	}
 	ss.areColumnsFromStruct = true
@@ -212,7 +212,7 @@ func (ss *SelectStatement) ToSQL() (string, []interface{}, error) {
 
 	sqlBuffer.Write("SELECT ")
 
-	if ss.distinct == true {
+	if ss.distinct {
 		sqlBuffer.Write("DISTINCT ")
 	}
 
@@ -289,7 +289,7 @@ func (ss *SelectStatement) Do(record interface{}) error {
 // do executes the statement and fill the struct or slice given through the
 // recordDescription.
 func (ss *SelectStatement) do(recordInfo *recordDescription, pointersGetter pointersGetter) error {
-	if recordInfo.isSlice == false {
+	if !recordInfo.isSlice {
 		// Only one row is requested
 		ss.Limit(1)
 		// Some DB require an offset if a limit is specified (MS SQL Server)
@@ -318,7 +318,7 @@ func (ss *SelectStatement) do(recordInfo *recordDescription, pointersGetter poin
 
 	// When a single instance is requested but not found, sql.ErrNoRows is
 	// returned like QueryRow in database/sql package.
-	if recordInfo.isSlice == false && rowsCount == 0 {
+	if !recordInfo.isSlice && rowsCount == 0 {
 		err = sql.ErrNoRows
 	}
 

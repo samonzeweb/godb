@@ -154,7 +154,7 @@ func (db *DB) addConsumedTime(duration time.Duration) {
 // timeElapsedSince returns the time elapsed (duration) since a given
 // start time.
 func timeElapsedSince(startTime time.Time) time.Duration {
-	return time.Now().Sub(startTime)
+	return time.Since(startTime)
 }
 
 // quoteAll returns all strings given quoted by the adapter.

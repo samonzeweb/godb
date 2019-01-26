@@ -67,7 +67,7 @@ func (js *CompactJSONStr) Scan(src interface{}) error {
 	case nil:
 		*js = CompactJSONStr("{}")
 	default:
-		return fmt.Errorf("Incompatible type for CompactJSONStr")
+		return fmt.Errorf("incompatible type for CompactJSONStr")
 	}
 	*js = CompactJSONStr(append((*js)[0:0], source...))
 	return nil

@@ -25,7 +25,7 @@ func RawSQLTests(db *godb.DB, t *testing.T) {
 	}
 
 	// Tests & assertions
-	books := make([]Book, 0, 0)
+	books := make([]Book, 0)
 	err = db.RawSQL("select * from books where author = ?", authorAssimov).Do(&books)
 	if err != nil {
 		t.Fatal(err)

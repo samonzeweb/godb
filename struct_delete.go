@@ -46,7 +46,7 @@ func (sd *StructDelete) Do() (int64, error) {
 	keyColumns := sd.recordDescription.structMapping.GetKeyColumnsNames()
 	keyValues := sd.recordDescription.structMapping.GetKeyFieldsValues(sd.recordDescription.record)
 	if len(keyColumns) == 0 {
-		return 0, fmt.Errorf("The object of type %T has no key : ", sd.recordDescription.record)
+		return 0, fmt.Errorf("the object of type %T has no key : ", sd.recordDescription.record)
 	}
 	for i, column := range keyColumns {
 		quotedColumn := sd.deleteStatement.db.adapter.Quote(column)

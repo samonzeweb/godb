@@ -12,13 +12,13 @@ type Rowversion struct {
 // Scan implements sql.Scanner
 func (r *Rowversion) Scan(value interface{}) error {
 	if value == nil {
-		return fmt.Errorf("Rowversion does not accept NULL values")
+		return fmt.Errorf("rowversion does not accept NULL values")
 	}
 
 	source := value.([]byte)
 	sourceLen := len(source)
 	if len(r.Version) != sourceLen {
-		r.Version = make([]uint8, sourceLen, sourceLen)
+		r.Version = make([]uint8, sourceLen)
 	}
 	copy(r.Version, source)
 	return nil

@@ -29,7 +29,7 @@ func TestRawSQLDo(t *testing.T) {
 		})
 
 		Convey("Do execute the query and fills a slice", func() {
-			dummiesSlice := make([]Dummy, 0, 0)
+			dummiesSlice := make([]Dummy, 0)
 			err := db.RawSQL("select * from dummies").Do(&dummiesSlice)
 			So(err, ShouldBeNil)
 			So(len(dummiesSlice), ShouldEqual, 3)

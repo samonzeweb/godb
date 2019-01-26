@@ -80,7 +80,7 @@ func newStructMappingDetails(structInfo reflect.Type) (structMappingDetails, err
 		structInfo = structInfo.Elem()
 	}
 	if structInfo.Kind() != reflect.Struct {
-		return smd, fmt.Errorf("Invalid argument, need a struct, got a %s", structInfo.Kind())
+		return smd, fmt.Errorf("invalid argument, need a struct, got a %s", structInfo.Kind())
 	}
 
 	smd.name = structInfo.PkgPath() + "." + structInfo.Name()
@@ -136,7 +136,7 @@ func (smd *structMappingDetails) newFieldMapping(structField reflect.StructField
 	var options map[string]string
 	fieldMapping.sqlName, options = smd.tagData(structField.Tag)
 	if len(fieldMapping.sqlName) < 1 {
-		return nil, fmt.Errorf("Empty tag name for %s.%s", smd.name, fieldMapping.name)
+		return nil, fmt.Errorf("empty tag name for %s.%s", smd.name, fieldMapping.name)
 	}
 
 	_, fieldMapping.isAuto = options[optionAuto]
@@ -229,11 +229,11 @@ func (sm *StructMapping) setOpLockField() error {
 			opLockFieldCount++
 			if opLockFieldCount > 1 {
 				sm.opLockSQLName = ""
-				return true, fmt.Errorf("There is more than one optimistic locking field in %s", sm.Name)
+				return true, fmt.Errorf("there is more than one optimistic locking field in %s", sm.Name)
 			}
 
 			if !fieldMapping.isAuto && !isValidNonAutoOpLockFieldType(fieldMapping) {
-				return true, fmt.Errorf("The field %s in the struct %s don't have a valid type for an non auto oplock field", fieldMapping.name, sm.Name)
+				return true, fmt.Errorf("the field %s in the struct %s don't have a valid type for an non auto oplock field", fieldMapping.name, sm.Name)
 			}
 
 			sm.opLockSQLName = fullName
@@ -453,7 +453,7 @@ func (sm *StructMapping) GetPointersForColumns(s interface{}, columns ...string)
 	for _, columnName := range columns {
 		pointer, ok := pointersMap[columnName]
 		if !ok {
-			return nil, fmt.Errorf("Unknown column name %s in struct %s", columnName, sm.Name)
+			return nil, fmt.Errorf("unknown column name %s in struct %s", columnName, sm.Name)
 		}
 		pointers = append(pointers, pointer)
 	}
@@ -474,7 +474,7 @@ func (sm *StructMapping) GetAutoKeyPointer(s interface{}) (interface{}, error) {
 	f := func(fullName string, fieldMapping *fieldMapping, value *reflect.Value) (stop bool, err error) {
 		if fieldMapping.isKey && fieldMapping.isAuto {
 			if autoKeyPointer != nil {
-				return true, fmt.Errorf("Multiple auto+key fields for %s", sm.Name)
+				return true, fmt.Errorf("multiple auto+key fields for %s", sm.Name)
 			}
 			autoKeyPointer = value.Addr().Interface()
 		}
@@ -521,7 +521,7 @@ func (sm *StructMapping) GetOpLockSQLFieldName() string {
 // the database itself).
 func (sm *StructMapping) GetAndUpdateOpLockFieldValue(s interface{}) (interface{}, error) {
 	if sm.opLockSQLName == "" {
-		return nil, fmt.Errorf("Struct %s can't update oplock field, there is no such field", sm.Name)
+		return nil, fmt.Errorf("struct %s can't update oplock field, there is no such field", sm.Name)
 	}
 
 	// TODO : check type

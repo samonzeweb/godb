@@ -96,7 +96,7 @@ func statementSelectTest(db *godb.DB, t *testing.T) {
 	}
 
 	// Select multiple rows with order
-	allBooks := make([]Book, 0, 0)
+	allBooks := make([]Book, 0)
 	err = db.SelectFrom("books").
 		Columns("id", "title", "author", "published").
 		OrderBy("author").OrderBy("title").
@@ -112,7 +112,7 @@ func statementSelectTest(db *godb.DB, t *testing.T) {
 	}
 
 	// Select with group by and having
-	countByAuthor := make([]CountByAuthor, 0, 0)
+	countByAuthor := make([]CountByAuthor, 0)
 	err = db.SelectFrom("books").
 		Columns("author", "count(*) as count").
 		GroupBy("author").
@@ -138,7 +138,7 @@ func statementSelectTest(db *godb.DB, t *testing.T) {
 		godb.Q("author = ?", authorAssimov),
 		godb.Q("title in (?)", titles),
 	)
-	twoBooks := make([]Book, 0, 0)
+	twoBooks := make([]Book, 0)
 	err = db.SelectFrom("books").
 		Columns("id", "title", "author", "published").
 		WhereQ(q).
@@ -152,7 +152,7 @@ func statementSelectTest(db *godb.DB, t *testing.T) {
 
 	// Select using a struct to build columns names
 	// Add more fixtures : inventories for Tolkien's books
-	tolkiensBooks := make([]Book, 0, 0)
+	tolkiensBooks := make([]Book, 0)
 	err = db.SelectFrom("books").
 		Columns("id", "title", "author", "published").
 		Where("author = ?", authorTolkien).
@@ -173,7 +173,7 @@ func statementSelectTest(db *godb.DB, t *testing.T) {
 		}
 	}
 	// Find all books with their inventories (not all books have one)
-	booksWithInventories := make([]BooksWithInventories, 0, 0)
+	booksWithInventories := make([]BooksWithInventories, 0)
 	err = db.SelectFrom("books").
 		ColumnsFromStruct(&booksWithInventories).
 		LeftJoin("inventories", "inventories", godb.Q("inventories.book_id = books.id")).
@@ -317,7 +317,7 @@ func statementUpdateTest(db *godb.DB, t *testing.T) {
 		// Update books and get back all updated books
 		// As the given slice is empty, it will add instances filled by the values
 		// returned by the database.
-		updatedBooks := make([]Book, 0, 0)
+		updatedBooks := make([]Book, 0)
 		hari := "Hari Seldon"
 		_, err = db.UpdateTable("books").
 			Set("author", hari).
@@ -366,7 +366,7 @@ func statementDeleteTest(db *godb.DB, t *testing.T) {
 		} else {
 			returningColumns = []string{"id", "title", "author", "published"}
 		}
-		deletedBooks := make([]Book, 0, 0)
+		deletedBooks := make([]Book, 0)
 		_, err = db.DeleteFrom("books").
 			Where("author = ?", authorAssimov).
 			Returning(returningColumns...).

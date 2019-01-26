@@ -127,7 +127,7 @@ func TestBulkInsertDo(t *testing.T) {
 		defer db.Close()
 
 		Convey("Given a slice of objects to insert", func() {
-			slice := make([]Dummy, 0, 0)
+			slice := make([]Dummy, 0)
 			for i := 1; i <= 10; i++ {
 				dummy := Dummy{
 					AText:       "Bulk",
@@ -142,7 +142,7 @@ func TestBulkInsertDo(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("The data are in the database", func() {
-					retrieveddummies := make([]Dummy, 0, 0)
+					retrieveddummies := make([]Dummy, 0)
 					db.Select(&retrieveddummies).
 						Where("an_integer > 99").
 						Where("a_text = ?", "Bulk").

@@ -187,7 +187,7 @@ func (b *sqlBuffer) writeColumns(columns []string) *sqlBuffer {
 	}
 
 	if len(columns) == 0 {
-		b.err = fmt.Errorf("Missing columns in statement")
+		b.err = fmt.Errorf("missing columns in statement")
 		return b
 	}
 
@@ -202,7 +202,7 @@ func (b *sqlBuffer) writeFrom(fromTables ...string) *sqlBuffer {
 	}
 
 	if len(fromTables) == 0 {
-		b.err = fmt.Errorf("No from clause in statement")
+		b.err = fmt.Errorf("no from clause in statement")
 		return b
 	}
 
@@ -263,7 +263,7 @@ func (b *sqlBuffer) writeGroupByAndHaving(columns []string, conditions []*Condit
 
 	if len(conditions) != 0 {
 		if len(columns) == 0 {
-			b.err = fmt.Errorf("Having clause without Group By")
+			b.err = fmt.Errorf("having clause without Group By")
 			return b
 		}
 		b.Write(" HAVING ")
@@ -336,7 +336,7 @@ func (b *sqlBuffer) writeInto(intoTable string) *sqlBuffer {
 	}
 
 	if intoTable == "" {
-		b.err = fmt.Errorf("No INTO clause in INSERT statement")
+		b.err = fmt.Errorf("no INTO clause in INSERT statement")
 		return b
 	}
 
@@ -362,7 +362,7 @@ func (b *sqlBuffer) writeReturningForPosition(columns []string, position adapter
 
 	returningBuilder, ok := b.adapter.(adapters.ReturningBuilder)
 	if !ok {
-		b.err = fmt.Errorf("The adapter does not manage RETUNING-like clause")
+		b.err = fmt.Errorf("the adapter does not manage RETUNING-like clause")
 		return b
 	}
 
@@ -383,7 +383,7 @@ func (b *sqlBuffer) writeInsertValues(args [][]interface{}, columnsCount int) *s
 	}
 
 	if len(args) == 0 {
-		b.err = fmt.Errorf("Missing values in INSERT statement")
+		b.err = fmt.Errorf("missing values in INSERT statement")
 		return b
 	}
 
@@ -393,7 +393,7 @@ func (b *sqlBuffer) writeInsertValues(args [][]interface{}, columnsCount int) *s
 	groupCount := len(args)
 	for i, currentGroup := range args {
 		if len(currentGroup) != columnsCount {
-			b.err = fmt.Errorf("Values count does not match the columns count")
+			b.err = fmt.Errorf("values count does not match the columns count")
 			return b
 		}
 		b.WriteBytes(valuesPart, currentGroup...)
@@ -412,7 +412,7 @@ func (b *sqlBuffer) writeSets(sets []*setPart) *sqlBuffer {
 	}
 
 	if len(sets) == 0 {
-		b.err = fmt.Errorf("Missing SET clause in UPDATE statement")
+		b.err = fmt.Errorf("missing SET clause in UPDATE statement")
 		return b
 	}
 
@@ -443,10 +443,10 @@ func (b *sqlBuffer) writeNameList(nameList []string) *sqlBuffer {
 	for _, name := range nameList {
 		name = strings.TrimSpace(name)
 		if len(name) == 0 {
-			b.err = fmt.Errorf("Empty name")
+			b.err = fmt.Errorf("empty name")
 			return b
 		}
-		if firstName == false {
+		if !firstName {
 			b.Write(", ")
 		} else {
 			firstName = false

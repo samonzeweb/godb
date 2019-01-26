@@ -34,7 +34,7 @@ func buildRecordDescription(record interface{}) (*recordDescription, error) {
 
 	recordType := reflect.TypeOf(record)
 	if recordType.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Invalid argument, need a pointer, got a %s", recordType.Kind())
+		return nil, fmt.Errorf("invalid argument, need a pointer, got a %s", recordType.Kind())
 	}
 	recordType = recordType.Elem()
 
@@ -56,7 +56,7 @@ func buildRecordDescription(record interface{}) (*recordDescription, error) {
 	}
 
 	if recordType.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("Invalid argument, need a struct or structs slice, got a (or slice of) %s", recordType.Kind())
+		return nil, fmt.Errorf("invalid argument, need a struct or structs slice, got a (or slice of) %s", recordType.Kind())
 	}
 
 	var err error
@@ -74,7 +74,7 @@ func buildRecordDescription(record interface{}) (*recordDescription, error) {
 // If the record is a single instante it just use its pointer.
 // If the recod is a slice, it creates new instances and adds it to the slice.
 func (r *recordDescription) fillRecord(f func(record interface{}) error) error {
-	if r.isSlice == false {
+	if !r.isSlice {
 		return f(r.record)
 	}
 
@@ -107,7 +107,7 @@ func (r *recordDescription) fillRecord(f func(record interface{}) error) error {
 // Don't use the instance pointer for other use, don't change values,
 // don't store it for later use, ...
 func (r *recordDescription) getOneInstancePointer() interface{} {
-	if r.isSlice == false {
+	if !r.isSlice {
 		return r.record
 	}
 
@@ -118,7 +118,7 @@ func (r *recordDescription) getOneInstancePointer() interface{} {
 // If it is a slice, it returns the slice length, otherwise it returns 1 (for
 // a single instance).
 func (r *recordDescription) len() int {
-	if r.isSlice == false {
+	if !r.isSlice {
 		return 1
 	}
 	return reflect.Indirect(reflect.ValueOf(r.record)).Len()
@@ -126,7 +126,7 @@ func (r *recordDescription) len() int {
 
 // index returns the pointer to the record having the given index.
 func (r *recordDescription) index(i int) interface{} {
-	if r.isSlice == false {
+	if !r.isSlice {
 		return r.record
 	}
 

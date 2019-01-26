@@ -116,7 +116,7 @@ func (ss *StrSlice) Scan(src interface{}) error {
 		*ss = nil
 		return nil
 	default:
-		return fmt.Errorf("Incompatible type for StrSlice")
+		return fmt.Errorf("incompatible type for StrSlice")
 	}
 	err := json.Unmarshal(source, ss)
 	return err
