@@ -8,11 +8,7 @@ docker run --name postgresql -e 'POSTGRES_PASSWORD=NotSoStr0ngPassword' -p 5432:
 docker run --name sqlserver -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=NotSoStr0ngP@ssword' -p 1433:1433 -d microsoft/mssql-server-linux:latest
 
 # Install dependencies (while containers are starting)
-go get -v -u github.com/smartystreets/goconvey \
-		     github.com/mattn/go-sqlite3 \
-		     github.com/lib/pq  \
-		     github.com/go-sql-driver/mysql \
-		     github.com/denisenkom/go-mssqldb
+go mod download
 
 # If the containers take too long time to start, the script
 # wait for the given seconds args before using them.
@@ -38,7 +34,8 @@ docker exec -i sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P NotSo
 EOF
 export GODB_MSSQL="Server=localhost;Database=godb;User Id=sa;Password=NotSoStr0ngP@ssword"
 
-# Let's test !
+# Let's test (without cache) !
+go clean -testcache
 go test -v ./...
 testresult=$?
 
