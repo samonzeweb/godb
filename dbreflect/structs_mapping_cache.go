@@ -45,7 +45,7 @@ func (smc *StructsMappingCache) GetOrCreateStructMapping(structType reflect.Type
 // It is not thread safe, the caller has to manage the lock !
 // Dont't call it, use getOrCreateStructMap()
 func (smc *StructsMappingCache) getStructMapping(structType reflect.Type) *StructMapping {
-	return smc.structsMapping[structType.Name()]
+	return smc.structsMapping[structType.String()]
 }
 
 // createStructMapping create a StructMapping an add it to the cache
@@ -66,6 +66,6 @@ func (smc *StructsMappingCache) createStructMapping(structType reflect.Type) (*S
 		return nil, err
 	}
 
-	smc.structsMapping[structType.Name()] = structMapping
+	smc.structsMapping[structType.String()] = structMapping
 	return structMapping, nil
 }
