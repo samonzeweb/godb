@@ -1,6 +1,7 @@
 package dbreflect
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 )
@@ -45,7 +46,7 @@ func (smc *StructsMappingCache) GetOrCreateStructMapping(structType reflect.Type
 // It is not thread safe, the caller has to manage the lock !
 // Dont't call it, use getOrCreateStructMap()
 func (smc *StructsMappingCache) getStructMapping(structType reflect.Type) *StructMapping {
-	return smc.structsMapping[structType.Name()]
+	return smc.structsMapping[fmt.Sprintf("%s.%s", structType.PkgPath(), structType.Name())]
 }
 
 // createStructMapping create a StructMapping an add it to the cache
@@ -65,7 +66,6 @@ func (smc *StructsMappingCache) createStructMapping(structType reflect.Type) (*S
 	if err != nil {
 		return nil, err
 	}
-
-	smc.structsMapping[structType.Name()] = structMapping
+	smc.structsMapping[fmt.Sprintf("%s.%s", structType.PkgPath(), structType.Name())] = structMapping
 	return structMapping, nil
 }
