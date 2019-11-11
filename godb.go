@@ -157,19 +157,20 @@ func timeElapsedSince(startTime time.Time) time.Duration {
 	return time.Since(startTime)
 }
 
+// quote quotes all part of the given string using the current adapter.
+func (db *DB) quote(identifier string) string {
+	parts := strings.Split(identifier, ".")
+	for i := range parts {
+		parts[i] = db.adapter.Quote(parts[i])
+	}
+	return strings.Join(parts, ".")
+}
+
 // quoteAll returns all strings given quoted by the adapter.
 func (db *DB) quoteAll(identifiers []string) []string {
 	quotedIdentifiers := make([]string, 0, len(identifiers))
 	for _, identifier := range identifiers {
-		var quotedIdentifier string
-		parts := strings.Split(identifier, ".")
-		if len(parts) == 1 {
-			// just column
-			quotedIdentifier = db.adapter.Quote(identifier)
-		} else {
-			// table.column
-			quotedIdentifier = db.adapter.Quote(parts[0]) + "." + db.adapter.Quote(parts[1])
-		}
+		quotedIdentifier := db.quote(identifier)
 		quotedIdentifiers = append(quotedIdentifiers, quotedIdentifier)
 	}
 	return quotedIdentifiers

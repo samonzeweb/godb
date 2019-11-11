@@ -24,7 +24,7 @@ func (db *DB) Select(record interface{}) *StructSelect {
 		ss.error = err
 		return ss
 	}
-	quotedTableName := db.adapter.Quote(db.defaultTableNamer(ss.recordDescription.getTableName()))
+	quotedTableName := db.quote(db.defaultTableNamer(ss.recordDescription.getTableName()))
 	ss.selectStatement = db.SelectFrom(quotedTableName)
 	return ss
 }

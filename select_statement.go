@@ -3,7 +3,6 @@ package godb
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/samonzeweb/godb/adapters"
@@ -91,11 +90,7 @@ func (ss *SelectStatement) ColumnsFromStruct(record interface{}) *SelectStatemen
 // ColumnAlias allows to define alias for a column. Useful if selectable
 // columns are built with ColumnsFromStruct and when using joins.
 func (ss *SelectStatement) ColumnAlias(column, alias string) *SelectStatement {
-	quoted := strings.Split(column, ".")
-	for i := range quoted {
-		quoted[i] = ss.db.adapter.Quote(quoted[i])
-	}
-	ss.columnAliases[ss.db.adapter.Quote(alias)] = strings.Join(quoted, ".")
+	ss.columnAliases[ss.db.quote(alias)] = ss.db.quote(column)
 	return ss
 }
 
