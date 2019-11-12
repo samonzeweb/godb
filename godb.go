@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/samonzeweb/godb/adapters"
@@ -14,11 +15,12 @@ import (
 // Everything starts with a DB.
 // DB is not thread safe (see Clone).
 type DB struct {
-	adapter      adapters.Adapter
-	sqlDB        *sql.DB
-	sqlTx        *sql.Tx
-	logger       Logger
-	consumedTime time.Duration
+	adapter           adapters.Adapter
+	sqlDB             *sql.DB
+	sqlTx             *sql.Tx
+	logger            Logger
+	consumedTimeMutex sync.RWMutex
+	consumedTime      time.Duration
 	// Called to format db table name if TableName() func is not defined for model struct
 	defaultTableNamer tablenamer.NamerFn
 	// Prepared Statement cache for DB and Tx
@@ -138,17 +140,25 @@ func (db *DB) CurrentDB() *sql.DB {
 // ConsumedTime returns the time consumed by SQL queries executions
 // The duration is reseted when the DB is cloned.
 func (db *DB) ConsumedTime() time.Duration {
-	return db.consumedTime
+	var consumedTime time.Duration
+	db.consumedTimeMutex.RLock()
+	consumedTime = db.consumedTime
+	db.consumedTimeMutex.RUnlock()
+	return consumedTime
 }
 
 // ResetConsumedTime resets the time consumed by SQL queries executions
 func (db *DB) ResetConsumedTime() {
+	db.consumedTimeMutex.Lock()
 	db.consumedTime = 0
+	db.consumedTimeMutex.Unlock()
 }
 
 // addConsumedTime adds duration to the consumed time
 func (db *DB) addConsumedTime(duration time.Duration) {
+	db.consumedTimeMutex.Lock()
 	db.consumedTime += duration
+	db.consumedTimeMutex.UnLock()
 }
 
 // timeElapsedSince returns the time elapsed (duration) since a given
