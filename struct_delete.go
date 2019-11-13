@@ -30,7 +30,7 @@ func (db *DB) Delete(record interface{}) *StructDelete {
 		return sd
 	}
 
-	quotedTableName := db.adapter.Quote(db.defaultTableNamer(sd.recordDescription.getTableName()))
+	quotedTableName := db.quote(db.defaultTableNamer(sd.recordDescription.getTableName()))
 	sd.deleteStatement = db.DeleteFrom(quotedTableName)
 	return sd
 }
@@ -49,7 +49,7 @@ func (sd *StructDelete) Do() (int64, error) {
 		return 0, fmt.Errorf("the object of type %T has no key : ", sd.recordDescription.record)
 	}
 	for i, column := range keyColumns {
-		quotedColumn := sd.deleteStatement.db.adapter.Quote(column)
+		quotedColumn := sd.deleteStatement.db.quote(column)
 		sd.deleteStatement = sd.deleteStatement.Where(quotedColumn+" = ?", keyValues[i])
 	}
 

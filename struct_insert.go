@@ -62,7 +62,7 @@ func (db *DB) buildInsert(record interface{}) *StructInsert {
 		return si
 	}
 
-	quotedTableName := db.adapter.Quote(db.defaultTableNamer(si.recordDescription.getTableName()))
+	quotedTableName := db.quote(db.defaultTableNamer(si.recordDescription.getTableName()))
 	si.insertStatement = db.InsertInto(quotedTableName)
 	return si
 }

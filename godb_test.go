@@ -117,3 +117,28 @@ func TestTableNamer(t *testing.T) {
 		})
 	})
 }
+
+func TestQuote(t *testing.T) {
+	Convey("Given an existing DB", t, func() {
+		db := createInMemoryConnection(t)
+		defer db.Close()
+
+		Convey("quote act like adapter Quote with a simple identified", func() {
+			identifier := "foo"
+			quotedIdentifier := db.quote(identifier)
+
+			So(quotedIdentifier, ShouldEqual, db.adapter.Quote(identifier))
+		})
+
+		Convey("quote quotes all parts of an identifier", func() {
+			identifier := "foo.bar.baz"
+			quotedIdentifier := db.quote(identifier)
+
+			expectedQuotedIdentified := db.adapter.Quote("foo") + "." +
+				db.adapter.Quote("bar") + "." +
+				db.adapter.Quote("baz")
+
+			So(quotedIdentifier, ShouldEqual, expectedQuotedIdentified)
+		})
+	})
+}

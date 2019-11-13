@@ -6,7 +6,9 @@ package adapters
 type Adapter interface {
 	// DriverName must return the driver name to be used with sql.Open()
 	DriverName() string
-	// Quote must return an SQL identifier (table name, column name) quoted,
+	// Quote must return an SQL identifier (table name or column name) quoted.
+	// Quote has not to split the string is multiple parts, this is done by
+	// upper layers (it's common to different DB).
 	// ie : "foo" for SQLite or Postgresql, `foo` for MySQL, [foo] for SQLServer.
 	Quote(string) string
 	// ParseError parses adapter errors and returns a understandable DBError

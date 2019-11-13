@@ -36,7 +36,7 @@ func (db *DB) Update(record interface{}) *StructUpdate {
 		return su
 	}
 
-	quotedTableName := db.adapter.Quote(db.defaultTableNamer(su.recordDescription.getTableName()))
+	quotedTableName := db.quote(db.defaultTableNamer(su.recordDescription.getTableName()))
 	su.updateStatement = db.UpdateTable(quotedTableName)
 	return su
 }
@@ -97,7 +97,7 @@ func (su *StructUpdate) Do() error {
 
 	columns, values := su.recordDescription.structMapping.GetNonAutoFieldsValuesFiltered(su.recordDescription.record, columnsToUpdate, false)
 	for i, column := range columns {
-		quotedColumn := su.updateStatement.db.adapter.Quote(column)
+		quotedColumn := su.updateStatement.db.quote(column)
 		su.updateStatement = su.updateStatement.Set(quotedColumn, values[i])
 	}
 
@@ -108,7 +108,7 @@ func (su *StructUpdate) Do() error {
 		return fmt.Errorf("the object of type %T has no key : ", su.recordDescription.record)
 	}
 	for i, column := range keyColumns {
-		quotedColumn := su.updateStatement.db.adapter.Quote(column)
+		quotedColumn := su.updateStatement.db.quote(column)
 		su.updateStatement = su.updateStatement.Where(quotedColumn+" = ?", keyValues[i])
 	}
 
