@@ -100,8 +100,8 @@ func (db *DB) Clone() *DB {
 }
 
 // Clear closes current transaction (rollback) and frees statements caches.
-// It does not close de underlying database connection.
-// Use Clear when a clone of godb is not longer useful, or when
+// It does not close the underlying database connection.
+// Use Clear when a clone of godb is no longer useful, or when
 // you don't use anymore godb but want to keep the underlying database
 // connection open.
 func (db *DB) Clear() error {

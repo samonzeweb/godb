@@ -431,5 +431,17 @@ longer useful, especially if you don't scan all the resultset.
 		t.Fatal(err)
 	}
 
+
+Concurrency
+
+To avoid performance cost godb.DB does not implement synchronization. So a given
+instance of godb.DB should not be used by multiple goroutines. But a godb.DB
+instance can be created and used as a blueprint and cloned for each goroutine.
+See Clone and Clear methods.
+
+A typical use case is a web server. When the application starts a godb.DB is
+created, and cloned in each http handler with Clone, and ressources are to be
+freed calling Clear (use defer statement).
+
 */
 package godb
