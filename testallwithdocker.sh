@@ -17,7 +17,7 @@ STARTLOOP_MAXITERATIONS=10
 star_containers() {
     docker run --name mariadb -e "MYSQL_ROOT_PASSWORD=$MARIADB_PASSWORD" -p 3306:3306 -d mariadb:latest
     docker run --name postgresql -e "POSTGRES_PASSWORD=$POSTGRESQL_PASSWORD" -p 5432:5432 -d postgres:latest
-    docker run --name sqlserver -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=$SQLSERVER_PASSWORD" -p 1433:1433 -d microsoft/mssql-server-linux:latest
+    docker run --name sqlserver -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=$SQLSERVER_PASSWORD" -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
 }
 
 stop_containers() {
