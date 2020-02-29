@@ -1,6 +1,7 @@
 # Editors
 *.swp
 .vscode
+.idea
 
 # Profiling
 *.out
