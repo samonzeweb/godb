@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+    mariadb:
+        image: "mariadb:10.5.6"
+        environment:
+            - MYSQL_ROOT_PASSWORD=godb
+            - MYSQL_DATABASE=godb
+            - MYSQL_USER=godb
+            - MYSQL_PASSWORD=godb
+        ports:
+            - "3306:3306"
+    postgresql:
+        image: "postgres:13.0"
+        environment:
+            - POSTGRES_DB=godb
+            - POSTGRES_USER=godb
+            - POSTGRES_PASSWORD=godb
+        ports:
+            - "5432:5432"
+    sqlserver:
+        image: "mcr.microsoft.com/mssql/server:2019-latest"
+        environment: 
+            - ACCEPT_EULA=Y
+            - SA_PASSWORD=NotSoStr0ngP@ssword
+        ports:
+            - "1433:1433"

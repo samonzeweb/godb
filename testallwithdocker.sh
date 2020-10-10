@@ -1,28 +1,33 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Allow at least 4 Go to docker on OSX, SQL Server is greedy
+COMPOSE_FILE="docker-compose-test.yml"
 
-MARIADB_PASSWORD=NotSoStr0ngPassword
-export GODB_MYSQL="root:$MARIADB_PASSWORD@/godb?parseTime=true"
+MARIADB_USER=godb
+MARIADB_PASSWORD=godb
+export GODB_MYSQL="$MARIADB_USER:$MARIADB_PASSWORD@/godb?parseTime=true"
 
-POSTGRESQL_PASSWORD=NotSoStr0ngPassword
-export GODB_POSTGRESQL="postgres://postgres:$POSTGRESQL_PASSWORD@localhost/postgres?sslmode=disable"
+POSTGRESQL_USER=godb
+POSTGRESQL_PASSWORD=godb
+export GODB_POSTGRESQL="postgres://$POSTGRESQL_USER:$POSTGRESQL_PASSWORD@localhost/godb?sslmode=disable"
 
+SQLSERVER_USER=sa
 SQLSERVER_PASSWORD=NotSoStr0ngP@ssword
-export GODB_MSSQL="Server=localhost;Database=godb;User Id=sa;Password=$SQLSERVER_PASSWORD"
+export GODB_MSSQL="Server=127.0.0.1;Database=godb;User Id=$SQLSERVER_USER;Password=$SQLSERVER_PASSWORD"
 
 STARTLOOP_SLEEP=2
-STARTLOOP_MAXITERATIONS=10
+STARTLOOP_MAXITERATIONS=30
 
-star_containers() {
-    docker run --name mariadb -e "MYSQL_ROOT_PASSWORD=$MARIADB_PASSWORD" -p 3306:3306 -d mariadb:latest
-    docker run --name postgresql -e "POSTGRES_PASSWORD=$POSTGRESQL_PASSWORD" -p 5432:5432 -d postgres:latest
-    docker run --name sqlserver -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=$SQLSERVER_PASSWORD" -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
+start_containers() {
+    docker-compose -f "$COMPOSE_FILE" up -d
 }
 
 stop_containers() {
-    docker stop mariadb postgresql sqlserver
-    docker rm mariadb postgresql sqlserver
+    docker-compose -f "$COMPOSE_FILE" down
+}
+
+stop_containers_and_exit() {
+    docker-compose -f "$COMPOSE_FILE" down
+    exit 1
 }
 
 wait_db() {
@@ -42,22 +47,22 @@ wait_db() {
 }
 
 setup_mariadb() {
-    wait_db "MariaDB" "docker exec -it mariadb mysql -uroot -p$MARIADB_PASSWORD -h127.0.0.1 -e exit" \
+    wait_db "MariaDB" "docker exec -it godb_mariadb_1 mysql -u$MARIADB_USER -p$MARIADB_PASSWORD -h127.0.0.1 -e exit" \
     || return 1
 
-    docker exec -it mariadb mysql -uroot -p$MARIADB_PASSWORD -e "create database godb;"
+    #docker exec -it mariadb mysql -uroot -p$MARIADB_PASSWORD -e "create database godb;"
 }
 
 setup_postgresql() {
-    wait_db "PostgreSQL" "docker exec -it postgresql psql -Upostgres -c \\q" \
+    wait_db "PostgreSQL" "docker exec -it godb_postgresql_1 psql -U$POSTGRESQL_USER -c \\q" \
     || return 1
 }
 
 setup_sqlserver() {
-    wait_db "SQLServer" "docker exec -i sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $SQLSERVER_PASSWORD -q exit" \
+    wait_db "SQLServer" "docker exec -i godb_sqlserver_1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $SQLSERVER_PASSWORD -q exit" \
     || return 1
 
-    docker exec -i sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P NotSoStr0ngP@ssword <<-EOF
+    docker exec -i godb_sqlserver_1 /opt/mssql-tools/bin/sqlcmd -S localhost -U $SQLSERVER_USER -P NotSoStr0ngP@ssword <<-EOF
       create database godb;
       go
       alter database godb set READ_COMMITTED_SNAPSHOT ON;
@@ -66,19 +71,22 @@ setup_sqlserver() {
 EOF
 }
 
-# Start all containers
-star_containers || exit 1
-echo Containers are starting...
-sleep 5
 
-# Wait for and setup each DB
-setup_postgresql || stop_containers || exit 1
-setup_sqlserver || stop_containers || exit 1
-setup_mariadb || stop_containers || exit 1
-echo Containers are started, DB are ready.
+
+# Start all containers
+start_containers || stop_containers_and_exit
+echo Containers are starting...
 
 # Install dependencies (while containers are starting)
+echo Fetch Go dependencies
 go mod download
+
+# Wait for and setup each DB
+echo Wait until DB are ready
+setup_postgresql || stop_containers_and_exit
+setup_mariadb || stop_containers_and_exit
+setup_sqlserver || stop_containers_and_exit
+echo Containers are started, DB are ready.
 
 # Let's test (without cache) !
 go clean -testcache

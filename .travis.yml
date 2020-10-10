@@ -1,20 +1,21 @@
+dist: focal
 language: go
+
+services:
+  - docker
 
 go:
   - "1.13.x"
   - "1.14.x"
   - "1.15.x"
 
-services:
-  - postgresql
-  - mysql
-
 env:
-  - GODB_POSTGRESQL="sslmode=disable user=postgres dbname=godb_test" GODB_MYSQL="travis:@/godb_test?parseTime=true"
+  - DOCKER_COMPOSE_VERSION=1.27.4
 
-before_script:
-  - psql -c 'create database godb_test;' -U postgres
-  - mysql -e 'CREATE DATABASE godb_test;'
-  - mysql -e 'GRANT ALL ON godb_test.* to travis@localhost;'
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
 
-script: go test -v ./...
+script: ./testallwithdocker.sh

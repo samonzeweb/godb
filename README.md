@@ -102,11 +102,6 @@ Using Docker you can test with SQLite, PostgreSQL, MariaDB and SQL Server with t
 
 SQL Server is greedy, on OSX allow at least 4Go to Docker.
 
-If the containers are slow to start, the script could wait before accessing them. Simply add the time to wait in seconds as arguments :
-
-```
-./testallwithdocker.sh 15
-```
 
 ## Example
 
