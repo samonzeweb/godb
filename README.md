@@ -27,6 +27,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 - BlackListing or WhiteListing columns for struct based inserts and updates.
 - Could by used with
   - SQLite
+  - ql(modernc.org/ql)
   - PostgreSQL
   - MySQL / MariaDB
   - MS SQL Server
@@ -101,7 +102,6 @@ GODB_MSSQL="your connection string" go test ./...
 Using Docker you can test with SQLite, PostgreSQL, MariaDB and SQL Server with the `testallwithdocker.sh` shell script.
 
 SQL Server is greedy, on OSX allow at least 4Go to Docker.
-
 
 ## Example
 

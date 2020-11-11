@@ -11,4 +11,5 @@ require (
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0 // indirect
+	modernc.org/ql v1.2.0
 )
