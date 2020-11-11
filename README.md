@@ -27,7 +27,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 - BlackListing or WhiteListing columns for struct based inserts and updates.
 - Could by used with
   - SQLite
-  - ql(modernc.org/ql)
+  - ql(both ql1 & ql2 drivers)
   - PostgreSQL
   - MySQL / MariaDB
   - MS SQL Server
