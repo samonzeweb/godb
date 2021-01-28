@@ -55,6 +55,11 @@ func (su *StructUpdate) WhitelistReset() *StructUpdate {
 	return su
 }
 
+// GetWhitelist returns whiteList
+func (su *StructUpdate) GetWhitelist() []string {
+	return su.whiteList
+}
+
 // Blacklist saves columns not to be updated from struct
 // It adds columns to list each time it is called. If a column defined in whitelist is
 // also given in black list than that column will be blacklisted.
@@ -67,6 +72,11 @@ func (su *StructUpdate) Blacklist(columns ...string) *StructUpdate {
 func (su *StructUpdate) BlacklistReset() *StructUpdate {
 	su.blackList = nil
 	return su
+}
+
+// GetBlacklist returns blackList
+func (su *StructUpdate) GetBlacklist() []string {
+	return su.blackList
 }
 
 // Do executes the UPDATE statement for the struct given to the Update method.
