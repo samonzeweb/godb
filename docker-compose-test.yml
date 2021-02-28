@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
     mariadb:
-        image: "mariadb:10.5.6"
+        image: "mariadb:10.5.9"
         environment:
             - MYSQL_ROOT_PASSWORD=godb
             - MYSQL_DATABASE=godb
@@ -11,7 +11,7 @@ services:
         ports:
             - "3306:3306"
     postgresql:
-        image: "postgres:13.0"
+        image: "postgres:13.2"
         environment:
             - POSTGRES_DB=godb
             - POSTGRES_USER=godb
