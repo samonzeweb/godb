@@ -4,8 +4,6 @@ import (
 	"strings"
 
 	"github.com/samonzeweb/godb/dberror"
-
-	sqlite3 "github.com/mattn/go-sqlite3"
 )
 
 type SQLite struct{}
@@ -25,13 +23,14 @@ func (SQLite) ParseError(err error) error {
 		return nil
 	}
 
-	e, _ := err.(sqlite3.Error)
-	switch e.ExtendedCode {
-	case sqlite3.ErrConstraintUnique:
-		return dberror.UniqueConstraint{Message: e.Error(), Field: strings.Split(strings.Split(e.Error(), "failed: ")[1], ".")[1], Err: e}
-	case sqlite3.ErrConstraintCheck:
-		return dberror.CheckConstraint{Message: e.Error(), Field: strings.Split(strings.Split(e.Error(), "failed: ")[1], ".")[1], Err: e}
-	default:
-		return err
+	errMsg := err.Error()
+
+	switch {
+	case strings.Contains(errMsg, "constraint failed") && strings.Contains(errMsg, "foreign key "):
+		return dberror.UniqueConstraint{Message: errMsg, Field: strings.Split(strings.Split(errMsg, "failed: ")[1], ".")[1], Err: err}
+	case strings.Contains(errMsg, "constraint failed"):
+		return dberror.CheckConstraint{Message: errMsg, Field: strings.Split(strings.Split(errMsg, "failed: ")[1], ".")[1], Err: err}
 	}
+
+	return err
 }

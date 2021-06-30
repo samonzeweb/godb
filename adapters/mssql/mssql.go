@@ -8,8 +8,6 @@ import (
 	"github.com/samonzeweb/godb/adapters"
 	"github.com/samonzeweb/godb/dberror"
 	"github.com/samonzeweb/godb/dbreflect"
-
-	_ "github.com/denisenkom/go-mssqldb"
 )
 
 // init registers types of mssql package corresponding to fields values
@@ -99,6 +97,7 @@ func (MSSQL) ParseError(err error) error {
 	if err == nil {
 		return nil
 	}
+
 	if e, ok := err.(ErrorWithNumber); ok {
 		switch e.SQLErrorNumber() {
 		case 2601:
