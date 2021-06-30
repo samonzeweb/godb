@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	pq "github.com/lib/pq"
 	"github.com/samonzeweb/godb/adapters"
 	"github.com/samonzeweb/godb/dberror"
 )
@@ -53,11 +52,11 @@ func (p PostgreSQL) ReturningBuild(columns []string) string {
 }
 
 func (p PostgreSQL) FormatForNewValues(columns []string) []string {
-	formatedColumns := make([]string, 0, len(columns))
+	formattedColumns := make([]string, 0, len(columns))
 	for _, column := range columns {
-		formatedColumns = append(formatedColumns, p.Quote(column))
+		formattedColumns = append(formattedColumns, p.Quote(column))
 	}
-	return formatedColumns
+	return formattedColumns
 }
 
 func (p PostgreSQL) GetReturningPosition() adapters.ReturningPosition {
@@ -69,15 +68,15 @@ func (p PostgreSQL) ParseError(err error) error {
 		return nil
 	}
 
-	if e, ok := err.(*pq.Error); ok {
-		switch e.Code {
-		case "23505":
-			return dberror.UniqueConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "constraint \"", "\""), Err: e}
-		case "23503":
-			return dberror.ForeignKeyConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "constraint \"", "\""), Err: e}
-		case "23514":
-			return dberror.CheckConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "constraint \"", "\""), Err: e}
-		}
+	errMsg := err.Error()
+
+	switch {
+	case strings.Contains(errMsg, "duplicate key value violates unique constraint") || strings.Contains(errMsg, "(SQLSTATE 23505)"):
+		return dberror.UniqueConstraint{Message: errMsg, Field: dberror.ExtractStr(errMsg, "constraint \"", "\""), Err: err}
+	case strings.Contains(errMsg, "violates foreign key constraint") || strings.Contains(errMsg, "(SQLSTATE 23503)"):
+		return dberror.ForeignKeyConstraint{Message: errMsg, Field: dberror.ExtractStr(errMsg, "constraint \"", "\""), Err: err}
+	case strings.Contains(errMsg, "violates check constraint") || strings.Contains(errMsg, "(SQLSTATE 23514)"):
+		return dberror.CheckConstraint{Message: errMsg, Field: dberror.ExtractStr(errMsg, "constraint \"", "\""), Err: err}
 	}
 
 	return err

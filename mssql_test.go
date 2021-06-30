@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/samonzeweb/godb"
 	"github.com/samonzeweb/godb/adapters/mssql"
 	"github.com/samonzeweb/godb/dbtests/common"

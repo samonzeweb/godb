@@ -26,10 +26,10 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 - Define model struct name to db table naming with `db.SetDefaultTableNamer(yourFn)`. Supported types are: Plural,Snake,SnakePlural. You can also define `TableName() string` method to for your struct and return whatever table name will be.
 - BlackListing or WhiteListing columns for struct based inserts and updates.
 - Could by used with
-  - SQLite
-  - PostgreSQL
-  - MySQL / MariaDB
-  - MS SQL Server
+  - [SQLite](github.com/mattn/go-sqlite3)
+  - [PostgreSQL](github.com/lib/pq)
+  - [MySQL / MariaDB](github.com/go-sql-driver/mysql)
+  - [MS SQL Server](github.com/denisenkom/go-mssqldb)
   - other compatible database if you write an adapter.
 
 I made tests of godb on differents architectures and operating systems : OSX, Windows, Linux, ARM (Cortex A7) and Intel x64.
@@ -119,6 +119,7 @@ import (
 
 	"github.com/samonzeweb/godb"
 	"github.com/samonzeweb/godb/adapters/sqlite"
+	_ "github.com/mattn/go-sqlite" // must include preferred driver
 	"log"
 	"os"
 )
