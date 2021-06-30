@@ -1,12 +1,12 @@
 package godb_test
 
 import (
-	"os"
-	"testing"
-
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/samonzeweb/godb"
 	"github.com/samonzeweb/godb/adapters/mysql"
 	"github.com/samonzeweb/godb/dbtests/common"
+	"os"
+	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

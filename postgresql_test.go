@@ -1,13 +1,13 @@
 package godb_test
 
 import (
-	"os"
-	"testing"
-	"time"
-
+	_ "github.com/lib/pq"
 	"github.com/samonzeweb/godb"
 	"github.com/samonzeweb/godb/adapters/postgresql"
 	"github.com/samonzeweb/godb/dbtests/common"
+	"os"
+	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
