@@ -1,6 +1,6 @@
 # godb - a Go query builder and struct mapper
 
-![Test Status](https://github.com/samonzeweb/godb/actions/workflows/test-godb/badge.svg) [![GoDoc](https://godoc.org/github.com/samonzeweb/godb?status.svg)](https://godoc.org/github.com/samonzeweb/godb)
+![CI Status](https://github.com/samonzeweb/godb/actions/workflows/test-godb.yml/badge.svg) [![GoDoc](https://godoc.org/github.com/samonzeweb/godb?status.svg)](https://godoc.org/github.com/samonzeweb/godb)
 
 godb is a simple Go query builder and struct mapper, not a full-featured ORM. godb does not manage relationships.
 
