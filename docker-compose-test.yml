@@ -1,27 +1,30 @@
 version: "3.8"
 
 services:
-    mariadb:
-        image: "mariadb:10.5.9"
-        environment:
-            - MYSQL_ROOT_PASSWORD=godb
-            - MYSQL_DATABASE=godb
-            - MYSQL_USER=godb
-            - MYSQL_PASSWORD=godb
-        ports:
-            - "3306:3306"
-    postgresql:
-        image: "postgres:13.2"
-        environment:
-            - POSTGRES_DB=godb
-            - POSTGRES_USER=godb
-            - POSTGRES_PASSWORD=godb
-        ports:
-            - "5432:5432"
-    sqlserver:
-        image: "mcr.microsoft.com/mssql/server:2019-latest"
-        environment: 
-            - ACCEPT_EULA=Y
-            - SA_PASSWORD=NotSoStr0ngP@ssword
-        ports:
-            - "1433:1433"
+  mariadb:
+    image: "mariadb:10.6"
+    container_name: "godb_test_mariadb"
+    environment:
+      - MYSQL_ROOT_PASSWORD=godb
+      - MYSQL_DATABASE=godb
+      - MYSQL_USER=godb
+      - MYSQL_PASSWORD=godb
+    ports:
+      - "3306:3306"
+  postgresql:
+    image: "postgres:14.0"
+    container_name: "godb_test_postgresql"
+    environment:
+      - POSTGRES_DB=godb
+      - POSTGRES_USER=godb
+      - POSTGRES_PASSWORD=godb
+    ports:
+      - "5432:5432"
+  sqlserver:
+    image: "mcr.microsoft.com/mssql/server:2019-latest"
+    container_name: "godb_test_sqlserver"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=NotSoStr0ngP@ssword
+    ports:
+      - "1433:1433"

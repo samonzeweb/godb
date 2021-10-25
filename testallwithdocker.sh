@@ -47,22 +47,20 @@ wait_db() {
 }
 
 setup_mariadb() {
-    wait_db "MariaDB" "docker exec -it godb_mariadb_1 mysql -u$MARIADB_USER -p$MARIADB_PASSWORD -h127.0.0.1 -e exit" \
+    wait_db "MariaDB" "docker exec godb_test_mariadb mysql -u$MARIADB_USER -p$MARIADB_PASSWORD -h127.0.0.1 -e exit" \
     || return 1
-
-    #docker exec -it mariadb mysql -uroot -p$MARIADB_PASSWORD -e "create database godb;"
 }
 
 setup_postgresql() {
-    wait_db "PostgreSQL" "docker exec -it godb_postgresql_1 psql -U$POSTGRESQL_USER -c \\q" \
+    wait_db "PostgreSQL" "docker exec godb_test_postgresql psql -U$POSTGRESQL_USER -c \\q" \
     || return 1
 }
 
 setup_sqlserver() {
-    wait_db "SQLServer" "docker exec -i godb_sqlserver_1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $SQLSERVER_PASSWORD -q exit" \
+    wait_db "SQLServer" "docker exec godb_test_sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $SQLSERVER_PASSWORD -q exit" \
     || return 1
 
-    docker exec -i godb_sqlserver_1 /opt/mssql-tools/bin/sqlcmd -S localhost -U $SQLSERVER_USER -P NotSoStr0ngP@ssword <<-EOF
+    docker exec -i godb_test_sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U $SQLSERVER_USER -P NotSoStr0ngP@ssword <<-EOF
       create database godb;
       go
       alter database godb set READ_COMMITTED_SNAPSHOT ON;

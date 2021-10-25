@@ -1,0 +1,18 @@
+name: test-godb
+on: [push]
+jobs:
+  test-all:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: ['1.13', '1.14', '1.15', '1.16', '1.17']
+    name: Go ${{ matrix.go }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+      - run: docker version
+      - run: docker-compose version
+      - run: ./testallwithdocker.sh

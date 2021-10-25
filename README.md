@@ -1,6 +1,6 @@
 # godb - a Go query builder and struct mapper
 
-[![Build Status](https://travis-ci.org/samonzeweb/godb.svg?branch=master)](https://travis-ci.org/samonzeweb/godb) [![GoDoc](https://godoc.org/github.com/samonzeweb/godb?status.svg)](https://godoc.org/github.com/samonzeweb/godb)
+![Test Status](https://github.com/samonzeweb/godb/actions/workflows/test-godb/badge.svg) [![GoDoc](https://godoc.org/github.com/samonzeweb/godb?status.svg)](https://godoc.org/github.com/samonzeweb/godb)
 
 godb is a simple Go query builder and struct mapper, not a full-featured ORM. godb does not manage relationships.
 
@@ -34,7 +34,7 @@ godb is a project that is still young and evolving. The API is almost stable, bu
 
 I made tests of godb on differents architectures and operating systems : OSX, Windows, Linux, ARM (Cortex A7) and Intel x64.
 
-The current version of godb is compatible from Go 1.13 to 1.16. Older versions through 1.10 to 1.12 are supported by the [v1.0.14 tag](https://github.com/samonzeweb/godb/tree/v1.0.14) .
+The current version of godb is compatible from Go 1.13 to 1.17. Older versions through 1.10 to 1.12 are supported by the [v1.0.14 tag](https://github.com/samonzeweb/godb/tree/v1.0.14) .
 
 ## Documentation
 
@@ -101,7 +101,6 @@ GODB_MSSQL="your connection string" go test ./...
 Using Docker you can test with SQLite, PostgreSQL, MariaDB and SQL Server with the `testallwithdocker.sh` shell script.
 
 SQL Server is greedy, on OSX allow at least 4Go to Docker.
-
 
 ## Example
 
