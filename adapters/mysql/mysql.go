@@ -1,8 +1,8 @@
 package mysql
 
 import (
-	"github.com/go-sql-driver/mysql"
 	"github.com/samonzeweb/godb/dberror"
+	"strings"
 )
 
 type MySQL struct{}
@@ -21,13 +21,13 @@ func (MySQL) ParseError(err error) error {
 	if err == nil {
 		return nil
 	}
-	if e, ok := err.(*mysql.MySQLError); ok {
-		switch e.Number {
-		case 1062:
-			return dberror.UniqueConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "key '", "'"), Err: e}
-		case 1452:
-			return dberror.CheckConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "CONSTRAINT `", "`"), Err: e}
-		}
+	errMsg := err.Error()
+
+	switch {
+	case strings.Contains(errMsg, "Error 1062:"):
+		return dberror.UniqueConstraint{Message: errMsg, Field: dberror.ExtractStr(errMsg, "key '", "'"), Err: err}
+	case strings.Contains(errMsg, "Error 1452:"):
+		return dberror.CheckConstraint{Message: errMsg, Field: dberror.ExtractStr(errMsg, "CONSTRAINT `", "`"), Err: err}
 	}
 
 	return err
