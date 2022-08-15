@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   mariadb:
-    image: "mariadb:10.6"
+    image: "mariadb:10.8"
     container_name: "godb_test_mariadb"
     environment:
       - MYSQL_ROOT_PASSWORD=godb
@@ -21,7 +21,7 @@ services:
     ports:
       - "5432:5432"
   sqlserver:
-    image: "mcr.microsoft.com/mssql/server:2019-latest"
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
     container_name: "godb_test_sqlserver"
     environment:
       - ACCEPT_EULA=Y
