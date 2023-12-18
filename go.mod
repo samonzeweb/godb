@@ -11,5 +11,5 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/smartystreets/assertions v1.13.0 // indirect
 	github.com/smartystreets/goconvey v1.7.2
-	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 )
